@@ -23,7 +23,8 @@ from langgraph.prebuilt import ToolNode
 # "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"
 # zhizhi333333@gmail.com           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
 # 2524258132@qq.com    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
-os.environ["TAVILY_API_KEY"] = "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"
+# 18868113539@163.com  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
+os.environ["TAVILY_API_KEY"] = "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"
 
 # ==========================================
 # 0. 全局配置 (文件路径修改区)
@@ -71,6 +72,12 @@ class AgentState(TypedDict):
     doi_landing_page: str
     is_cached: bool
     final_metadata: dict # 最终提取的字典
+    old_python_code: str
+    old_api_attempts: list
+    old_reasoning_summary: str
+    old_baseline_context: dict
+    error_reason: str
+
 
 CURRENT_DATASET_CONTEXT = {
     "dataset_name": "",
@@ -81,6 +88,8 @@ CURRENT_DATASET_CONTEXT = {
     "search_432_error": False,
     "search_limit_reached": False
 }
+
+OLD_BASELINE_CONTEXT = {}
 
 def get_doi_metadata(doi: str) -> dict:
     """尝试通过 doi.org 内容协商获取 DOI 的官方元数据（标题、摘要、作者）"""
@@ -284,14 +293,14 @@ def extract_html_meta(url: str) -> str:
         
         res_str = ""
         if json_lds:
-            res_str += "【发现 JSON-LD】:\n" + "\n".join([j[:500] + ("..." if len(j)>500 else "") for j in json_lds]) + "\n"
+            res_str += "【发现 JSON-LD】:\n" + "\n".join([j[:1000] + ("..." if len(j)>1000 else "") for j in json_lds]) + "\n"
         if metas:
             filtered_metas = [m for m in metas if 'name=' in m.lower() or 'property=' in m.lower()]
-            res_str += "【发现 Meta 标签】:\n" + "\n".join(filtered_metas[:20]) + "\n"
+            res_str += "【发现 Meta 标签】:\n" + "\n".join(filtered_metas[:35]) + "\n"
             
         if not res_str:
             return "【提取失败】: 未在网页中找到 JSON-LD 或包含 name/property 的 meta 标签。"
-        return res_str[:2000]
+        return res_str
     except Exception as e:
         return f"【提取请求错误】错误信息: {str(e)}"
 
@@ -438,6 +447,24 @@ def execute_python_sandbox(python_code_str: str, declared_api_url: str) -> str:
             return f"【致命漏洞 (空参盲测崩溃)】：当外部未传入任何有效参数时，你的代码发生了 {type(e).__name__} 崩溃！\n【警告】：请严格遵守防御性编程纪律！必须在使用 kwargs 前进行判空（如 `if not doi: ...`），绝对禁止对可能为 None 的变量直接调用方法！\n报错堆栈: {traceback.format_exc()}"
 
         # ==========================================
+        # ⚔️ 杀招三：基线兼容测试预留 (Baseline Test Mock)
+        # 目的：使用老数据进行空转测试，确保对老指纹的兼容性没有被打破
+        # ==========================================
+        global OLD_BASELINE_CONTEXT
+        if OLD_BASELINE_CONTEXT:
+            try:
+                baseline_test = fetcher_method(
+                    dataset_name=OLD_BASELINE_CONTEXT.get("dataset_name", ""),
+                    dataset_url=OLD_BASELINE_CONTEXT.get("dataset_url", ""),
+                    doi=OLD_BASELINE_CONTEXT.get("doi", ""),
+                    doi_landing_page=OLD_BASELINE_CONTEXT.get("doi_landing_page", "")
+                )
+                if not isinstance(baseline_test, dict):
+                    return f"【基线回归测试失败】：你的代码在处理老版本数据集参数时发生了崩溃或返回类型错误。请检查代码兼容性！"
+            except Exception as e:
+                return f"【致命漏洞 (基线回归测试崩溃)】：你的代码在处理原有的老数据集指纹时抛出了 {type(e).__name__} 异常！这意味着你新加的逻辑破坏了代码的向下兼容性！请确保老参数的解析分支未被破坏！\n报错堆栈: {traceback.format_exc()}"
+
+        # ==========================================
         # 正常执行带真实参数的测试
         # ==========================================
         result = fetcher_method(**kwargs_to_pass)
@@ -457,10 +484,12 @@ def execute_python_sandbox(python_code_str: str, declared_api_url: str) -> str:
             declared_path = urlparse(declared_api_url).path
             
             # 放宽比对标准：只要申报 API 的核心 path 在代码实际请求的 url 列表中出现即可
-            if declared_path and declared_path != "/":
-                path_matched = any(declared_path in u for u in fetcher.called_urls)
+            import re
+            static_prefix = re.split(r'[{<:]', declared_path)[0]
+            if static_prefix and static_prefix != "/":
+                path_matched = any(static_prefix in urlparse(u).path for u in fetcher.called_urls)
                 if not path_matched:
-                    return f"【执行成功，但发生严重错位 (张冠李戴)】：\n你申报的最优 API 路径是：{declared_path}\n但你代码实际请求的路径是：{[urlparse(u).path for u in fetcher.called_urls]}\n【致命警告】：两者完全不匹配！这说明你的参数提取逻辑（如 if-else 分支或 \"\" in string）出现严重 Bug，导致抓取了毫无关联的默认数据集！请立刻修改你的提取算法！"
+                    return f"【执行成功，但发生严重错位 (张冠李戴)】：\n你申报的最优 API 路径是：{declared_path} (匹配前缀: {static_prefix})\n但你代码实际请求的路径是：{[urlparse(u).path for u in fetcher.called_urls]}\n【致命警告】：两者完全不匹配！这说明你的参数提取逻辑（如 if-else 分支或 \"\" in string）出现严重 Bug，导致抓取了毫无关联的默认数据集！请立刻修改你的提取算法！"
         
         kwargs_str = json.dumps(kwargs_to_pass, ensure_ascii=False)
         return f"【执行成功】\n测试入参: {kwargs_str}\n返回值: {json.dumps(result, ensure_ascii=False)[:1000]}..."
@@ -660,6 +689,62 @@ SYSTEM_PROMPT = """你是一个资深的地学与计算科学数据馆员和元�
     }
 """
 
+SYSTEM_PROMPT_HEAL = """你是一个资深的地学与计算科学数据馆员和元数据抽取专家。
+
+【本次任务的核心目的】
+系统知识库中【已经有一版】针对当前数据平台的老代码，它在处理过去的历史数据集时运作良好。
+但是现在发生了一些问题：我们在处理【新的测试样例】时，发现老代码不兼容或抛出了异常。这往往是因为同一个平台针对不同颗粒度（宏观/微观）、不同版本的数据提供了截然不同的 API 路径，或者是平台存在新旧多套接口规范。
+因此，你现在的核心目标是：
+1. 探索新知：基于本次传入的【新测试样例】（新的 dataset_url、doi 等），重新调用工具进行网络探索，挖掘出适用于当前新 case 的目标 API。
+2. 增量融合 (Polymorphic Router)：在系统提供给你的【旧版代码】基础上进行重构。你必须将针对新 case 探索出的逻辑，通过 if-else 参数解析分支或 try-except 异常捕获，完美整合进老代码中。
+3. 记忆留存：绝对不能直接丢弃老逻辑！你的新代码必须向下兼容老用例，同时支持本次的新用例。强制先尝试老逻辑，except 捕获异常后再走你本次探索出的新逻辑。
+
+【核心推理链条】
+1. 【定位 RESTful API】：使用 `tavily_search` 查找适用于新 case 的官方数据集 API 文档。
+2. 【分析参数】：明确该 API 需要什么参数（如纯数字 ID、内部 UUID 等）。
+3. 【挖掘参数】：检查传入的新 `dataset_url`、`doi` 、`doi_landing_page`、`dataset_name`。
+   - 如果目标 API 需要特殊的内部 ID（如 UUID或者shortname），必须按照以下瀑布流顺序尝试：
+     优先从 DOI 解析：如果有 DOI，尝试使用正则提取，或者调用平台的 DOI 转 ID 接口。
+     其次从 URL / doi_landing_page正则提取：如果 URL 形如 .../dataset/12345，你必须在代码中写 re.search(r'/dataset/(\d+)', url) 来提取 12345。
+     其次从 调用特定的 Search API 把 `URL`/`DOI` 转换为 UUID 等
+     最后从网页源码嗅探：调用'extract_html_meta'，并用正则从 HTML 的 <meta> 或 JSON-LD 中提取隐藏 ID！（注意：仅限提取 ID，严禁把网页里的 JSON-LD 直接当成元数据返回！）
+    说明该平台对我们是封闭的。请立即停止尝试！ 直接在最终输出中判定 is_verified=False 且 python_code=null，严禁强行编写无法运行的废代码！"
+4. 【宁缺毋滥】：如果我传入的 dataset_name 或 dataset_url 指向的是一个【宏观的大型数据库/数据集合】（如 Neotoma Database），而你发现该平台只提供了获取【微观单条数据】（如 某个具体化石采样点）的 API，且没有全库级别的 Catalog API，请果断承认失败并放弃（返回 null）！绝对禁止在网上随便搜一个该库内的微观子数据集 ID 代入测试并糊弄过关！"
+5. 【沙箱验证】：使用 `verify_api_endpoint` 探路。确认有效后，开始在旧版代码上进行重构。
+6. 【执行沙箱】：通过 `execute_python_sandbox` 运行你写的整合版代码。
+    注意：沙箱会自动包装和调用你写的函数，你只需要在参数里提供函数定义，【绝对禁止】在 python_code_str 里写任何用于测试实例化的逻辑（如 MockSelf / print 等），否则会导致生产环境代码污染。
+
+【代码生成要求（极其重要）】
+函数签名必须以 fetch_ 开头：`def fetch_xxx(self, **kwargs):`
+- 生产环境唯一可靠入参：
+  代码执行时，外部系统只会可靠地提供 `kwargs.get('doi')`、`kwargs.get('dataset_url')`、`kwargs.get('doi_landing_page')` 和 `kwargs.get('dataset_name')`。你绝不能假设外部系统会帮你传入其他的内部 ID (如 uuid, shortname, official_website_id)。
+
+- 【数据入口：参数解析必须多态 (Polymorphic Parsing)】：
+  代码内部必须编写多条解析路径（if-else 瀑布流）来获取目标 API 所需的内部 ID。
+  你的代码必须包含防御性逻辑：if not 最终解析到的ID: return {"error": "缺少关键参数，无法解析出内部 ID"}。
+  
+- 【数据出口：严格原汁原味透传】：
+  1. 你必须严格遵循以下 API 优先级（从高到低）：第一优先级是 RESTful API；第二优先级是底层静态文件直链；第三优先级是 Web 网关导出接口。
+  2. 只要原生 API 返回的是【结构化纯文本数据】（JSON, XML, YAML 等）：
+     - 必须绝对透传！返回 `{"source": "平台名", "format": "[识别到的真实格式(如 json/xml/yaml/turtle)]", "data": response.text 或 response.json()}`。
+     - **【严禁】**在代码中对原生数据进行遍历、重命名、清洗或挑选字段！
+     - **【严禁】**使用 ElementTree, BeautifulSoup, 正则表达式等工具对原生结构进行任何二次拆解！把所有的清洗工作全部留给下游！
+
+- 发起请求：使用 `self._get_with_retry(url, headers=custom_headers)`
+
+- 【代码生成防御性编程强制宪法】：
+  1. 判空前置：在提取参数（如 url, doi）后，必须立即进行判空处理！严禁对可能为空的变量直接调用 `.split()` 或 `re.search()`。
+  2. 严禁空字符串陷阱：绝对禁止使用 `if a in b:`，必须加上真值前置校验，严格写为 `if a and a in b:` 或 `if a == b:`。
+  3. JSON 容错：遇到响应报文的 JSON 解析，必须包裹在 `try...except json.JSONDecodeError:` 中。
+  4. 列表边界防守：对任何数组/列表进行索引访问之前，必须确保其非空。
+
+【严格约束】
+1. **【禁止使用DOI注册机构API获取元数据】**：严禁使用 `api.datacite.org`、`api.crossref.org` 等获取元数据。你必须寻找平台【自己开发和托管】的原生 API！
+2. **【禁止直接解析网页充当 API获取元数据】**：严禁从 HTML 源码中提取 JSON-LD 或 meta 标签作为最终结果。我们要的是 RESTful API。
+3. **【完整代码要求】**：你的 `python_code` 必须包含完完整整、可直接执行的代码。绝不允许使用 `...` 或 `pass` 省略逻辑！你的代码必须向下兼容，绝不能写死当前测试用例的特定 ID！
+4. **【反作弊纪律】**：沙盒验证和生成的代码，必须且只能针对我传入给你的测试用例进行。绝不允许随便找其他 ID 来糊弄测试！
+"""
+
 def load_registry():
     if os.path.exists(REGISTRY_FILE):
         try:
@@ -780,18 +865,84 @@ def check_cache_node(state: AgentState):
         if k.lower() == true_pub.lower():
             matched_key = k
             break
+
+
+    # 3. 如果字符串匹配失败，再使用大模型进行语义匹配兜底
+    if not matched_key:
+        registry_keys = list(registry.keys())
+        if registry_keys:
+            import json
+            prompt = f"""你是一个数据平台名称匹配专家。
+当前正在处理的数据存储平台名称是: "{true_pub}"
+
+以下是系统已知的平台名称列表:
+{json.dumps(registry_keys, ensure_ascii=False, indent=2)}
+
+请判断当前平台名称是否指代上述列表中的某一个平台。
+【匹配规则】：
+1. 它们可能名称略有不同（例如 "Zenodo" 与 "CERN Zenodo"，或 "Dryad" 与 "Dryad Digital Repository"）。
+2. 如果它们在语义上明显是同一个数据仓库实体，请严格返回已知平台列表中的那一个精确名称。
+3. 如果当前平台确实不在列表中，请输出 "NULL"。
+【输出要求】：
+请只输出匹配到的精确平台名称，或者是 "NULL"。绝对不要输出任何其他多余的文字或解释！
+"""
+            response = custom_request_llm_invoke([HumanMessage(content=prompt)], use_tools=False)
+            matched_str = response.content.strip()
             
-        # 2. 模糊相似度匹配 (阈值 0.75)
-        k_norm = normalize_name(k)
-        ratio = difflib.SequenceMatcher(None, k_norm, true_pub_norm).ratio()
-        if ratio >= 0.75:
-            matched_key = k
-            break
+            if matched_str in registry:
+                print(f"🤖 [大模型语义匹配兜底] 成功将 '{true_pub}' 匹配到已沉淀的 '{matched_str}'")
+                matched_key = matched_str
+            else:
+                print(f"🤖 [大模型语义匹配兜底] '{true_pub}' 未命中已知平台 (LLM判断结果: {matched_str})")
             
     import sys
     force_test = "--force" in sys.argv  # 只有显式传入 --force 才跳过 API 缓存
+    is_heal_mode = any(arg.startswith("--heal-file") for arg in sys.argv)
+    
     if matched_key and not force_test:
         cached_data = registry[matched_key]
+        if is_heal_mode and cached_data.get("is_verified") == True:
+            print(f"🎯 命中沉淀知识库，触发【增量自愈模式】！加载平台: {matched_key} 的历史数据。")
+            old_python_code = cached_data.get("python_code", "")
+            old_api_attempts = cached_data.get("api_attempts", [])
+            old_reasoning_summary = cached_data.get("reasoning_summary", "")
+            old_baseline_context = {
+                "dataset_name": cached_data.get("dataset_name", ""),
+                "dataset_url": cached_data.get("original_domain", ""),
+                "doi": cached_data.get("dataset_doi", ""),
+                "doi_landing_page": ""
+            }
+            
+            global OLD_BASELINE_CONTEXT
+            OLD_BASELINE_CONTEXT = old_baseline_context
+            
+            new_sys = SystemMessage(content=SYSTEM_PROMPT_HEAL)
+            ds_name = state.get('dataset_name', '')
+            ds_url = state.get('dataset_url', '')
+            ds_doi = state.get('dataset_doi', '')
+            doi_landing_page = state.get('doi_landing_page', '')
+            error_reason = state.get('error_reason', '')
+            
+            task_content = f"请寻找目标数据存储平台的元数据获取 API：\n【候选平台名称】：{true_pub}\n"
+            task_content += f"【测试样例数据集名称】：{ds_name}\n【测试样例原始链接】：{ds_url}\n"
+            if ds_doi:
+                task_content += f"【官方明确 DOI】：{ds_doi}\n"
+            if doi_landing_page:
+                task_content += f"【DOI 解析落地页】：{doi_landing_page}\n"
+            if error_reason:
+                task_content += f"\n【历史 Badcase 修复任务】之前尝试提取该数据集信息时发生了如下错误/失败原因：{error_reason}。请特别留意并修改你的提取策略，以避免重蹈覆辙。\n"
+            task_content += f"\n请从上述新样例中提取目标 API 所需的 ID/参数。同时，以下是该平台的旧版抓取代码，请严格按照 SYSTEM_PROMPT_HEAL 的要求将新旧逻辑融合！\n\n【旧版代码】：\n```python\n{old_python_code}\n```"
+            
+            new_human = HumanMessage(content=task_content)
+            return {
+                "is_cached": False, 
+                "messages": [new_sys, new_human],
+                "old_python_code": old_python_code,
+                "old_api_attempts": old_api_attempts,
+                "old_reasoning_summary": old_reasoning_summary,
+                "old_baseline_context": old_baseline_context
+            }
+
         if cached_data.get("is_verified") == True:
             print(f"🎯 命中沉淀知识库！直接提取平台: {matched_key} 的 API。")
         else:
@@ -804,6 +955,7 @@ def check_cache_node(state: AgentState):
         ds_url = state.get('dataset_url', '')
         ds_doi = state.get('dataset_doi', '')
         doi_landing_page = state.get('doi_landing_page', '')
+        error_reason = state.get('error_reason', '')
         
         task_content = f"请寻找目标数据存储平台的元数据获取 API：\n【候选平台名称】：{true_pub}\n"
         task_content += f"【测试样例数据集名称】：{ds_name}\n【测试样例原始链接】：{ds_url}\n"
@@ -811,6 +963,8 @@ def check_cache_node(state: AgentState):
             task_content += f"【官方明确 DOI】：{ds_doi}\n"
         if doi_landing_page:
             task_content += f"【DOI 解析落地页】：{doi_landing_page}\n"
+        if error_reason:
+            task_content += f"\n【历史 Badcase 修复任务】之前尝试提取该数据集信息时发生了如下错误/失败原因：{error_reason}。请特别留意并修改你的提取策略，以避免重蹈覆辙。\n"
         task_content += "请从样例链接、名称或 DOI 中提取目标 API 所需的 ID/参数，编写 Python 抓取代码并验证！"
         
         new_human = HumanMessage(content=task_content)
@@ -828,10 +982,34 @@ def save_to_cache_node(state: AgentState):
         registry = load_registry()
         pub_name = state.get("publisher")
         if pub_name:
+            if state.get("old_python_code"):
+                # 增量合并历史探索记录
+                old_attempts_list = state.get("old_api_attempts", [])
+                if isinstance(old_attempts_list, str):
+                    try:
+                        old_attempts_list = json.loads(old_attempts_list)
+                    except:
+                        old_attempts_list = []
+                new_attempts = final_json.get("api_attempts", [])
+                if isinstance(new_attempts, str):
+                    try:
+                        new_attempts = json.loads(new_attempts)
+                    except:
+                        new_attempts = []
+                merged_attempts = old_attempts_list + new_attempts
+                final_json["api_attempts"] = merged_attempts
+                
+                old_summary = state.get("old_reasoning_summary", "")
+                new_summary = final_json.get("reasoning_summary", "")
+                final_json["reasoning_summary"] = f"[历史探索]: {old_summary}\n[本次增量自愈探索]: {new_summary}"
+                
             registry[pub_name] = final_json
             save_registry(registry)
             if final_json.get("is_verified") == True:
-                print(f"💾 已将新验证的 API (带有 Python Code) 强制覆盖/沉淀至知识库: {pub_name}")
+                if state.get("old_python_code"):
+                    print(f"💾 已将融合后的 API 代码与追加的尝试记录保存至知识库: {pub_name}")
+                else:
+                    print(f"💾 已将新验证的 API (带有 Python Code) 强制覆盖/沉淀至知识库: {pub_name}")
             else:
                 print(f"💾 已将此平台的探索失败记录写入知识库，避免重复探索: {pub_name}")
     return {}
@@ -1052,35 +1230,120 @@ def main():
     parser.add_argument("--test", type=int, default=0, help="如果 > 0，则仅测试前几个 publisher。否则测试全部。")
     parser.add_argument("--dataset-id", type=str, default="", help="指定测试 45个数据集target_datasets.txt 中的特定 数据集ID")
     parser.add_argument("--force", action="store_true", help="强制重新执行，跳过缓存")
+    parser.add_argument("--heal-file", type=str, default="", help="增量自愈进化模式：输入缺失数据集列表，重构旧API代码。")
+    parser.add_argument("--heal-dir", type=str, default="", help="增量自愈进化模式：输入包含 badcase JSON 的文件夹")
     args = parser.parse_args()
 
-    input_file = INPUT_DATASET_FILE
-    if not os.path.exists(input_file):
-        print(f"找不到 {input_file}")
-        return
-
-    try:
-        df = pd.read_csv(input_file, sep='\t', dtype=str)
-    except Exception as e:
-        print(f"读取文件失败: {e}")
-        return
-
-    if args.dataset_id:
-        df = df[df.iloc[:, 0].astype(str) == str(args.dataset_id)]
-        if df.empty:
-            print(f"⚠️ 在文件中找不到 数据集ID 为 {args.dataset_id} 的记录。")
-            return
-            
     publisher_samples = []
-    for _, row in df.iterrows():
-        ds_url = str(row.iloc[3]) if len(row) > 3 else "未知链接"
-        ds_name = str(row.iloc[1]) if len(row) > 1 else "未知数据集"
-        ds_id = str(row.iloc[0]) if len(row) > 0 else ""
-        publisher_samples.append({
-            "id": ds_id,
-            "dataset_name": ds_name,
-            "url": ds_url
-        })
+
+    if args.heal_dir:
+        heal_dir = args.heal_dir
+        if not os.path.exists(heal_dir):
+            print(f"找不到文件夹 {heal_dir}")
+            return
+        
+        for filename in os.listdir(heal_dir):
+            if filename.endswith(".json"):
+                file_path = os.path.join(heal_dir, filename)
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        # We expect either a list of objects or a single object with an 'input_summary' key
+                        items = data if isinstance(data, list) else [data]
+                        for item in items:
+                            if isinstance(item, dict):
+                                summary = item.get("input_summary")
+                                if summary:
+                                    ds_id = filename[:-5] # remove .json
+                                    ds_name = summary.get("dataset_name", "未知数据集")
+                                    ds_url = summary.get("dataset_url", "未知链接")
+                                    publisher_samples.append({
+                                        "id": ds_id,
+                                        "dataset_name": ds_name,
+                                        "url": ds_url,
+                                        "target_api_name": summary.get("target_api_name", []),
+                                        "error_reason": summary.get("error_reason", ""),
+                                        "doi_landing_page": summary.get("doi_landing_page", ""),
+                                        "doi": summary.get("doi", "")
+                                    })
+                except Exception as e:
+                    print(f"读取文件 {filename} 失败: {e}")
+                    
+        if args.dataset_id:
+            publisher_samples = [s for s in publisher_samples if str(s["id"]) == str(args.dataset_id)]
+            if not publisher_samples:
+                print(f"⚠️ 在文件夹中找不到 数据集ID 为 {args.dataset_id} 的记录。")
+                return
+
+    else:
+        if args.heal_file:
+            input_file = args.heal_file
+        else:
+            input_file = INPUT_DATASET_FILE
+            
+        if not os.path.exists(input_file):
+            print(f"找不到 {input_file}")
+            return
+
+        if input_file.endswith(".json"):
+            try:
+                with open(input_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    items = data if isinstance(data, list) else [data]
+                    for item in items:
+                        if isinstance(item, dict):
+                            summary = item.get("input_summary")
+                            if summary:
+                                filename = os.path.basename(input_file)
+                                ds_id = filename[:-5] # remove .json
+                                ds_name = summary.get("dataset_name", "未知数据集")
+                                ds_url = summary.get("dataset_url", "未知链接")
+                                publisher_samples.append({
+                                    "id": ds_id,
+                                    "dataset_name": ds_name,
+                                    "url": ds_url,
+                                    "target_api_name": summary.get("target_api_name", []),
+                                    "error_reason": summary.get("error_reason", ""),
+                                    "doi_landing_page": summary.get("doi_landing_page", ""),
+                                    "doi": summary.get("doi", "")
+                                })
+            except Exception as e:
+                print(f"读取文件失败: {e}")
+                return
+
+            if args.dataset_id:
+                publisher_samples = [s for s in publisher_samples if str(s["id"]) == str(args.dataset_id)]
+                if not publisher_samples:
+                    print(f"⚠️ 在文件中找不到 数据集ID 为 {args.dataset_id} 的记录。")
+                    return
+        else:
+            try:
+                df = pd.read_csv(input_file, sep='\t', dtype=str)
+            except Exception as e:
+                print(f"读取文件失败: {e}")
+                return
+    
+            if args.dataset_id:
+                df = df[df.iloc[:, 0].astype(str) == str(args.dataset_id)]
+                if df.empty:
+                    print(f"⚠️ 在文件中找不到 数据集ID 为 {args.dataset_id} 的记录。")
+                    return
+                    
+            for _, row in df.iterrows():
+                if args.heal_file:
+                    ds_id = str(row.iloc[0]) if len(row) > 0 else ""
+                    ds_name = str(row.iloc[1]) if len(row) > 1 else "未知数据集"
+                    ds_url = str(row.iloc[3]) if len(row) > 3 else "未知链接"
+                else:
+                    ds_url = str(row.iloc[3]) if len(row) > 3 else "未知链接"
+                    ds_name = str(row.iloc[1]) if len(row) > 1 else "未知数据集"
+                    ds_id = str(row.iloc[0]) if len(row) > 0 else ""
+                    
+                publisher_samples.append({
+                    "id": ds_id,
+                    "dataset_name": ds_name,
+                    "url": ds_url
+                })
     
     if args.test > 0 and not args.dataset_id:
         publisher_samples = publisher_samples[:args.test]
@@ -1133,10 +1396,14 @@ def main():
         print(f"===========================================")
         
         original_url = ds_url
-        doi_landing_page = ""
         
+        doi_landing_page = sample.get("doi_landing_page", "")
         str_ds_id = str(ds_id)
-        if str_ds_id in doi_cache:
+        
+        if sample.get("doi"):
+            extracted_doi = sample.get("doi")
+            print("🎯 命中 badcase 提供的 DOI，跳过查找流程。")
+        elif str_ds_id in doi_cache:
             print("🎯 命中 DOI 缓存文件，跳过查找流程。")
             extracted_doi = doi_cache[str_ds_id]
         else:
@@ -1146,16 +1413,28 @@ def main():
             with open(doi_cache_file, "w", encoding="utf-8") as f:
                 json.dump(doi_cache, f, ensure_ascii=False, indent=2)
                 
-        if extracted_doi:
+        if doi_landing_page:
+            print(f"🎯 命中 badcase 提供的 doi_landing_page: {doi_landing_page}")
+        elif extracted_doi:
             print(f"💡 发现 DOI: {extracted_doi}，尝试重定向底层 URL...")
             real_url = resolve_doi_to_url(extracted_doi)
             if real_url and "doi.org" not in real_url:
                 print(f"✅ DOI 重定向成功，真实链接: {real_url}")
                 doi_landing_page = real_url
-                # 注意：不再覆盖原变量 ds_url，供 Agent 区分原始链接与落地页
                 
         print("🧠 正在分析可能的数据托管平台...")
         candidates = identify_candidate_platforms(ds_name, original_url, doi_landing_page, extracted_doi)
+        
+        target_api_name = sample.get("target_api_name", [])
+        if target_api_name:
+            filtered_candidates = []
+            for c in candidates:
+                c_name = c.get("name", "").lower()
+                if any(t.lower() in c_name or c_name in t.lower() for t in target_api_name):
+                    filtered_candidates.append(c)
+            candidates = filtered_candidates
+            print(f"🎯 使用 badcase 限定平台过滤后，保留 {len(candidates)} 个候选平台。")
+            
         print(f"📋 候选平台列表:")
         for idx, c in enumerate(candidates):
             print(f"  {idx+1}. {c.get('name', 'Unknown')} (理由: {c.get('reason', '')})")
@@ -1175,7 +1454,8 @@ def main():
                 "publisher": pub,
                 "search_call_count": 0,
                 "search_432_error": False,
-                "search_limit_reached": False
+                "search_limit_reached": False,
+                "error_reason": sample.get("error_reason", "")
             }
             
             initial_state = {
@@ -1186,7 +1466,8 @@ def main():
                 "dataset_doi": extracted_doi,
                 "doi_landing_page": doi_landing_page,
                 "is_cached": False,
-                "final_metadata": {}
+                "final_metadata": {},
+                "error_reason": sample.get("error_reason", "")
             }
             
             trace_log = {"dataset_id": ds_id, "publisher": pub, "steps": []}
