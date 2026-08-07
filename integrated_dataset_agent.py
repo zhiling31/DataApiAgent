@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
+from fetch_publisher_api import workflow
 import os
 import json
+import re
+import sys
+import uuid
+import logging
+import datetime
+import traceback
+import urllib3
 from typing import TypedDict, Annotated, List, Optional
 from pydantic import BaseModel, Field
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
@@ -8,6 +16,13 @@ from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 import requests
 from bs4 import BeautifulSoup
+from curl_cffi import requests
+from langchain_core.tools import tool
+from langchain_core.utils.function_calling import convert_to_openai_tool
+from langchain_tavily import TavilySearch
+
+# 屏蔽 SSL 警告
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ==========================================
 # 0. 全局配置 (文件路径修改区)
@@ -52,18 +67,13 @@ import importlib
 IntegratedDataRepoFetcher = importlib.import_module(INTEGRATED_FETCHER_MODULE).IntegratedDataRepoFetcher
 from fetch_datacite_metadata import fetch_from_datacite, fetch_from_crossref, fetch_with_retry
 
-# 从 agent_doi 直接复用大模型调用、Tavily工具及网页抓取工具
-from langchain_core.tools import tool
-from langchain_core.utils.function_calling import convert_to_openai_tool
-from langchain_tavily import TavilySearch
-import uuid
-import os
+
 # 配置 Tavily API Key
 # "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"
 # zhizhi333333@gmail.com           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
 # 2524258132@qq.com    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
 
-os.environ["TAVILY_API_KEY"] = "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"
+os.environ["TAVILY_API_KEY"] = "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"
 
 web_search_tool = TavilySearch(
     max_results=5,
@@ -82,7 +92,13 @@ def academic_web_search(query: str) -> str:
     - 找数据本体可附加关键词示例: "Data Repository" OR "DOI" OR "Zenodo" OR "PANGAEA"
     """
     try:
-        return web_search_tool.invoke({"query": query})
+        result = web_search_tool.invoke({"query": query})
+        result_str = str(result)
+        logger.info(f"Tavily search result (first 100 chars): {result_str[:100]}")
+        if "Error 432: This request exceeds your plan's set usage limit" in result_str:
+            logger.error(f"Encountered 432 error: {result_str}. Exiting program.")
+            sys.exit(1)
+        return result
     except Exception as e:
         return f"搜索失败: {str(e)}"
 
@@ -138,43 +154,6 @@ def read_and_verify_url(url_or_doi: str) -> str:
             # 如果 DOI 解析失败，继续尝试当做普通 URL 抓取
             pass
 
-    # 以下为被保留的原始抓取逻辑：
-    # 旧代码:
-    # # 自动补全 DOI 链接
-    # if url_or_doi.startswith("10."):
-    #     url_or_doi = f"https://doi.org/{url_or_doi}"
-    #     
-    # try:
-    #     # 使用真实的浏览器 User-Agent 防止被简单的反爬虫拦截
-    #     headers = {
-    #         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
-    #     }
-    #     # 允许重定向（这对于验证 doi.org 非常重要，它会重定向到真实的 Zenodo/PANGAEA 页面）
-    #     response = requests.get(url_or_doi, headers=headers, timeout=10, allow_redirects=True)
-    #     response.raise_for_status()
-    #     
-    #     # 简单的 HTML 文本提取
-    #     soup = BeautifulSoup(response.text, 'html.parser')
-    #     
-    #     # 清理掉 script, style 等无用标签
-    #     for script in soup(["script", "style", "nav", "footer"]):
-    #         script.decompose()
-    #         
-    #     text = soup.get_text(separator=' ', strip=True)
-    #     
-    #     # 为了防止大模型 Context 爆炸，截取前 4000 个字符（通常包含摘要和数据可用性声明）
-    #     # 如果是学术文章，"Data availability" 通常在靠后的位置，我们可以做个简单的关键词嗅探
-    #     if "data availability" in text.lower():
-    #         # 尝试找到包含数据可用性的部分，保留上下文
-    #         idx = text.lower().find("data availability")
-    #         start = max(0, idx - 1000)
-    #         end = min(len(text), idx + 3000)
-    #         return f"【网页抓取成功】(截取了包含Data availability声明的片段):\n{text[start:end]}"
-    #     else:
-    #         return f"【网页抓取成功】(截取了前4000字符):\n{text[:4000]}"
-    #         
-    # except requests.exceptions.RequestException as e:
-    #     return f"无法访问该URL进行验证，错误信息: {str(e)}。请尝试使用 academic_web_search 工具搜索相关信息。"
     
     # 自动补全普通 URL 协议 (用于兜底的普通网页抓取)
     if not url_or_doi.startswith("http"):
@@ -192,104 +171,28 @@ def read_and_verify_url(url_or_doi: str) -> str:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
             # 尝试连接本地开着 debug 端口的 Chrome
-            browser = p.chromium.connect_over_cdp("http://localhost:9222")
+            browser = p.chromium.connect_over_cdp("http://127.0.0.1:9223")
             default_context = browser.contexts[0]
             page = default_context.new_page()
             # 设置较长的超时以应对复杂的页面加载
-            page.goto(url_or_doi, timeout=20000, wait_until="domcontentloaded")
+            page.goto(url_or_doi, timeout=60000, wait_until="domcontentloaded")
             # 拿到渲染后的纯文本
             text = page.locator("body").inner_text()
-            extracted_meta_dict = page.evaluate('''() => {
-            const metaData = {};
-            
-            // 1. 定义常见的学术前缀
-            const validPrefixes = ['citation_', 'dc.', 'dc:', 'dcterms.', 'dcterms:', 'prism.', 'og:'];
-            
-            // 2. 定义核心关键词
-            const targetKeywords = ['doi', 'identifier', 'title', 'publisher', 'date', 'issued', 'creator', 'author', 'site_name', 'url', 'version', 'type'];
-            
-            document.querySelectorAll('meta').forEach(m => {
-                const name = (m.getAttribute('name') || m.getAttribute('property') || '').toLowerCase();
-                const content = m.getAttribute('content');
-                
-                if (!content) return;
-                
-                // 判定规则：只要符合“学术前缀开头”或者“包含核心关键词”
-                const isAcademicPrefix = validPrefixes.some(p => name.startsWith(p));
-                const hasKeyword = targetKeywords.some(k => name.includes(k));
-                
-                if (isAcademicPrefix && hasKeyword) {
-                    // 如果同一个 key 出现多次（如多个作者），存为数组
-                    if (metaData[name]) {
-                        if (Array.isArray(metaData[name])) {
-                            metaData[name].push(content);
-                        } else {
-                            metaData[name] = [metaData[name], content];
-                        }
-                    } else {
-                        metaData[name] = content;
-                    }
-                }
-            });
-            
-            // 3. 提取 JSON-LD 元数据 (保持不变)
-            document.querySelectorAll('script[type="application/ld+json"]').forEach(s => {
-                try {
-                    const data = JSON.parse(s.textContent);
-                    if (data.identifier) metaData['jsonld_identifier'] = JSON.stringify(data.identifier);
-                    if (data.name || data.title) metaData['jsonld_title'] = data.name || data.title;
-                    if (data.doi) metaData['jsonld_doi'] = data.doi;
-                } catch(e) {}
-            });
-            
-            return metaData;
-        }''')
             page.close()
-            browser.close()
             
             # 清理多余的空白符
             import re
             text = re.sub(r'\s+', ' ', text).strip()
             
-            # 3. 组装成清晰的双层 Context 给大模型判断
-            header_summary = "\n".join([f"  - {k}: {v}" for k, v in extracted_meta_dict.items()])
-            full_context = f"""【网页头部结构化元数据 (Header Meta & JSON-LD)】:
-            {header_summary if header_summary else "  (未提取到标准学术 Meta 标签)"}
-            【网页正文内容 (Body Snippet)】:
-            {text[:10000]}
-            """
-            return full_context
+            return f"【CDP 网页抓取成功】(截取了前10000字符):\n{text[:10000]}"
+
                 
     except Exception as e:
         # 记录报错，如果是连接失败，提示用户开启 Chrome 的 debugging 端口
+        logger.error(f"无法使用 CDP 连接本地浏览器进行验证。请确保已使用 '--remote-debugging-port=9222' 启动了 Chrome。详细报错: {str(e)}")
         return f"无法使用 CDP 连接本地浏览器进行验证。请确保已使用 '--remote-debugging-port=9222' 启动了 Chrome。详细报错: {str(e)}"
-        
-    # 旧代码：
-    # try:
-    #     headers = {
-    #         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
-    #     }
-    #     response = requests.get(url_or_doi, headers=headers, timeout=15, allow_redirects=True)
-    #     response.raise_for_status()
-    #     
-    #     soup = BeautifulSoup(response.text, 'html.parser')
-    #     for script in soup(["script", "style", "nav", "footer"]):
-    #         script.decompose()
-    #         
-    #     text = soup.get_text(separator=' ', strip=True)
-    #     
-    #     if "data availability" in text.lower():
-    #         idx = text.lower().find("data availability")
-    #         start = max(0, idx - 1000)
-    #         end = min(len(text), idx + 3000)
-    #         return f"【网页抓取成功】(截取了包含Data availability声明的片段):\n{text[start:end]}"
-    #     else:
-    #         return f"【网页抓取成功】(截取了前4000字符):\n{text[:4000]}"
-    #         
-    # except requests.exceptions.RequestException as e:
-    #     return f"无法访问该URL进行验证，错误信息: {str(e)}。请尝试使用 academic_web_search 工具搜索相关信息。"
-    # ----------------- 本地 CDP 浏览器复用 补丁 结束 -----------------
-    # ----------------- Content Negotiation 补丁 结束 -----------------
+    
+
 
 # Agent 可用的工具列表
 tools = [academic_web_search, read_and_verify_url]
@@ -408,7 +311,6 @@ class DatasetInfo(BaseModel):
     doi_landing_page: Optional[str] = Field(description="DOI 解析落地页", default=None)
     dataset_name: Optional[str] = Field(description="数据集名称", default=None)
     version_name: Optional[str] = Field(description="该数据集的具体版本号或年份标识 (例如: '2024', 'v1.2', 'Collection 2')，用于区分同名数据集的不同历史快照，若无则返回 null", default=None)
-    
     official_website: Optional[str] = Field(description="数据集官网或托管平台名称 (例如: Zenodo, PANGAEA, ScienceDB, OSTI, GBIF等)，若无则返回 null", default=None)
     target_api_name: Optional[List[str]] = Field(
         description=IntegratedDataRepoFetcher.get_api_schema_desc() + " 语义生态穿透匹配】：请利用你的图情专业知识，判断当前数据集的托管机构或系统简称是否属于上述列表中的生态。如果是，请把列表中的准确名称提取出来；如果毫无关联，再返回空列表 []。",
@@ -416,15 +318,16 @@ class DatasetInfo(BaseModel):
     )
 
 class DatasetExtractionList(BaseModel):
-    datasets: List[DatasetInfo] = Field(description="基于收集到的所有信息，提取出匹配的数据集版本。如果该数据集存在历年迭代的不同版本，请务必在数组中穷尽列出所有找到的历史版本。")
+    datasets: List[DatasetInfo] = Field(description="基于收集到的所有信息，提取出匹配的数据集")
 
 # ==========================================
 # 2. Graph 状态定义
 # ==========================================
 class AgentState(TypedDict):
-    messages: Annotated[List, lambda x, y: x + y] # 用于 ReAct 循环的消息历史
-    extracted_datasets: List[dict]    # LLM 提取出来的 DatasetInfo 列表
-    final_results: List[dict]         # 最终抓取并组装好的所有版本的 JSON 列表
+    messages: Annotated[List, lambda x, y: x + y]
+    extracted_datasets: List[dict]
+    final_results: List[dict]
+    original_dataset_url: str # 🌟 专用隔离字段：储存用户的原始输入 URL，防范全 None 塌陷！
 
 # ==========================================
 # 3. Graph 节点实现
@@ -442,14 +345,7 @@ def research_and_verify_node(state: AgentState):
     return {"messages": [response]}
 
 def should_continue(state: AgentState):
-    """判断是否需要继续调用工具，还是进入信息提取节点"""
-    # 专门统计调用 academic_web_search (Tavily) 的次数
-    search_tool_count = 0
-    for m in state["messages"]:
-        if hasattr(m, "tool_calls") and m.tool_calls:
-            for tc in m.tool_calls:
-                if tc.get("name") == "academic_web_search":
-                    search_tool_count += 1
+    search_tool_count = sum(1 for m in state["messages"] if hasattr(m, "tool_calls") and m.tool_calls for tc in m.tool_calls if tc.get("name") == "academic_web_search")
     
     last_message = state["messages"][-1]
     if hasattr(last_message, "tool_calls") and last_message.tool_calls:
@@ -464,7 +360,7 @@ def should_continue(state: AgentState):
             if tc['name'] == 'academic_web_search':
                 logger.info(f"      - 🔍 搜索关键词: {args.get('query')}")
             elif tc['name'] == 'read_and_verify_url':
-                logger.info(f"      - 📖 阅读网页/DOI: {args.get('url_or_doi')}")
+                logger.info(f"      - 📖 阅读网页: {args.get('url_or_doi')}")
             else:
                 logger.info(f"      - ⚙️ {tc['name']}: {args}")
         return "tools"
@@ -481,31 +377,26 @@ def should_continue(state: AgentState):
     return "extract"
 
 # ----------------------------------
-# (2) 结构化提取节点
+# Phase 2: 深度挖掘节点 (Deep Dive Nodes)
 # ----------------------------------
 def extract_node(state: AgentState):
     """基于前期检索到的信息，强制结构化输出 DatasetExtractionList"""
     logger.info("⚡ [节点: 提取] 开始从收集到的信息中穷尽提取所有版本的数据集...")
     context = "\n".join([m.content for m in state["messages"] if hasattr(m, "content") and m.content])
-    
-    # 提取用户最初的描述，它通常是 messages[1]
-    original_input = ""
-    if len(state["messages"]) > 1:
-        original_input = getattr(state["messages"][1], "content", "")
+    original_input = getattr(state["messages"][1], "content", "") if len(state["messages"]) > 1 else ""
     
     schema_str = json.dumps(DatasetExtractionList.model_json_schema(), ensure_ascii=False, indent=2)
     
     extraction_prompt = f"""
-基于以下收集到的信息，严格提取数据集的元数据。
+基于以下收集到的信息，严格提取目标版本的数据集的元数据。
 如果没有找到某个字段对应的值，请返回 null。
-如果包含多个年度版本，请在 datasets 数组中把每一个版本单独列出。
 
-【严格过滤规则 - 动态版本控制】
-1. 若用户的初始描述或URL中明确指定了某个特定版本，你【必须且只能】提取这一个指定的版本，严禁提取任何历史旧版或平行版本！
-2. 若用户【没有】提及具体版本，请遵循全量保留逻辑：务必提取与用户初始描述完全匹配的标准版/科学版数据集。对于跨越多年度的系列数据集，即使早期版本记录简陋、缺乏 DOI、或不确定是否为标准版，只要是官方发布的该年度/历史主快照，请务必全量保留，绝对不可因“不确定”而丢弃任何一个历史版本！
+【目标版本数据集提取】
+1. 若用户的初始描述或URL中明确指定了某个特定版本，你【必须且只能】提取这一个指定的版本，严禁提取任何历史旧版或新版本或平行版本！
+2. 若用户【没有】提及具体版本，请遵循保留最新的版本的逻辑：务必提取与用户初始描述完全匹配的标准版/科学版数据集。对于跨越多年度的系列数据集，请找出最新的官方发布的该年度/历史主快照。 
 严禁提取任何非官方的衍生版、附加版。
 
-【重点关注：DOI 提取】
+【目标版本数据集的DOI 提取】
 请务必仔细检查目标版本在上下文中的元数据，只要上下文中出现了该版本的 DOI（通常以 10.xxxx/xxxx 的格式出现），你【必须】将其提取到 doi 字段中，绝不允许漏提 DOI！请务必在收到的文本中仔细排查 DOI。
 
 
@@ -546,70 +437,30 @@ def extract_node(state: AgentState):
     return {"messages": [response], "extracted_datasets": extracted_datasets}
 
 # ----------------------------------
-# 辅助函数：记录抓取失败以供后续优化
-# ----------------------------------
-def log_api_failure(dataset_record: dict, reason: str):
-    error_file = "api_failures_for_optimization.json"
-    failures = []
-    if os.path.exists(error_file):
-        try:
-            with open(error_file, 'r', encoding='utf-8') as f:
-                failures = json.load(f)
-        except Exception:
-            pass
-    dataset_record["error_reason"] = reason
-    failures.append(dataset_record)
-    with open(error_file, 'w', encoding='utf-8') as f:
-        json.dump(failures, f, ensure_ascii=False, indent=2)
-    logger.warning(f"   ⚠️ 已将失败记录保存至 {error_file}，原因: {reason}")
-# 2. 废弃版过滤：如果页面明确标明某个版本已经“Retired（退休）”、“Deprecated（废弃）”或“Terminated（彻底下线删除）”，请直接丢弃该版本。但请注意区分：**正常的年度历史快照不属于废弃版，必须正常保留和提取**，只丢弃那些被官方明确打上作废/瑕疵标签的版本。
+
 def resolve_doi_to_url(doi: str) -> str:
     try:
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"}
         res = requests.get(f"https://doi.org/{doi}", allow_redirects=True, timeout=15, headers=headers)
         return res.url
     except Exception as e:
-        logger.warning(f"   ⚠️ [DOI重定向] 解析失败: {e}")
+        logger.error(f"  {doi} ⚠️ [DOI重定向] 解析失败: {e}")
         return ""
 
-# ----------------------------------
-# (3) API 抓取节点
-# ----------------------------------
 def fetch_metadata_node(state: AgentState):
     """根据提取到的信息，循环分别调用三个工具获取所有版本的元数据"""
     logger.info("⚡ [节点: 抓取] 开始从各大 API 获取元数据...")
     raw_extracted_datasets = state.get("extracted_datasets", [])
     
-    # 提前解析 doi_landing_page 并按参数去重，保留最新版本
-    grouped_datasets = {}
+    # 提前解析 doi_landing_page
+    extracted_datasets = []
     for ds in raw_extracted_datasets:
         doi = ds.get("doi")
         if doi:
             real_url = resolve_doi_to_url(doi)
             if real_url:
                 ds["doi_landing_page"] = real_url
-                
-        key = (
-            str(ds.get("dataset_name") or "").strip().lower(),
-            str(ds.get("dataset_url") or "").strip().lower(),
-            str(ds.get("doi") or "").strip().lower(),
-            str(ds.get("doi_landing_page") or "").strip().lower()
-        )
-        if key not in grouped_datasets:
-            grouped_datasets[key] = []
-        grouped_datasets[key].append(ds)
-        
-    extracted_datasets = []
-    for key, group in grouped_datasets.items():
-        if len(group) > 1:
-            versions = [ds.get("version_name") for ds in group]
-            logger.warning(f"   ⚠️ [WARNING] 发现 {len(group)} 个版本具有完全相同的核心参数 (名称/URL/DOI/落地页)。")
-            logger.info(f"      涉及的版本有: {versions}")
-            logger.info(f"      请人工检查！为避免重复请求，已自动挑选 version 排序最新的版本进行抓取。")
-            group_sorted = sorted(group, key=lambda x: str(x.get("version_name") or ""), reverse=True)
-            extracted_datasets.append(group_sorted[0])
-        else:
-            extracted_datasets.append(group[0])
+        extracted_datasets.append(ds)
     
     final_results = []
     
@@ -744,7 +595,7 @@ def fetch_metadata_node(state: AgentState):
                 
             if not success:
                 official_api_data = {"error": " | ".join(all_errors)}
-                log_api_failure(extracted_info, reason=official_api_data["error"])
+                logger.warning(f"      ⚠️ API 调用失败: {official_api_data['error']}")
                 
         # 组装当前版本的结果
         final_result = {
@@ -865,11 +716,12 @@ def process_target_datasets(target_id=None):
         test_input = f"【目标数据集描述】\n{line}\n请先搜搜这篇数据，并确认具体信息后再提取。"
         
         system_prompt = """你是一个资深的数据科学家。
-你的任务是调查用户提供的数据集描述，你可以使用网页搜索(academic_web_search)和网页阅读工具(read_and_verify_url)收集信息。
-【核心纪律】：请优先阅读数据集的官方介绍页。绝对避免反复阅读整篇长达数十页的期刊论文，这会导致上下文超限崩溃！你只需要粗略搜索版本名和DOI即可。
-【版本处理规则】：如果用户在描述或URL中明确指定了某个特定版本（如年份、Revision号等），请专门调查该指定版本，该版本为目标版本，不需要再去搜索其他版本；如果用户没有提及具体版本，请穷尽搜索其所有版本的 DOI 和官网信息，把能找到的所有官方标准版本/历史主快照（如系列数据集的每一个年度版本）全查清，这些版本均为目标版本，一个都不漏。
+你的任务是根据用户提供的数据集描述，定位该数据集的目标版本以及目标版本的DOI、数据集链接（落地页）和数据托管平台名称。
+你可以使用网页搜索(academic_web_search)和网页阅读工具(read_and_verify_url)收集信息。
+【版本处理规则】：如果用户在描述或URL中明确指定了某个特定版本（如年份、Revision号等），请专门调查该指定版本，该版本为目标版本，不需要再去搜索其他版本；如果用户没有提及具体版本，请务必找到最新的官方标准版本/历史主快照，设定为目标版本。
+【核心纪律】：请优先阅读数据集的官方介绍页。绝对避免反复阅读整篇长达数十页的期刊论文，这会导致上下文超限崩溃！你只需要粗略搜索目标版本的DOI、数据集链接即可。
 同时，重点留意目标版本的 DOI，务必准确收集到其对应的 DOI 并保留。
-收集足够信息后，停止调用工具，流程将自动进入结构化提取节点。"""
+收集足够的版本、DOI和数据集链接信息后，停止调用工具，流程将自动进入结构化提取节点。"""
         
         initial_state = {
             "messages": [
@@ -882,7 +734,8 @@ def process_target_datasets(target_id=None):
         
         try:
             # 运行 LangGraph，强制加上递归深度限制，为了配合 MAX_SEARCH_ITERATIONS 限制大模型特定工具，这里我们将底层步数设大。
-            final_state = app.invoke(initial_state, config={"recursion_limit": MAX_SEARCH_ITERATIONS * 2 + 10})
+            # 增大 recursion_limit 以支持双阶段多版本循环 (20+ 版本 x 每个版本5步 = 100+ 步)
+            final_state = app.invoke(initial_state, config={"recursion_limit": 1000})
             final_results = final_state.get("final_results", [])
             
             if not final_results:
