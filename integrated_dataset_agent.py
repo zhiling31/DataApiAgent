@@ -29,10 +29,10 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ==========================================
 # 你可以在这里修改所有的输入输出文件路径
 INPUT_DATASET_FILE = "../45个数据集target_datasets.txt"       # 输入的原始数据集文件 (制表符分隔)
-OUTPUT_RESULTS_DIR = "agent_results0804"                     # 运行结果(成功或报错的 JSON)的保存目录
-MISSING_REGISTRY_FILE = "agent_results0804/missing_registry_datasets.txt"  # 未命中知识库的数据集保存文件
-API_FALLBACK_LOG_FILE = "agent_results0804/api_fallback_errors.log"            # 多API尝试时，中间失败的日志
-REGISTRY_API_LOG_FILE = "agent_results0804/registry_api_errors.log"            # 注册机构(doi.org, DataCite, Crossref)的报错日志
+OUTPUT_RESULTS_DIR = "agent_result0807"                     # 运行结果(成功或报错的 JSON)的保存目录
+MISSING_REGISTRY_FILE = "agent_result0807/missing_registry_datasets.txt"  # 未命中知识库的数据集保存文件
+API_FALLBACK_LOG_FILE = "agent_result0807/api_fallback_errors.log"            # 多API尝试时，中间失败的日志
+REGISTRY_API_LOG_FILE = "agent_result0807/registry_api_errors.log"            # 注册机构(doi.org, DataCite, Crossref)的报错日志
 MAX_RECORDS_TO_PROCESS = 10                               # 每次批量测试的最大数量
 STRICT_RESUME_MODE = False                               # 续传模式: False=只要有1个成功版就跳过; True=只要有报错版(或全错)就必须重跑
 MAX_SEARCH_ITERATIONS = 35                               # 大模型检索的最大循环思考次数 (默认25，值过大会增加死循环和Token爆炸的风险)
@@ -381,20 +381,28 @@ def should_continue(state: AgentState):
 # ----------------------------------
 def extract_node(state: AgentState):
     """基于前期检索到的信息，强制结构化输出 DatasetExtractionList"""
-    logger.info("⚡ [节点: 提取] 开始从收集到的信息中穷尽提取所有版本的数据集...")
+    logger.info("⚡ [节点: 提取] 开始从收集到的信息中获取目标版本的数据集...")
     context = "\n".join([m.content for m in state["messages"] if hasattr(m, "content") and m.content])
     original_input = getattr(state["messages"][1], "content", "") if len(state["messages"]) > 1 else ""
     
     schema_str = json.dumps(DatasetExtractionList.model_json_schema(), ensure_ascii=False, indent=2)
     
     extraction_prompt = f"""
-基于以下收集到的信息，严格提取目标版本的数据集的元数据。
+基于以下收集到的信息，严格提取目标版本的数据集的版本信息、DOI、落地页。
 如果没有找到某个字段对应的值，请返回 null。
 
 【目标版本数据集提取】
 1. 若用户的初始描述或URL中明确指定了某个特定版本，你【必须且只能】提取这一个指定的版本，严禁提取任何历史旧版或新版本或平行版本！
-2. 若用户【没有】提及具体版本，请遵循保留最新的版本的逻辑：务必提取与用户初始描述完全匹配的标准版/科学版数据集。对于跨越多年度的系列数据集，请找出最新的官方发布的该年度/历史主快照。 
-严禁提取任何非官方的衍生版、附加版。
+2. 若用户【没有】提及具体版本，请遵循保留最新的版本的逻辑：务必提取与用户初始描述完全匹配的标准版/科学版数据集。对于跨越多年度的系列数据集，请找出最新的官方发布的该年度/历史主快照。严禁提取任何非官方的衍生版、附加版。
+    【重要】最新版本定位法则：
+        1. 如果用户请求的是【特定子数据集/单项数据】：
+        - 你的目标【必须且只能】是该【特定子数据集本身】！
+        - 如果该子数据集有自己独立的专有 DOI，必须提取该子数据集的专有 DOI！绝对禁止用其父级大集合的 DOI 或 URL 来顶替！
+        
+        2. 如果用户请求的是【宏观大型集合/数据库】：
+        - 请提取该大集合在官方仓库中最新发布的官方标准归档版（拥有独立归档页面/独立 DOI)的最新版本。
+        - 严禁将网页上宣传的实时动态更新标语识别为版本！因为动态更新服务在档案馆中没有打包存档链接。
+        - 必须提取指向具体数据集归档页面的落地页 URL。
 
 【目标版本数据集的DOI 提取】
 请务必仔细检查目标版本在上下文中的元数据，只要上下文中出现了该版本的 DOI（通常以 10.xxxx/xxxx 的格式出现），你【必须】将其提取到 doi 字段中，绝不允许漏提 DOI！请务必在收到的文本中仔细排查 DOI。
@@ -718,10 +726,25 @@ def process_target_datasets(target_id=None):
         system_prompt = """你是一个资深的数据科学家。
 你的任务是根据用户提供的数据集描述，定位该数据集的目标版本以及目标版本的DOI、数据集链接（落地页）和数据托管平台名称。
 你可以使用网页搜索(academic_web_search)和网页阅读工具(read_and_verify_url)收集信息。
-【版本处理规则】：如果用户在描述或URL中明确指定了某个特定版本（如年份、Revision号等），请专门调查该指定版本，该版本为目标版本，不需要再去搜索其他版本；如果用户没有提及具体版本，请务必找到最新的官方标准版本/历史主快照，设定为目标版本。
-【核心纪律】：请优先阅读数据集的官方介绍页。绝对避免反复阅读整篇长达数十页的期刊论文，这会导致上下文超限崩溃！你只需要粗略搜索目标版本的DOI、数据集链接即可。
-同时，重点留意目标版本的 DOI，务必准确收集到其对应的 DOI 并保留。
-收集足够的版本、DOI和数据集链接信息后，停止调用工具，流程将自动进入结构化提取节点。"""
+【版本处理规则】：
+1、如果用户在描述或URL中明确指定了某个特定版本（如年份、Revision号等），请专门调查该指定版本，该版本为目标版本，不需要再去搜索其他版本；
+2、如果用户没有提及具体版本，请务必找到最新的官方标准版本/历史主快照，设定为目标版本。
+    【重要】最新版本定位法则（颗粒度严格对齐）：
+        1. 如果用户请求的是【特定子数据集/单项数据】：
+        - 你的目标【必须且只能】是该【特定子数据集本身】！
+        - 如果该子数据集有自己独立的专有 DOI，必须提取该子数据集的专有 DOI！绝对禁止用其父级大集合的 DOI 或 URL 来顶替！
+        
+        2. 如果用户请求的是【宏观大型集合/数据库】：
+        - 请提取该大集合在官方仓库中最新发布的官方标准归档版（拥有独立归档页面/独立 DOI)的最新版本。
+        - 严禁将网页上宣传的实时动态更新标语识别为版本！因为动态更新服务在档案馆中没有打包存档链接。
+        - 必须提取指向具体数据集归档页面的落地页 URL。
+【DOI提取】重点留意目标版本的 DOI，务必准确收集到其对应的 DOI 并保留。
+
+【核心纪律】：请优先阅读数据集的官方介绍页。绝对避免反复阅读整篇长达数十页的期刊论文，这会导致上下文超限崩溃！你只需要粗略搜索目标版本的DOI、数据集链接、数据托管平台即可。
+1. 优先调用 `read_and_verify_url` 读取用户输入的线索网址或官方主页。
+2. 只要通过 `read_and_verify_url` 或搜索拿到了【与用户请求颗粒度完全对齐】的官方落地页 URL 、 10.xxxx/xxxx DOI和数据托管平台，【立刻停止发起任何进一步搜索】！直接进入结构化提取！
+
+"""
         
         initial_state = {
             "messages": [
@@ -784,6 +807,16 @@ def process_target_datasets(target_id=None):
                     logger.info(f"✅ 处理成功！已保存至 {success_file}")
                 else:
                     error_file = os.path.join(output_dir, f"{dataset_id}-{suffix}_error.json")
+                    
+                    # 在输出 JSON 中注入 error_reason 字段，便于直接查看失败原因
+                    error_reason = ""
+                    if not api_meta:
+                        error_reason = "未找到对应的官网知识库 API"
+                    elif "error" in api_meta:
+                        error_reason = str(api_meta.get("error", "")).split(" | ")[0] if api_meta.get("error") else ""
+                    if error_reason:
+                        final_metadata["error_reason"] = error_reason
+                        
                     with open(error_file, "w", encoding="utf-8") as f:
                         json.dump(final_metadata, f, ensure_ascii=False, indent=2)
                     
