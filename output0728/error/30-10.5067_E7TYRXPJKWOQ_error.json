@@ -1,0 +1,468 @@
+{
+  "input_summary": {
+    "doi": "10.5067/E7TYRXPJKWOQ",
+    "dataset_url": "https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_3H_2.1/summary",
+    "doi_landing_page": "https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_3H_2.1/summary",
+    "dataset_name": "GLDAS Noah Land Surface Model L4 3 hourly 0.25 x 0.25 degree V2.1 (GLDAS_NOAH025_3H)",
+    "version_name": "2.1",
+    "official_website": "Goddard Earth Sciences Data and Information Services Center (GES DISC)",
+    "target_api_name": [
+      "Goddard Earth Sciences Data and Information Services Center (GES DISC)"
+    ]
+  },
+  "metadata_sources": {
+    "doi_org": {
+      "source": "doi.org (CSL-JSON)",
+      "data": {
+        "type": "dataset",
+        "id": "https://doi.org/10.5067/e7tyrxpjkwoq",
+        "author": [
+          {
+            "family": "Beaudoing",
+            "given": "H."
+          },
+          {
+            "family": "Rodell",
+            "given": "M."
+          },
+          {
+            "literal": "Hydrological Sciences Laboratory (HSL)"
+          }
+        ],
+        "issued": {
+          "date-parts": [
+            [
+              2020
+            ]
+          ]
+        },
+        "DOI": "10.5067/E7TYRXPJKWOQ",
+        "publisher": "NASA Goddard Earth Sciences Data and Information Services Center",
+        "title": "GLDAS Noah Land Surface Model L4 3 hourly 0.25 x 0.25 degree, Version 2.1",
+        "URL": "https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_3H_2.1/summary"
+      }
+    },
+    "datacite_crossref": {
+      "source": "DataCite",
+      "data": {
+        "id": "10.5067/e7tyrxpjkwoq",
+        "type": "dois",
+        "attributes": {
+          "doi": "10.5067/e7tyrxpjkwoq",
+          "prefix": "10.5067",
+          "suffix": "e7tyrxpjkwoq",
+          "identifiers": [],
+          "alternateIdentifiers": [],
+          "creators": [
+            {
+              "name": "Beaudoing, H.",
+              "givenName": "H.",
+              "familyName": "Beaudoing",
+              "affiliation": [],
+              "nameIdentifiers": []
+            },
+            {
+              "name": "Rodell, M.",
+              "givenName": "M.",
+              "familyName": "Rodell",
+              "affiliation": [],
+              "nameIdentifiers": []
+            },
+            {
+              "name": "Hydrological Sciences Laboratory (HSL)",
+              "affiliation": [],
+              "nameIdentifiers": []
+            }
+          ],
+          "titles": [
+            {
+              "title": "GLDAS Noah Land Surface Model L4 3 hourly 0.25 x 0.25 degree, Version 2.1"
+            }
+          ],
+          "publisher": "NASA Goddard Earth Sciences Data and Information Services Center",
+          "container": {},
+          "publicationYear": 2020,
+          "subjects": [],
+          "contributors": [],
+          "dates": [
+            {
+              "date": "2020",
+              "dateType": "Issued"
+            }
+          ],
+          "language": null,
+          "types": {
+            "ris": "DATA",
+            "bibtex": "misc",
+            "citeproc": "dataset",
+            "schemaOrg": "Dataset",
+            "resourceType": "Dataset",
+            "resourceTypeGeneral": "Dataset"
+          },
+          "relatedIdentifiers": [],
+          "relatedItems": [],
+          "sizes": [],
+          "formats": [],
+          "version": null,
+          "rightsList": [],
+          "descriptions": [],
+          "geoLocations": [],
+          "fundingReferences": [],
+          "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCYjMTA7ICBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC00LjEvbWV0YWRhdGEueHNkJiMxMDsiPgogIDxpZGVudGlmaWVyIGlkZW50aWZpZXJUeXBlPSJET0kiPjEwLjUwNjcvRTdUWVJYUEpLV09RPC9pZGVudGlmaWVyPgogIDxjcmVhdG9ycz4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+QmVhdWRvaW5nLEguPC9jcmVhdG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5ILjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5CZWF1ZG9pbmc8L2ZhbWlseU5hbWU+CiAgICA8L2NyZWF0b3I+CiAgICA8Y3JlYXRvcj4KICAgICAgPGNyZWF0b3JOYW1lPlJvZGVsbCxNLjwvY3JlYXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+TS48L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+Um9kZWxsPC9mYW1pbHlOYW1lPgogICAgPC9jcmVhdG9yPgogICAgPGNyZWF0b3I+CiAgICAgIDxjcmVhdG9yTmFtZT5IeWRyb2xvZ2ljYWwgU2NpZW5jZXMgTGFib3JhdG9yeSAoSFNMKTwvY3JlYXRvck5hbWU+CiAgICA8L2NyZWF0b3I+CiAgPC9jcmVhdG9ycz4KICA8dGl0bGVzPgogICAgPHRpdGxlPkdMREFTIE5vYWggTGFuZCBTdXJmYWNlIE1vZGVsIEw0IDMgaG91cmx5IDAuMjUgeCAwLjI1IGRlZ3JlZSwgVmVyc2lvbiAyLjE8L3RpdGxlPgogIDwvdGl0bGVzPgogIDxwdWJsaXNoZXI+TkFTQSBHb2RkYXJkIEVhcnRoIFNjaWVuY2VzIERhdGEgYW5kIEluZm9ybWF0aW9uIFNlcnZpY2VzIENlbnRlcjwvcHVibGlzaGVyPgogIDxwdWJsaWNhdGlvblllYXI+MjAyMDwvcHVibGljYXRpb25ZZWFyPgogIDxyZXNvdXJjZVR5cGUgcmVzb3VyY2VUeXBlR2VuZXJhbD0iRGF0YXNldCI+RGF0YXNldDwvcmVzb3VyY2VUeXBlPgo8L3Jlc291cmNlPg==",
+          "url": "https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_3H_2.1/summary",
+          "contentUrl": null,
+          "metadataVersion": 4,
+          "schemaVersion": "http://datacite.org/schema/kernel-4",
+          "source": "mds",
+          "isActive": true,
+          "state": "findable",
+          "reason": null,
+          "viewCount": 0,
+          "viewsOverTime": [],
+          "downloadCount": 0,
+          "downloadsOverTime": [],
+          "referenceCount": 0,
+          "citationCount": 62,
+          "citationsOverTime": [
+            {
+              "year": "2022",
+              "total": 13
+            },
+            {
+              "year": "2023",
+              "total": 9
+            },
+            {
+              "year": "2024",
+              "total": 6
+            },
+            {
+              "year": "2025",
+              "total": 27
+            },
+            {
+              "year": "2026",
+              "total": 7
+            }
+          ],
+          "partCount": 3,
+          "partOfCount": 0,
+          "versionCount": 0,
+          "versionOfCount": 0,
+          "created": "2018-08-27T17:49:31.000Z",
+          "registered": "2018-08-27T17:50:32.000Z",
+          "published": "2020",
+          "updated": "2026-06-02T22:21:33.000Z"
+        },
+        "relationships": {
+          "client": {
+            "data": {
+              "id": "esdis.eosdis",
+              "type": "clients"
+            }
+          },
+          "provider": {
+            "data": {
+              "id": "esdis",
+              "type": "providers"
+            }
+          },
+          "media": {
+            "data": {
+              "id": "10.5067/e7tyrxpjkwoq",
+              "type": "media"
+            }
+          },
+          "references": {
+            "data": []
+          },
+          "citations": {
+            "data": [
+              {
+                "id": "10.5880/gfz.5.4.2018.002",
+                "type": "dois"
+              },
+              {
+                "id": "10.5880/gfz.5.4.2018.001",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s00382-021-06135-7",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2022.127734",
+                "type": "dois"
+              },
+              {
+                "id": "10.1111/acv.12738",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.gecco.2022.e02215",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2022.128245",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/essd-14-3673-2022",
+                "type": "dois"
+              },
+              {
+                "id": "10.1002/hec.4590",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41558-022-01464-9",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2018jd029668",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/hess-26-5933-2022",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2022.128601",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s12145-022-00904-6",
+                "type": "dois"
+              },
+              {
+                "id": "10.1101/2021.11.11.468195",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2023.129517",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/02626667.2023.2206032",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.agrformet.2023.109558",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2022ef003215",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.ejrh.2023.101515",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2018gl081591",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2018jd029116",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2019ea000829",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2023ef003608",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2024.131713",
+                "type": "dois"
+              },
+              {
+                "id": "10.1145/3674829.3675068",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2024.132114",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s43247-023-00890-7",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2024.132194",
+                "type": "dois"
+              },
+              {
+                "id": "10.1002/joc.8713",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/hess-25-2649-2021",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.envsoft.2025.106368",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.ejrh.2025.102334",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2024wr038702",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2024ms004238",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2024jb030089",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.srs.2025.100247",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2025.133678",
+                "type": "dois"
+              },
+              {
+                "id": "10.1145/3677386.3682085",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/acp-25-6299-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/bg-22-3721-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025gl116454",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2024gl114461",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2023wr036847",
+                "type": "dois"
+              },
+              {
+                "id": "10.1175/jcli-d-25-0019.1",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025gl116408",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2025.134238",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2023.130425",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025gl116973",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/acp-25-12779-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s00704-025-05849-6",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/hess-29-5955-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.agwat.2025.109951",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41597-025-06436-0",
+                "type": "dois"
+              },
+              {
+                "id": "10.1063/5.0252651",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41597-025-06356-z",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/15481603.2025.2475572",
+                "type": "dois"
+              },
+              {
+                "id": "10.3992/jgb.20.4.57",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s10333-026-01058-7",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/hess-30-1813-2026",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41467-026-71969-w",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2026ef008296",
+                "type": "dois"
+              }
+            ]
+          },
+          "parts": {
+            "data": [
+              {
+                "id": "10.5194/hess-26-5933-2022",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/bg-22-3721-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/hess-30-1813-2026",
+                "type": "dois"
+              }
+            ]
+          },
+          "partOf": {
+            "data": []
+          },
+          "versions": {
+            "data": []
+          },
+          "versionOf": {
+            "data": []
+          }
+        }
+      }
+    },
+    "official_api": {
+      "error": "无法从提供的参数解析出 CMR concept_id，请提供有效的 DOI、dataset_url 或 dataset_name"
+    }
+  },
+  "original_input": {
+    "dataset_name": "GLDAS 全球陆面数据同化系统",
+    "url": "https://www.earthdata.nasa.gov/data/catalog"
+  },
+  "error_reason": "无法从提供的参数解析出 CMR concept_id，请提供有效的 DOI、dataset_url 或 dataset_name"
+}

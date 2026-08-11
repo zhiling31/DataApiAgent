@@ -1,0 +1,1176 @@
+{
+  "input_summary": {
+    "doi": "10.18160/GCP-2020",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2020",
+    "doi_landing_page": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2020",
+    "dataset_name": "Global Carbon Budget 2020",
+    "version_name": "2020",
+    "official_website": "ICOS",
+    "official_website_id": "GCP-2020",
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS"
+    ],
+    "error_reason": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2020"
+  },
+  "metadata_sources": {
+    "doi_org": {
+      "source": "doi.org (CSL-JSON)",
+      "data": {
+        "type": "dataset",
+        "id": "https://doi.org/10.18160/gcp-2020",
+        "categories": [
+          "Data sets",
+          "Biogeochemical cycles, processes, and modeling",
+          "Troposphere: composition and chemistry"
+        ],
+        "author": [
+          {
+            "literal": "Global Carbon Project"
+          }
+        ],
+        "contributor": [
+          {
+            "family": "Friedlingstein",
+            "given": "Pierre"
+          },
+          {
+            "family": "Jones",
+            "given": "Matthew"
+          },
+          {
+            "family": "O'Sullivan",
+            "given": "Michael"
+          },
+          {
+            "family": "Andrew",
+            "given": "Robbie"
+          },
+          {
+            "family": "Hauck",
+            "given": "Judith"
+          },
+          {
+            "family": "Peters",
+            "given": "Glen"
+          },
+          {
+            "family": "Peters",
+            "given": "Wouter"
+          },
+          {
+            "family": "Pongratz",
+            "given": "Julia"
+          },
+          {
+            "family": "Sitch",
+            "given": "Stephen"
+          },
+          {
+            "family": "Le Quéré",
+            "given": "Corinne"
+          },
+          {
+            "family": "Bakker",
+            "given": "Dorothee"
+          },
+          {
+            "family": "Canadell",
+            "given": "Josep"
+          },
+          {
+            "family": "Ciais",
+            "given": "Philippe"
+          },
+          {
+            "family": "Jackson",
+            "given": "Robert"
+          },
+          {
+            "family": "Anthoni",
+            "given": "Peter"
+          },
+          {
+            "family": "Barbero",
+            "given": "Leticia"
+          },
+          {
+            "family": "Bastos",
+            "given": "Ana"
+          },
+          {
+            "family": "Bastrikov",
+            "given": "Vladislav "
+          },
+          {
+            "family": "Becker",
+            "given": "Meike"
+          },
+          {
+            "family": "Bopp",
+            "given": "Laurent"
+          },
+          {
+            "family": "Buitenhuis",
+            "given": "Erik"
+          },
+          {
+            "family": "Chandra",
+            "given": "Naveen"
+          },
+          {
+            "family": "Chevallier",
+            "given": "Frédéric"
+          },
+          {
+            "family": "Chini",
+            "given": "Louise"
+          },
+          {
+            "family": "Currie",
+            "given": "Kim"
+          },
+          {
+            "family": "Feely",
+            "given": "Richard"
+          },
+          {
+            "family": "Gehlen",
+            "given": "Marion"
+          },
+          {
+            "family": "Gelfillan",
+            "given": "Dennis"
+          },
+          {
+            "family": "Gkritzalis",
+            "given": "Thanos"
+          },
+          {
+            "family": "Goll",
+            "given": "Daniel"
+          },
+          {
+            "family": "Gruber",
+            "given": "Nicolas"
+          },
+          {
+            "family": "Gutekunst",
+            "given": "Sören"
+          },
+          {
+            "family": "Harris",
+            "given": "Ian"
+          },
+          {
+            "family": "Haverd",
+            "given": "Vanessa"
+          },
+          {
+            "family": "Houghton",
+            "given": "Richard"
+          },
+          {
+            "family": "Hurtt",
+            "given": "George"
+          },
+          {
+            "family": "Ilyina",
+            "given": "Tatiana"
+          },
+          {
+            "family": "Jain",
+            "given": "Atul"
+          },
+          {
+            "family": "Joetzjer",
+            "given": "Emilie"
+          },
+          {
+            "family": "Kaplan",
+            "given": "Jed"
+          },
+          {
+            "family": "Kato",
+            "given": "Etsushi"
+          },
+          {
+            "family": "Klein Goldewijk",
+            "given": "Kees"
+          },
+          {
+            "family": "Korsbakken",
+            "given": "Jan Ivar"
+          },
+          {
+            "family": "Landschützer",
+            "given": "Peter"
+          },
+          {
+            "family": "Lauvset",
+            "given": "Siv"
+          },
+          {
+            "family": "Lefèvre",
+            "given": "Nathalie"
+          },
+          {
+            "family": "Lenton",
+            "given": "Andrew"
+          },
+          {
+            "family": "Lienert",
+            "given": "Sebastian"
+          },
+          {
+            "family": "Lombardozzi",
+            "given": "Danica"
+          },
+          {
+            "family": "Marland",
+            "given": "Gregg"
+          },
+          {
+            "family": "McGuire",
+            "given": "Patrick"
+          },
+          {
+            "family": "Melton",
+            "given": "Joe"
+          },
+          {
+            "family": "Metzl",
+            "given": "Nicolas"
+          },
+          {
+            "family": "Munro",
+            "given": "David"
+          },
+          {
+            "family": "Nabel",
+            "given": "Julia"
+          },
+          {
+            "family": "Nakaoka",
+            "given": "Shin-ichiro"
+          },
+          {
+            "family": "Neill",
+            "given": "Craig"
+          },
+          {
+            "family": "Omar",
+            "given": "Abdirahman"
+          },
+          {
+            "family": "Ono",
+            "given": "Tsuneo"
+          },
+          {
+            "family": "Peragon",
+            "given": "Anna"
+          },
+          {
+            "family": "Pierrot",
+            "given": "Denis"
+          },
+          {
+            "family": "Poulter",
+            "given": "Benjamin"
+          },
+          {
+            "family": "Rehder",
+            "given": "Gregor"
+          },
+          {
+            "family": "Resplandy",
+            "given": "Laure"
+          },
+          {
+            "family": "Robertson",
+            "given": "Eddy"
+          },
+          {
+            "family": "Rödenbeck",
+            "given": "Christian"
+          },
+          {
+            "family": "Séférian",
+            "given": "Roland"
+          },
+          {
+            "family": "Schwinger",
+            "given": "Jörg"
+          },
+          {
+            "family": "Naomi",
+            "given": "Smith"
+          },
+          {
+            "family": "Tans",
+            "given": "Pieter"
+          },
+          {
+            "family": "Tian",
+            "given": "Hanqin"
+          },
+          {
+            "family": "Tilbrook",
+            "given": "Bronte"
+          },
+          {
+            "family": "Tubiello",
+            "given": "Francesco"
+          },
+          {
+            "family": "van der Werf",
+            "given": "Guido"
+          },
+          {
+            "family": "Wiltshire",
+            "given": "Andrew"
+          },
+          {
+            "family": "Zaehle",
+            "given": "Sönke"
+          }
+        ],
+        "issued": {
+          "date-parts": [
+            [
+              2020,
+              10,
+              1
+            ]
+          ]
+        },
+        "abstract": "Supplement containing data related to the 2020 Global Carbon Budget from the Global Carbon Project. The original article is Friedlingstein et al: Global Carbon Budget 2020, Earth Syst. Sci. Data Discussions, 2020. https://doi.org/10.5194/essd-12-3269-2020. Further information is available on: http://www.globalcarbonproject.org/carbonbudget. File Global_Carbon_Budget_2020v1.0.xlsx includes the following: 1. Summary 2. Global Carbon Budget 3. Fossil fuel emissions by Fuel Type 4. Land-use change emissions 5. Ocean Sink 6. Terrestrial sink 7. Historical Budget. File National_Carbon_Emissions_2020v1.0.xlsx includes the following: 1. Summary 2. Territorial emissions 3. Consumption emissions 4. Emissions transfers 5. Country definitions 6. Disaggregation 7. Aggregation",
+        "DOI": "10.18160/GCP-2020",
+        "publisher": "Global Carbon Project",
+        "title": "Supplemental data of Global Carbon Project 2020",
+        "URL": "https://www.icos-cp.eu/GCP/2020",
+        "copyright": "The use of data is conditional on citing the original data sources. Full details on how to cite the data are given at the top of each page. For research projects, if the data are essential to the work, or if an important result or conclusion depends on the data, co-authorship may need to be considered. The Global Carbon Project facilitates access to data to encourage its use and promote a good understanding of the carbon cycle. Respecting original data sources is key to help secure the support of data providers to enhance, maintain and update valuable data.",
+        "version": "1.0"
+      }
+    },
+    "datacite_crossref": {
+      "source": "DataCite",
+      "data": {
+        "id": "10.18160/gcp-2020",
+        "type": "dois",
+        "attributes": {
+          "doi": "10.18160/gcp-2020",
+          "prefix": "10.18160",
+          "suffix": "gcp-2020",
+          "identifiers": [],
+          "alternateIdentifiers": [],
+          "creators": [
+            {
+              "name": "Global Carbon Project",
+              "nameType": "Organizational",
+              "affiliation": [],
+              "nameIdentifiers": []
+            }
+          ],
+          "titles": [
+            {
+              "title": "Supplemental data of Global Carbon Project 2020"
+            }
+          ],
+          "publisher": "Global Carbon Project",
+          "container": {},
+          "publicationYear": 2020,
+          "subjects": [
+            {
+              "subject": "Data sets"
+            },
+            {
+              "subject": "Biogeochemical cycles, processes, and modeling"
+            },
+            {
+              "subject": "Troposphere: composition and chemistry"
+            }
+          ],
+          "contributors": [
+            {
+              "nameType": "Personal",
+              "givenName": "Pierre",
+              "familyName": "Friedlingstein",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Matthew",
+              "familyName": "Jones",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Michael",
+              "familyName": "O'Sullivan",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Robbie",
+              "familyName": "Andrew",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Judith",
+              "familyName": "Hauck",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Glen",
+              "familyName": "Peters",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Wouter",
+              "familyName": "Peters",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Julia",
+              "familyName": "Pongratz",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Stephen",
+              "familyName": "Sitch",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Corinne",
+              "familyName": "Le Quéré",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Dorothee",
+              "familyName": "Bakker",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Josep",
+              "familyName": "Canadell",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Philippe",
+              "familyName": "Ciais",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Robert",
+              "familyName": "Jackson",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Peter",
+              "familyName": "Anthoni",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Leticia",
+              "familyName": "Barbero",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Ana",
+              "familyName": "Bastos",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Vladislav ",
+              "familyName": "Bastrikov",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Meike",
+              "familyName": "Becker",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Laurent",
+              "familyName": "Bopp",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Erik",
+              "familyName": "Buitenhuis",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Naveen",
+              "familyName": "Chandra",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Frédéric",
+              "familyName": "Chevallier",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Louise",
+              "familyName": "Chini",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Kim",
+              "familyName": "Currie",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Richard",
+              "familyName": "Feely",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Marion",
+              "familyName": "Gehlen",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Dennis",
+              "familyName": "Gelfillan",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Thanos",
+              "familyName": "Gkritzalis",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Daniel",
+              "familyName": "Goll",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Nicolas",
+              "familyName": "Gruber",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Sören",
+              "familyName": "Gutekunst",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Ian",
+              "familyName": "Harris",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Vanessa",
+              "familyName": "Haverd",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Richard",
+              "familyName": "Houghton",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "George",
+              "familyName": "Hurtt",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Tatiana",
+              "familyName": "Ilyina",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Atul",
+              "familyName": "Jain",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Emilie",
+              "familyName": "Joetzjer",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Jed",
+              "familyName": "Kaplan",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Etsushi",
+              "familyName": "Kato",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Kees",
+              "familyName": "Klein Goldewijk",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Jan Ivar",
+              "familyName": "Korsbakken",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Peter",
+              "familyName": "Landschützer",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Siv",
+              "familyName": "Lauvset",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Nathalie",
+              "familyName": "Lefèvre",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Andrew",
+              "familyName": "Lenton",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Sebastian",
+              "familyName": "Lienert",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Danica",
+              "familyName": "Lombardozzi",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Gregg",
+              "familyName": "Marland",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Patrick",
+              "familyName": "McGuire",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Joe",
+              "familyName": "Melton",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Nicolas",
+              "familyName": "Metzl",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "David",
+              "familyName": "Munro",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Julia",
+              "familyName": "Nabel",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Shin-ichiro",
+              "familyName": "Nakaoka",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Craig",
+              "familyName": "Neill",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Abdirahman",
+              "familyName": "Omar",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Tsuneo",
+              "familyName": "Ono",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Anna",
+              "familyName": "Peragon",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Denis",
+              "familyName": "Pierrot",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Benjamin",
+              "familyName": "Poulter",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Gregor",
+              "familyName": "Rehder",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Laure",
+              "familyName": "Resplandy",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Eddy",
+              "familyName": "Robertson",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Christian",
+              "familyName": "Rödenbeck",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Roland",
+              "familyName": "Séférian",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Jörg",
+              "familyName": "Schwinger",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Smith",
+              "familyName": "Naomi",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Pieter",
+              "familyName": "Tans",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Hanqin",
+              "familyName": "Tian",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Bronte",
+              "familyName": "Tilbrook",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Francesco",
+              "familyName": "Tubiello",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Guido",
+              "familyName": "van der Werf",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Andrew",
+              "familyName": "Wiltshire",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            },
+            {
+              "nameType": "Personal",
+              "givenName": "Sönke",
+              "familyName": "Zaehle",
+              "affiliation": [],
+              "contributorType": "ContactPerson",
+              "nameIdentifiers": []
+            }
+          ],
+          "dates": [
+            {
+              "date": "2020-10-01",
+              "dateType": "Issued"
+            }
+          ],
+          "language": null,
+          "types": {
+            "ris": "DATA",
+            "bibtex": "misc",
+            "citeproc": "dataset",
+            "schemaOrg": "Dataset",
+            "resourceType": "Excel file",
+            "resourceTypeGeneral": "Dataset"
+          },
+          "relatedIdentifiers": [],
+          "relatedItems": [],
+          "sizes": [],
+          "formats": [
+            "MS Excel"
+          ],
+          "version": "1.0",
+          "rightsList": [
+            {
+              "lang": "en",
+              "rights": "The use of data is conditional on citing the original data sources. Full details on how to cite the data are given at the top of each page. For research projects, if the data are essential to the work, or if an important result or conclusion depends on the data, co-authorship may need to be considered. The Global Carbon Project facilitates access to data to encourage its use and promote a good understanding of the carbon cycle. Respecting original data sources is key to help secure the support of data providers to enhance, maintain and update valuable data.",
+              "schemeUri": "https://spdx.org/licenses",
+              "rightsIdentifierScheme": "SPDX"
+            }
+          ],
+          "descriptions": [
+            {
+              "description": "Supplement containing data related to the 2020 Global Carbon Budget from the Global Carbon Project. The original article is Friedlingstein et al: Global Carbon Budget 2020, Earth Syst. Sci. Data Discussions, 2020. https://doi.org/10.5194/essd-12-3269-2020. Further information is available on: http://www.globalcarbonproject.org/carbonbudget. File Global_Carbon_Budget_2020v1.0.xlsx includes the following: 1. Summary 2. Global Carbon Budget 3. Fossil fuel emissions by Fuel Type 4. Land-use change emissions 5. Ocean Sink 6. Terrestrial sink 7. Historical Budget. File National_Carbon_Emissions_2020v1.0.xlsx includes the following: 1. Summary 2. Territorial emissions 3. Consumption emissions 4. Emissions transfers 5. Country definitions 6. Disaggregation 7. Aggregation",
+              "descriptionType": "Abstract"
+            }
+          ],
+          "geoLocations": [
+            {
+              "geoLocationBox": {
+                "eastBoundLongitude": 180,
+                "northBoundLatitude": 90,
+                "southBoundLatitude": -90,
+                "westBoundLongitude": -180
+              },
+              "geoLocationPlace": "World"
+            }
+          ],
+          "fundingReferences": [],
+          "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC00L21ldGFkYXRhLnhzZCI+CiAgPGlkZW50aWZpZXIgaWRlbnRpZmllclR5cGU9IkRPSSI+MTAuMTgxNjAvR0NQLTIwMjA8L2lkZW50aWZpZXI+CiAgPGNyZWF0b3JzPgogICAgPGNyZWF0b3I+CiAgICAgIDxjcmVhdG9yTmFtZSBuYW1lVHlwZT0iT3JnYW5pemF0aW9uYWwiPkdsb2JhbCBDYXJib24gUHJvamVjdDwvY3JlYXRvck5hbWU+CiAgICA8L2NyZWF0b3I+CiAgPC9jcmVhdG9ycz4KICA8dGl0bGVzPgogICAgPHRpdGxlPlN1cHBsZW1lbnRhbCBkYXRhIG9mIEdsb2JhbCBDYXJib24gUHJvamVjdCAyMDIwPC90aXRsZT4KICA8L3RpdGxlcz4KICA8cHVibGlzaGVyPkdsb2JhbCBDYXJib24gUHJvamVjdDwvcHVibGlzaGVyPgogIDxwdWJsaWNhdGlvblllYXI+MjAyMDwvcHVibGljYXRpb25ZZWFyPgogIDxyZXNvdXJjZVR5cGUgcmVzb3VyY2VUeXBlR2VuZXJhbD0iRGF0YXNldCI+RXhjZWwgZmlsZTwvcmVzb3VyY2VUeXBlPgogIDxzdWJqZWN0cz4KICAgIDxzdWJqZWN0PkRhdGEgc2V0czwvc3ViamVjdD4KICAgIDxzdWJqZWN0PkJpb2dlb2NoZW1pY2FsIGN5Y2xlcywgcHJvY2Vzc2VzLCBhbmQgbW9kZWxpbmc8L3N1YmplY3Q+CiAgICA8c3ViamVjdD5Ucm9wb3NwaGVyZTogY29tcG9zaXRpb24gYW5kIGNoZW1pc3RyeTwvc3ViamVjdD4KICA8L3N1YmplY3RzPgogIDxjb250cmlidXRvcnM+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkZyaWVkbGluZ3N0ZWluLCBQaWVycmU8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5QaWVycmU8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+RnJpZWRsaW5nc3RlaW48L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5Kb25lcywgTWF0dGhldzwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPk1hdHRoZXc8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+Sm9uZXM8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5PJ1N1bGxpdmFuLCBNaWNoYWVsPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+TWljaGFlbDwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5PJ1N1bGxpdmFuPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+QW5kcmV3LCBSb2JiaWU8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5Sb2JiaWU8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+QW5kcmV3PC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+SGF1Y2ssIEp1ZGl0aDwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkp1ZGl0aDwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5IYXVjazwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPlBldGVycywgR2xlbjwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkdsZW48L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+UGV0ZXJzPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+UGV0ZXJzLCBXb3V0ZXI8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5Xb3V0ZXI8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+UGV0ZXJzPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+UG9uZ3JhdHosIEp1bGlhPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+SnVsaWE8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+UG9uZ3JhdHo8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5TaXRjaCwgU3RlcGhlbjwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPlN0ZXBoZW48L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+U2l0Y2g8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5MZSBRdcOpcsOpLCBDb3Jpbm5lPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+Q29yaW5uZTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5MZSBRdcOpcsOpPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+QmFra2VyLCBEb3JvdGhlZTwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkRvcm90aGVlPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkJha2tlcjwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkNhbmFkZWxsLCBKb3NlcDwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkpvc2VwPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkNhbmFkZWxsPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+Q2lhaXMsIFBoaWxpcHBlPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+UGhpbGlwcGU8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+Q2lhaXM8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5KYWNrc29uLCBSb2JlcnQ8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5Sb2JlcnQ8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+SmFja3NvbjwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkFudGhvbmksIFBldGVyPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+UGV0ZXI8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+QW50aG9uaTwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkJhcmJlcm8sIExldGljaWE8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5MZXRpY2lhPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkJhcmJlcm88L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5CYXN0b3MsIEFuYTwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkFuYTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5CYXN0b3M8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5CYXN0cmlrb3YsIFZsYWRpc2xhdiA8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5WbGFkaXNsYXYgPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkJhc3RyaWtvdjwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkJlY2tlciwgTWVpa2U8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5NZWlrZTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5CZWNrZXI8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5Cb3BwLCBMYXVyZW50PC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+TGF1cmVudDwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5Cb3BwPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+QnVpdGVuaHVpcywgRXJpazwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkVyaWs8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+QnVpdGVuaHVpczwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkNoYW5kcmEsIE5hdmVlbjwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPk5hdmVlbjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5DaGFuZHJhPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+Q2hldmFsbGllciwgRnLDqWTDqXJpYzwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkZyw6lkw6lyaWM8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+Q2hldmFsbGllcjwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkNoaW5pLCBMb3Vpc2U8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5Mb3Vpc2U8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+Q2hpbmk8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5DdXJyaWUsIEtpbTwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPktpbTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5DdXJyaWU8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5GZWVseSwgUmljaGFyZDwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPlJpY2hhcmQ8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+RmVlbHk8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5HZWhsZW4sIE1hcmlvbjwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPk1hcmlvbjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5HZWhsZW48L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5HZWxmaWxsYW4sIERlbm5pczwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkRlbm5pczwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5HZWxmaWxsYW48L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5Ha3JpdHphbGlzLCBUaGFub3M8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5UaGFub3M8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+R2tyaXR6YWxpczwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkdvbGwsIERhbmllbDwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkRhbmllbDwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5Hb2xsPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+R3J1YmVyLCBOaWNvbGFzPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+Tmljb2xhczwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5HcnViZXI8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5HdXRla3Vuc3QsIFPDtnJlbjwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPlPDtnJlbjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5HdXRla3Vuc3Q8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5IYXJyaXMsIElhbjwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPklhbjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5IYXJyaXM8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5IYXZlcmQsIFZhbmVzc2E8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5WYW5lc3NhPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkhhdmVyZDwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkhvdWdodG9uLCBSaWNoYXJkPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+UmljaGFyZDwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5Ib3VnaHRvbjwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkh1cnR0LCBHZW9yZ2U8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5HZW9yZ2U8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+SHVydHQ8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5JbHlpbmEsIFRhdGlhbmE8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5UYXRpYW5hPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPklseWluYTwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkphaW4sIEF0dWw8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5BdHVsPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkphaW48L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5Kb2V0emplciwgRW1pbGllPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+RW1pbGllPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkpvZXR6amVyPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+S2FwbGFuLCBKZWQ8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5KZWQ8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+S2FwbGFuPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+S2F0bywgRXRzdXNoaTwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkV0c3VzaGk8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+S2F0bzwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPktsZWluIEdvbGRld2lqaywgS2VlczwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPktlZXM8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+S2xlaW4gR29sZGV3aWprPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+S29yc2Jha2tlbiwgSmFuIEl2YXI8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5KYW4gSXZhcjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5Lb3JzYmFra2VuPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+TGFuZHNjaMO8dHplciwgUGV0ZXI8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5QZXRlcjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5MYW5kc2Now7x0emVyPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+TGF1dnNldCwgU2l2PC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+U2l2PC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkxhdXZzZXQ8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5MZWbDqHZyZSwgTmF0aGFsaWU8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5OYXRoYWxpZTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5MZWbDqHZyZTwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkxlbnRvbiwgQW5kcmV3PC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+QW5kcmV3PC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkxlbnRvbjwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkxpZW5lcnQsIFNlYmFzdGlhbjwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPlNlYmFzdGlhbjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5MaWVuZXJ0PC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+TG9tYmFyZG96emksIERhbmljYTwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkRhbmljYTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5Mb21iYXJkb3p6aTwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPk1hcmxhbmQsIEdyZWdnPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+R3JlZ2c8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+TWFybGFuZDwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPk1jR3VpcmUsIFBhdHJpY2s8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5QYXRyaWNrPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPk1jR3VpcmU8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5NZWx0b24sIEpvZTwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkpvZTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5NZWx0b248L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5NZXR6bCwgTmljb2xhczwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPk5pY29sYXM8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+TWV0emw8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5NdW5ybywgRGF2aWQ8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5EYXZpZDwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5NdW5ybzwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPk5hYmVsLCBKdWxpYTwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkp1bGlhPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPk5hYmVsPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+TmFrYW9rYSwgU2hpbi1pY2hpcm88L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5TaGluLWljaGlybzwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5OYWthb2thPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+TmVpbGwsIENyYWlnPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+Q3JhaWc8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+TmVpbGw8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5PbWFyLCBBYmRpcmFobWFuPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+QWJkaXJhaG1hbjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5PbWFyPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+T25vLCBUc3VuZW88L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5Uc3VuZW88L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+T25vPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+UGVyYWdvbiwgQW5uYTwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkFubmE8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+UGVyYWdvbjwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPlBpZXJyb3QsIERlbmlzPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+RGVuaXM8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+UGllcnJvdDwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPlBvdWx0ZXIsIEJlbmphbWluPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+QmVuamFtaW48L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+UG91bHRlcjwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPlJlaGRlciwgR3JlZ29yPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+R3JlZ29yPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPlJlaGRlcjwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPlJlc3BsYW5keSwgTGF1cmU8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5MYXVyZTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5SZXNwbGFuZHk8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5Sb2JlcnRzb24sIEVkZHk8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5FZGR5PC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPlJvYmVydHNvbjwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPlLDtmRlbmJlY2ssIENocmlzdGlhbjwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkNocmlzdGlhbjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5Sw7ZkZW5iZWNrPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+U8OpZsOpcmlhbiwgUm9sYW5kPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+Um9sYW5kPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPlPDqWbDqXJpYW48L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5TY2h3aW5nZXIsIErDtnJnPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+SsO2cmc8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+U2Nod2luZ2VyPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+TmFvbWksIFNtaXRoPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+U21pdGg8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+TmFvbWk8L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5UYW5zLCBQaWV0ZXI8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5QaWV0ZXI8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+VGFuczwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPlRpYW4sIEhhbnFpbjwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkhhbnFpbjwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5UaWFuPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+VGlsYnJvb2ssIEJyb250ZTwvY29udHJpYnV0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkJyb250ZTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5UaWxicm9vazwvZmFtaWx5TmFtZT4KICAgIDwvY29udHJpYnV0b3I+CiAgICA8Y29udHJpYnV0b3IgY29udHJpYnV0b3JUeXBlPSJDb250YWN0UGVyc29uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPlR1YmllbGxvLCBGcmFuY2VzY288L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5GcmFuY2VzY288L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+VHViaWVsbG88L2ZhbWlseU5hbWU+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iQ29udGFjdFBlcnNvbiI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj52YW4gZGVyIFdlcmYsIEd1aWRvPC9jb250cmlidXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+R3VpZG88L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+dmFuIGRlciBXZXJmPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+V2lsdHNoaXJlLCBBbmRyZXc8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5BbmRyZXc8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+V2lsdHNoaXJlPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkNvbnRhY3RQZXJzb24iPgogICAgICA8Y29udHJpYnV0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+WmFlaGxlLCBTw7Zua2U8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5Tw7Zua2U8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+WmFlaGxlPC9mYW1pbHlOYW1lPgogICAgPC9jb250cmlidXRvcj4KICA8L2NvbnRyaWJ1dG9ycz4KICA8ZGF0ZXM+CiAgICA8ZGF0ZSBkYXRlVHlwZT0iSXNzdWVkIj4yMDIwLTEwLTAxPC9kYXRlPgogIDwvZGF0ZXM+CiAgPHNpemVzLz4KICA8Zm9ybWF0cz4KICAgIDxmb3JtYXQ+TVMgRXhjZWw8L2Zvcm1hdD4KICA8L2Zvcm1hdHM+CiAgPHZlcnNpb24+MS4wPC92ZXJzaW9uPgogIDxyaWdodHNMaXN0PgogICAgPHJpZ2h0cyByaWdodHNJZGVudGlmaWVyU2NoZW1lPSJTUERYIiBzY2hlbWVVUkk9Imh0dHBzOi8vc3BkeC5vcmcvbGljZW5zZXMiIHhtbDpsYW5nPSJlbiI+VGhlIHVzZSBvZiBkYXRhIGlzIGNvbmRpdGlvbmFsIG9uIGNpdGluZyB0aGUgb3JpZ2luYWwgZGF0YSBzb3VyY2VzLiBGdWxsIGRldGFpbHMgb24gaG93IHRvIGNpdGUgdGhlIGRhdGEgYXJlIGdpdmVuIGF0IHRoZSB0b3Agb2YgZWFjaCBwYWdlLiBGb3IgcmVzZWFyY2ggcHJvamVjdHMsIGlmIHRoZSBkYXRhIGFyZSBlc3NlbnRpYWwgdG8gdGhlIHdvcmssIG9yIGlmIGFuIGltcG9ydGFudCByZXN1bHQgb3IgY29uY2x1c2lvbiBkZXBlbmRzIG9uIHRoZSBkYXRhLCBjby1hdXRob3JzaGlwIG1heSBuZWVkIHRvIGJlIGNvbnNpZGVyZWQuIFRoZSBHbG9iYWwgQ2FyYm9uIFByb2plY3QgZmFjaWxpdGF0ZXMgYWNjZXNzIHRvIGRhdGEgdG8gZW5jb3VyYWdlIGl0cyB1c2UgYW5kIHByb21vdGUgYSBnb29kIHVuZGVyc3RhbmRpbmcgb2YgdGhlIGNhcmJvbiBjeWNsZS4gUmVzcGVjdGluZyBvcmlnaW5hbCBkYXRhIHNvdXJjZXMgaXMga2V5IHRvIGhlbHAgc2VjdXJlIHRoZSBzdXBwb3J0IG9mIGRhdGEgcHJvdmlkZXJzIHRvIGVuaGFuY2UsIG1haW50YWluIGFuZCB1cGRhdGUgdmFsdWFibGUgZGF0YS48L3JpZ2h0cz4KICA8L3JpZ2h0c0xpc3Q+CiAgPGRlc2NyaXB0aW9ucz4KICAgIDxkZXNjcmlwdGlvbiBkZXNjcmlwdGlvblR5cGU9IkFic3RyYWN0Ij5TdXBwbGVtZW50IGNvbnRhaW5pbmcgZGF0YSByZWxhdGVkIHRvIHRoZSAyMDIwIEdsb2JhbCBDYXJib24gQnVkZ2V0IGZyb20gdGhlIEdsb2JhbCBDYXJib24gUHJvamVjdC4gVGhlIG9yaWdpbmFsIGFydGljbGUgaXMgRnJpZWRsaW5nc3RlaW4gZXQgYWw6IEdsb2JhbCBDYXJib24gQnVkZ2V0IDIwMjAsIEVhcnRoIFN5c3QuIFNjaS4gRGF0YSBEaXNjdXNzaW9ucywgMjAyMC4gaHR0cHM6Ly9kb2kub3JnLzEwLjUxOTQvZXNzZC0xMi0zMjY5LTIwMjAuIEZ1cnRoZXIgaW5mb3JtYXRpb24gaXMgYXZhaWxhYmxlIG9uOiBodHRwOi8vd3d3Lmdsb2JhbGNhcmJvbnByb2plY3Qub3JnL2NhcmJvbmJ1ZGdldC4gRmlsZSBHbG9iYWxfQ2FyYm9uX0J1ZGdldF8yMDIwdjEuMC54bHN4IGluY2x1ZGVzIHRoZSBmb2xsb3dpbmc6IDEuIFN1bW1hcnkgMi4gR2xvYmFsIENhcmJvbiBCdWRnZXQgMy4gRm9zc2lsIGZ1ZWwgZW1pc3Npb25zIGJ5IEZ1ZWwgVHlwZSA0LiBMYW5kLXVzZSBjaGFuZ2UgZW1pc3Npb25zIDUuIE9jZWFuIFNpbmsgNi4gVGVycmVzdHJpYWwgc2luayA3LiBIaXN0b3JpY2FsIEJ1ZGdldC4gRmlsZSBOYXRpb25hbF9DYXJib25fRW1pc3Npb25zXzIwMjB2MS4wLnhsc3ggaW5jbHVkZXMgdGhlIGZvbGxvd2luZzogMS4gU3VtbWFyeSAyLiBUZXJyaXRvcmlhbCBlbWlzc2lvbnMgMy4gQ29uc3VtcHRpb24gZW1pc3Npb25zIDQuIEVtaXNzaW9ucyB0cmFuc2ZlcnMgNS4gQ291bnRyeSBkZWZpbml0aW9ucyA2LiBEaXNhZ2dyZWdhdGlvbiA3LiBBZ2dyZWdhdGlvbjwvZGVzY3JpcHRpb24+CiAgPC9kZXNjcmlwdGlvbnM+CiAgPGdlb0xvY2F0aW9ucz4KICAgIDxnZW9Mb2NhdGlvbj4KICAgICAgPGdlb0xvY2F0aW9uUGxhY2U+V29ybGQ8L2dlb0xvY2F0aW9uUGxhY2U+CiAgICAgIDxnZW9Mb2NhdGlvbkJveD4KICAgICAgICA8d2VzdEJvdW5kTG9uZ2l0dWRlPi0xODAuMDwvd2VzdEJvdW5kTG9uZ2l0dWRlPgogICAgICAgIDxlYXN0Qm91bmRMb25naXR1ZGU+MTgwLjA8L2Vhc3RCb3VuZExvbmdpdHVkZT4KICAgICAgICA8c291dGhCb3VuZExhdGl0dWRlPi05MC4wPC9zb3V0aEJvdW5kTGF0aXR1ZGU+CiAgICAgICAgPG5vcnRoQm91bmRMYXRpdHVkZT45MC4wPC9ub3J0aEJvdW5kTGF0aXR1ZGU+CiAgICAgIDwvZ2VvTG9jYXRpb25Cb3g+CiAgICA8L2dlb0xvY2F0aW9uPgogIDwvZ2VvTG9jYXRpb25zPgo8L3Jlc291cmNlPgo=",
+          "url": "https://www.icos-cp.eu/GCP/2020",
+          "contentUrl": null,
+          "metadataVersion": 6,
+          "schemaVersion": "http://datacite.org/schema/kernel-4",
+          "source": "fabricaForm",
+          "isActive": true,
+          "state": "findable",
+          "reason": null,
+          "viewCount": 0,
+          "viewsOverTime": [],
+          "downloadCount": 0,
+          "downloadsOverTime": [],
+          "referenceCount": 0,
+          "citationCount": 7,
+          "citationsOverTime": [
+            {
+              "year": "2022",
+              "total": 3
+            },
+            {
+              "year": "2023",
+              "total": 1
+            },
+            {
+              "year": "2024",
+              "total": 1
+            },
+            {
+              "year": "2025",
+              "total": 1
+            },
+            {
+              "year": "2026",
+              "total": 1
+            }
+          ],
+          "partCount": 1,
+          "partOfCount": 0,
+          "versionCount": 0,
+          "versionOfCount": 0,
+          "created": "2020-09-30T09:31:21.000Z",
+          "registered": "2020-09-30T09:31:21.000Z",
+          "published": "2020",
+          "updated": "2025-09-03T13:16:26.000Z"
+        },
+        "relationships": {
+          "client": {
+            "data": {
+              "id": "snd.icos",
+              "type": "clients"
+            }
+          },
+          "provider": {
+            "data": {
+              "id": "mviy",
+              "type": "providers"
+            }
+          },
+          "media": {
+            "data": {
+              "id": "10.18160/gcp-2020",
+              "type": "media"
+            }
+          },
+          "references": {
+            "data": []
+          },
+          "citations": {
+            "data": [
+              {
+                "id": "10.5194/esd-13-439-2022",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/14631377.2021.1954825",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s11356-021-14088-x",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/21664250.2021.1935581",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s00477-023-02470-9",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.heliyon.2025.e42770",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s44274-026-00649-9",
+                "type": "dois"
+              }
+            ]
+          },
+          "parts": {
+            "data": [
+              {
+                "id": "10.5194/essd-12-3269-2020",
+                "type": "dois"
+              }
+            ]
+          },
+          "partOf": {
+            "data": []
+          },
+          "versions": {
+            "data": []
+          },
+          "versionOf": {
+            "data": []
+          }
+        }
+      }
+    },
+    "official_api": {
+      "error": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2020"
+    }
+  }
+}

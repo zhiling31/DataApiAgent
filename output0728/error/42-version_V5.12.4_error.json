@@ -1,0 +1,25 @@
+{
+  "input_summary": {
+    "doi": null,
+    "dataset_url": "https://disc.gsfc.nasa.gov/datasets?project=MERRA-2",
+    "doi_landing_page": null,
+    "dataset_name": "MERRA-2 (Modern-Era Retrospective analysis for Research and Applications, Version 2)",
+    "version_name": "V5.12.4",
+    "official_website": "NASA GES DISC",
+    "target_api_name": [
+      "Goddard Earth Sciences Data and Information Services Center (GES DISC)"
+    ]
+  },
+  "metadata_sources": {
+    "doi_org": {},
+    "datacite_crossref": {},
+    "official_api": {
+      "error": "无法从提供的参数解析出 CMR concept_id，请提供有效的 DOI、dataset_url 或 dataset_name"
+    }
+  },
+  "original_input": {
+    "dataset_name": "MERRA-2 大气再分析",
+    "url": "https://disc.gsfc.nasa.gov/datasets?project=MERRA-2"
+  },
+  "error_reason": "无法从提供的参数解析出 CMR concept_id，请提供有效的 DOI、dataset_url 或 dataset_name"
+}

@@ -1,0 +1,634 @@
+{
+  "input_summary": {
+    "doi": "10.5066/P9OGBGM6",
+    "dataset_url": "https://www.usgs.gov/centers/eros/science/usgs-eros-archive-landsat-archives-landsat-8-9-olitirs-collection-2-level-2",
+    "doi_landing_page": "https://www.usgs.gov/centers/eros/science/usgs-eros-archive-landsat-archives-landsat-8-9-olitirs-collection-2-level-2",
+    "dataset_name": "Landsat 8-9 Operational Land Imager / Thermal Infrared Sensor Level-2, Collection 2",
+    "version_name": "Collection 2",
+    "official_website": "USGS EarthExplorer",
+    "target_api_name": []
+  },
+  "metadata_sources": {
+    "doi_org": {
+      "source": "doi.org (CSL-JSON)",
+      "data": {
+        "type": "dataset",
+        "id": "https://doi.org/10.5066/p9ogbgm6",
+        "author": [
+          {
+            "literal": "Earth Resources Observation and Science (EROS) Center"
+          }
+        ],
+        "issued": {
+          "date-parts": [
+            [
+              2013
+            ]
+          ]
+        },
+        "abstract": "The U.S. Geological Survey (USGS) provides Landsat 8-9 Operational Land Imager/Thermal Infrared Sensor (OLI/TIRS) Collection 2 Level-2 Science Products (L2SP) through EarthExplorer.  The L2SP include Surface Reflectance and Surface Temperature scene-based products.",
+        "DOI": "10.5066/P9OGBGM6",
+        "publisher": "U.S. Geological Survey",
+        "title": "Landsat 8-9 Operational Land Imager / Thermal Infrared Sensor Level-2, Collection 2",
+        "URL": "https://www.usgs.gov/centers/eros/science/usgs-eros-archive-landsat-archives-landsat-8-9-olitirs-collection-2-level-2",
+        "copyright": "Creative Commons Zero v1.0 Universal"
+      }
+    },
+    "datacite_crossref": {
+      "source": "DataCite",
+      "data": {
+        "id": "10.5066/p9ogbgm6",
+        "type": "dois",
+        "attributes": {
+          "doi": "10.5066/p9ogbgm6",
+          "prefix": "10.5066",
+          "suffix": "p9ogbgm6",
+          "identifiers": [],
+          "alternateIdentifiers": [],
+          "creators": [
+            {
+              "name": "Earth Resources Observation and Science (EROS) Center",
+              "nameType": "Organizational",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://ror.org",
+                  "nameIdentifier": null,
+                  "nameIdentifierScheme": "ROR"
+                }
+              ]
+            }
+          ],
+          "titles": [
+            {
+              "title": "Landsat 8-9 Operational Land Imager / Thermal Infrared Sensor Level-2, Collection 2"
+            }
+          ],
+          "publisher": "U.S. Geological Survey",
+          "container": {},
+          "publicationYear": 2020,
+          "subjects": [],
+          "contributors": [],
+          "dates": [
+            {
+              "date": "2013",
+              "dateType": "Issued"
+            }
+          ],
+          "language": null,
+          "types": {
+            "ris": "DATA",
+            "bibtex": "misc",
+            "citeproc": "dataset",
+            "schemaOrg": "Dataset",
+            "resourceType": "Dataset",
+            "resourceTypeGeneral": "Dataset"
+          },
+          "relatedIdentifiers": [
+            {
+              "relationType": "IsCitedBy",
+              "relatedIdentifier": "https://doi.org/10.1016/J.JHYDROL.2021.127318",
+              "relatedIdentifierType": "DOI"
+            },
+            {
+              "relationType": "IsCitedBy",
+              "relatedIdentifier": "https://doi.org/10.1016/j.rse.2020.111968",
+              "relatedIdentifierType": "DOI"
+            },
+            {
+              "relationType": "IsCitedBy",
+              "relatedIdentifier": "https://doi.org/10.1016/J.UCLIM.2022.101225",
+              "relatedIdentifierType": "DOI"
+            },
+            {
+              "relationType": "IsCitedBy",
+              "relatedIdentifier": "https://doi.org/10.1016/J.AGRFORMET.2023.109564",
+              "relatedIdentifierType": "DOI"
+            }
+          ],
+          "relatedItems": [],
+          "sizes": [],
+          "formats": [],
+          "version": null,
+          "rightsList": [
+            {
+              "rights": "Creative Commons Zero v1.0 Universal",
+              "rightsUri": "https://creativecommons.org/publicdomain/zero/1.0/legalcode",
+              "schemeUri": "https://spdx.org/licenses/",
+              "rightsIdentifier": "cc0-1.0",
+              "rightsIdentifierScheme": "SPDX"
+            }
+          ],
+          "descriptions": [
+            {
+              "description": "The U.S. Geological Survey (USGS) provides Landsat 8-9 Operational Land Imager/Thermal Infrared Sensor (OLI/TIRS) Collection 2 Level-2 Science Products (L2SP) through EarthExplorer.  The L2SP include Surface Reflectance and Surface Temperature scene-based products.",
+              "descriptionType": "Abstract"
+            }
+          ],
+          "geoLocations": [],
+          "fundingReferences": [],
+          "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC00L21ldGFkYXRhLnhzZCI+CiAgPGlkZW50aWZpZXIgaWRlbnRpZmllclR5cGU9IkRPSSI+MTAuNTA2Ni9QOU9HQkdNNjwvaWRlbnRpZmllcj4KICA8Y3JlYXRvcnM+CiAgICA8Y3JlYXRvcj4KICAgICAgPGNyZWF0b3JOYW1lIG5hbWVUeXBlPSJPcmdhbml6YXRpb25hbCI+RWFydGggUmVzb3VyY2VzIE9ic2VydmF0aW9uIGFuZCBTY2llbmNlIChFUk9TKSBDZW50ZXI8L2NyZWF0b3JOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9IlJPUiIgc2NoZW1lVVJJPSJodHRwczovL3Jvci5vcmciLz4KICAgIDwvY3JlYXRvcj4KICA8L2NyZWF0b3JzPgogIDx0aXRsZXM+CiAgICA8dGl0bGU+TGFuZHNhdCA4LTkgT3BlcmF0aW9uYWwgTGFuZCBJbWFnZXIgLyBUaGVybWFsIEluZnJhcmVkIFNlbnNvciBMZXZlbC0yLCBDb2xsZWN0aW9uIDI8L3RpdGxlPgogIDwvdGl0bGVzPgogIDxwdWJsaXNoZXI+VS5TLiBHZW9sb2dpY2FsIFN1cnZleTwvcHVibGlzaGVyPgogIDxwdWJsaWNhdGlvblllYXI+MjAyMDwvcHVibGljYXRpb25ZZWFyPgogIDxyZXNvdXJjZVR5cGUgcmVzb3VyY2VUeXBlR2VuZXJhbD0iRGF0YXNldCI+RGF0YXNldDwvcmVzb3VyY2VUeXBlPgogIDxkYXRlcz4KICAgIDxkYXRlIGRhdGVUeXBlPSJJc3N1ZWQiPjIwMTM8L2RhdGU+CiAgPC9kYXRlcz4KICA8cmVsYXRlZElkZW50aWZpZXJzPgogICAgPHJlbGF0ZWRJZGVudGlmaWVyIHJlbGF0ZWRJZGVudGlmaWVyVHlwZT0iRE9JIiByZWxhdGlvblR5cGU9IklzQ2l0ZWRCeSI+aHR0cHM6Ly9kb2kub3JnLzEwLjEwMTYvSi5KSFlEUk9MLjIwMjEuMTI3MzE4PC9yZWxhdGVkSWRlbnRpZmllcj4KICAgIDxyZWxhdGVkSWRlbnRpZmllciByZWxhdGVkSWRlbnRpZmllclR5cGU9IkRPSSIgcmVsYXRpb25UeXBlPSJJc0NpdGVkQnkiPmh0dHBzOi8vZG9pLm9yZy8xMC4xMDE2L2oucnNlLjIwMjAuMTExOTY4PC9yZWxhdGVkSWRlbnRpZmllcj4KICAgIDxyZWxhdGVkSWRlbnRpZmllciByZWxhdGVkSWRlbnRpZmllclR5cGU9IkRPSSIgcmVsYXRpb25UeXBlPSJJc0NpdGVkQnkiPmh0dHBzOi8vZG9pLm9yZy8xMC4xMDE2L0ouVUNMSU0uMjAyMi4xMDEyMjU8L3JlbGF0ZWRJZGVudGlmaWVyPgogICAgPHJlbGF0ZWRJZGVudGlmaWVyIHJlbGF0ZWRJZGVudGlmaWVyVHlwZT0iRE9JIiByZWxhdGlvblR5cGU9IklzQ2l0ZWRCeSI+aHR0cHM6Ly9kb2kub3JnLzEwLjEwMTYvSi5BR1JGT1JNRVQuMjAyMy4xMDk1NjQ8L3JlbGF0ZWRJZGVudGlmaWVyPgogIDwvcmVsYXRlZElkZW50aWZpZXJzPgogIDxzaXplcy8+CiAgPGZvcm1hdHMvPgogIDx2ZXJzaW9uLz4KICA8cmlnaHRzTGlzdD4KICAgIDxyaWdodHMgcmlnaHRzSWRlbnRpZmllcj0iQ0MwLTEuMCIgcmlnaHRzSWRlbnRpZmllclNjaGVtZT0iU1BEWCIvPgogIDwvcmlnaHRzTGlzdD4KICA8ZGVzY3JpcHRpb25zPgogICAgPGRlc2NyaXB0aW9uIGRlc2NyaXB0aW9uVHlwZT0iQWJzdHJhY3QiPlRoZSBVLlMuIEdlb2xvZ2ljYWwgU3VydmV5IChVU0dTKSBwcm92aWRlcyBMYW5kc2F0IDgtOSBPcGVyYXRpb25hbCBMYW5kIEltYWdlci9UaGVybWFsIEluZnJhcmVkIFNlbnNvciAoT0xJL1RJUlMpIENvbGxlY3Rpb24gMiBMZXZlbC0yIFNjaWVuY2UgUHJvZHVjdHMgKEwyU1ApIHRocm91Z2ggRWFydGhFeHBsb3Jlci4gIFRoZSBMMlNQIGluY2x1ZGUgU3VyZmFjZSBSZWZsZWN0YW5jZSBhbmQgU3VyZmFjZSBUZW1wZXJhdHVyZSBzY2VuZS1iYXNlZCBwcm9kdWN0cy48L2Rlc2NyaXB0aW9uPgogIDwvZGVzY3JpcHRpb25zPgo8L3Jlc291cmNlPgo=",
+          "url": "https://www.usgs.gov/centers/eros/science/usgs-eros-archive-landsat-archives-landsat-8-9-olitirs-collection-2-level-2",
+          "contentUrl": null,
+          "metadataVersion": 5,
+          "schemaVersion": "http://datacite.org/schema/kernel-4",
+          "source": "mds",
+          "isActive": true,
+          "state": "findable",
+          "reason": null,
+          "viewCount": 0,
+          "viewsOverTime": [],
+          "downloadCount": 0,
+          "downloadsOverTime": [],
+          "referenceCount": 2,
+          "citationCount": 96,
+          "citationsOverTime": [
+            {
+              "year": "2022",
+              "total": 1
+            },
+            {
+              "year": "2023",
+              "total": 1
+            },
+            {
+              "year": "2024",
+              "total": 3
+            },
+            {
+              "year": "2025",
+              "total": 45
+            },
+            {
+              "year": "2026",
+              "total": 46
+            }
+          ],
+          "partCount": 4,
+          "partOfCount": 0,
+          "versionCount": 0,
+          "versionOfCount": 0,
+          "created": "2020-12-02T18:18:53.000Z",
+          "registered": "2020-12-02T18:18:55.000Z",
+          "published": "2020",
+          "updated": "2025-04-16T21:32:56.000Z"
+        },
+        "relationships": {
+          "client": {
+            "data": {
+              "id": "usgs.prod",
+              "type": "clients"
+            }
+          },
+          "provider": {
+            "data": {
+              "id": "pryl",
+              "type": "providers"
+            }
+          },
+          "media": {
+            "data": {
+              "id": "10.5066/p9ogbgm6",
+              "type": "media"
+            }
+          },
+          "references": {
+            "data": [
+              {
+                "id": "10.1016/j.rse.2020.111968",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2021.127318",
+                "type": "dois"
+              }
+            ]
+          },
+          "citations": {
+            "data": [
+              {
+                "id": "10.3390/atmos13050830",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.uclim.2022.101225",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.still.2023.105980",
+                "type": "dois"
+              },
+              {
+                "id": "10.3201/eid3010.240526",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jenvman.2024.122723",
+                "type": "dois"
+              },
+              {
+                "id": "10.2298/ijgi2403311t",
+                "type": "dois"
+              },
+              {
+                "id": "10.51583/ijltemas.2024.131211",
+                "type": "dois"
+              },
+              {
+                "id": "10.11922/11-6035.csd.2023.0145.zh",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/tc-17-427-2023",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/tc-16-4887-2022",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.ejrh.2025.102362",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.agrformet.2023.109564",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.geogeo.2025.100398",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/01431161.2025.2487252",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/01431161.2025.2486321",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.srs.2025.100234",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2024gh001273",
+                "type": "dois"
+              },
+              {
+                "id": "10.1088/2752-5295/addd41",
+                "type": "dois"
+              },
+              {
+                "id": "10.36023/ujrs.2025.12.2.282",
+                "type": "dois"
+              },
+              {
+                "id": "10.21203/rs.3.rs-6665951/v1",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s10661-025-14256-3",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/tc-19-2315-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025gh001462",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41597-025-05715-0",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.ecolind.2025.114038",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41597-025-05771-6",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/17538947.2025.2538818",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2024gl113506",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.infgeo.2025.100029",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s43247-025-02732-0",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/essd-17-4957-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41598-025-18606-6",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/gmd-18-7165-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025wr041303",
+                "type": "dois"
+              },
+              {
+                "id": "10.1093/tafafs/vnaf047",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s10661-025-14777-x",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.cacint.2025.100263",
+                "type": "dois"
+              },
+              {
+                "id": "10.21203/rs.3.rs-7794351/v1",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025jg008980",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.jhydrol.2025.134604",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.agwat.2025.109976",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/essd-17-6331-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.5593/sgem2025/2.1/s09.22",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025gl119418",
+                "type": "dois"
+              },
+              {
+                "id": "10.1021/acsestwater.5c00583",
+                "type": "dois"
+              },
+              {
+                "id": "10.1088/3049-4753/ae2278",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s10346-025-02658-w",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/17538947.2025.2553792",
+                "type": "dois"
+              },
+              {
+                "id": "10.1371/journal.pone.0338218",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s12145-025-02003-8",
+                "type": "dois"
+              },
+              {
+                "id": "10.1111/jse.70036",
+                "type": "dois"
+              },
+              {
+                "id": "10.1111/gcb.70703",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.watres.2026.125428",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/tc-20-551-2026",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.scs.2026.107170",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025gl119633",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41598-025-18440-w",
+                "type": "dois"
+              },
+              {
+                "id": "10.1002/ece3.73117",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s11258-026-01605-6",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/19475705.2026.2634202",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s44475-026-00016-5",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41558-026-02568-2",
+                "type": "dois"
+              },
+              {
+                "id": "10.2166/hydro.2026.141",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025rg000885",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025gl120826",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/15481603.2026.2640263",
+                "type": "dois"
+              },
+              {
+                "id": "10.1016/j.rsase.2026.101964",
+                "type": "dois"
+              },
+              {
+                "id": "10.3389/fpubh.2026.1796845",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41893-026-01784-0",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/15230430.2026.2617687",
+                "type": "dois"
+              },
+              {
+                "id": "10.1186/s42408-026-00459-7",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41597-026-07099-1",
+                "type": "dois"
+              },
+              {
+                "id": "10.1088/2515-7620/ae550d",
+                "type": "dois"
+              },
+              {
+                "id": "10.21203/rs.3.rs-9125856/v1",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/essd-18-2507-2026",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/19475705.2026.2660859",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s11676-026-02052-9",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/15481603.2026.2658313",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s41064-026-00390-1",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025gb008982",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025av002179",
+                "type": "dois"
+              },
+              {
+                "id": "10.21203/rs.3.rs-9438795/v1",
+                "type": "dois"
+              },
+              {
+                "id": "10.12677/ojns.2026.143036",
+                "type": "dois"
+              },
+              {
+                "id": "10.1088/1748-9326/ae5266",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/20964471.2026.2660552",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/01431161.2026.2676245",
+                "type": "dois"
+              },
+              {
+                "id": "10.4236/ars.2026.152003",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s10064-026-05040-9",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s41651-026-00272-5",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025jg009664",
+                "type": "dois"
+              },
+              {
+                "id": "10.1080/15481603.2026.2697413",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025jg009470",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s00704-026-06405-6",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s12076-026-00442-5",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41467-026-73716-7",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41467-026-73092-2",
+                "type": "dois"
+              }
+            ]
+          },
+          "parts": {
+            "data": [
+              {
+                "id": "10.5194/tc-17-427-2023",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/tc-19-2315-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/gmd-18-7165-2025",
+                "type": "dois"
+              },
+              {
+                "id": "10.5194/tc-20-551-2026",
+                "type": "dois"
+              }
+            ]
+          },
+          "partOf": {
+            "data": []
+          },
+          "versions": {
+            "data": []
+          },
+          "versionOf": {
+            "data": []
+          }
+        }
+      }
+    },
+    "official_api": {}
+  },
+  "original_input": {
+    "dataset_name": "Landsat 8 Collection 2 Level-2 Surface Temperature (L2SP / ST)（陆地卫星 8 号第二版二级地表温度数据集（L2SP/ST 产品））",
+    "url": "https://registry.opendata.aws/deafrica-landsat/"
+  },
+  "error_reason": "未找到对应的官网知识库 API"
+}

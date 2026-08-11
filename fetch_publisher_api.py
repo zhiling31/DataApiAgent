@@ -1264,13 +1264,15 @@ def main():
                                         "target_api_name": summary.get("target_api_name", []),
                                         "error_reason": summary.get("error_reason", ""),
                                         "doi_landing_page": summary.get("doi_landing_page", ""),
-                                        "doi": summary.get("doi", "")
+                                        "doi": summary.get("doi", ""),
+                                        "official_website": summary.get("official_website", ""),
+                                        "is_incremental_mode": True
                                     })
                 except Exception as e:
                     print(f"读取文件 {filename} 失败: {e}")
                     
         if args.dataset_id:
-            publisher_samples = [s for s in publisher_samples if str(s["id"]) == str(args.dataset_id)]
+            publisher_samples = [s for s in publisher_samples if str(s["id"].split('-')[0]) == str(args.dataset_id)]
             if not publisher_samples:
                 print(f"⚠️ 在文件夹中找不到 数据集ID 为 {args.dataset_id} 的记录。")
                 return
@@ -1303,16 +1305,18 @@ def main():
                                     "dataset_name": ds_name,
                                     "url": ds_url,
                                     "target_api_name": summary.get("target_api_name", []),
-                                    "error_reason": summary.get("error_reason", ""),
+                                    "error_reason": item.get("error_reason", ""),
                                     "doi_landing_page": summary.get("doi_landing_page", ""),
-                                    "doi": summary.get("doi", "")
+                                    "doi": summary.get("doi", ""),
+                                    "official_website": summary.get("official_website", ""),
+                                    "is_incremental_mode": True
                                 })
             except Exception as e:
                 print(f"读取文件失败: {e}")
                 return
 
             if args.dataset_id:
-                publisher_samples = [s for s in publisher_samples if str(s["id"]) == str(args.dataset_id)]
+                publisher_samples = [s for s in publisher_samples if str(s["id"].split('-')[0]) == str(args.dataset_id)]
                 if not publisher_samples:
                     print(f"⚠️ 在文件中找不到 数据集ID 为 {args.dataset_id} 的记录。")
                     return
@@ -1400,40 +1404,46 @@ def main():
         doi_landing_page = sample.get("doi_landing_page", "")
         str_ds_id = str(ds_id)
         
-        if sample.get("doi"):
-            extracted_doi = sample.get("doi")
-            print("🎯 命中 badcase 提供的 DOI，跳过查找流程。")
-        elif str_ds_id in doi_cache:
-            print("🎯 命中 DOI 缓存文件，跳过查找流程。")
-            extracted_doi = doi_cache[str_ds_id]
+        if sample.get("is_incremental_mode"):
+            print("🚀 检测到增量自优化模式，跳过 DOI 查找和平台分析流程。")
+            extracted_doi = sample.get("doi", "")
+            doi_landing_page = sample.get("doi_landing_page", "")
+            candidates = [{"name": sample.get("official_website") or "Unknown", "reason": "来自增量自优化的 official_website"}]
         else:
-            extracted_doi = discover_dataset_doi(ds_name, original_url)
-            # 存入缓存并落盘
-            doi_cache[str_ds_id] = extracted_doi
-            with open(doi_cache_file, "w", encoding="utf-8") as f:
-                json.dump(doi_cache, f, ensure_ascii=False, indent=2)
-                
-        if doi_landing_page:
-            print(f"🎯 命中 badcase 提供的 doi_landing_page: {doi_landing_page}")
-        elif extracted_doi:
-            print(f"💡 发现 DOI: {extracted_doi}，尝试重定向底层 URL...")
-            real_url = resolve_doi_to_url(extracted_doi)
-            if real_url and "doi.org" not in real_url:
-                print(f"✅ DOI 重定向成功，真实链接: {real_url}")
-                doi_landing_page = real_url
-                
-        print("🧠 正在分析可能的数据托管平台...")
-        candidates = identify_candidate_platforms(ds_name, original_url, doi_landing_page, extracted_doi)
-        
-        target_api_name = sample.get("target_api_name", [])
-        if target_api_name:
-            filtered_candidates = []
-            for c in candidates:
-                c_name = c.get("name", "").lower()
-                if any(t.lower() in c_name or c_name in t.lower() for t in target_api_name):
-                    filtered_candidates.append(c)
-            candidates = filtered_candidates
-            print(f"🎯 使用 badcase 限定平台过滤后，保留 {len(candidates)} 个候选平台。")
+            if sample.get("doi"):
+                extracted_doi = sample.get("doi")
+                print("🎯 命中 badcase 提供的 DOI，跳过查找流程。")
+            elif str_ds_id in doi_cache:
+                print("🎯 命中 DOI 缓存文件，跳过查找流程。")
+                extracted_doi = doi_cache[str_ds_id]
+            else:
+                extracted_doi = discover_dataset_doi(ds_name, original_url)
+                # 存入缓存并落盘
+                doi_cache[str_ds_id] = extracted_doi
+                with open(doi_cache_file, "w", encoding="utf-8") as f:
+                    json.dump(doi_cache, f, ensure_ascii=False, indent=2)
+                    
+            if doi_landing_page:
+                print(f"🎯 命中 badcase 提供的 doi_landing_page: {doi_landing_page}")
+            elif extracted_doi:
+                print(f"💡 发现 DOI: {extracted_doi}，尝试重定向底层 URL...")
+                real_url = resolve_doi_to_url(extracted_doi)
+                if real_url and "doi.org" not in real_url:
+                    print(f"✅ DOI 重定向成功，真实链接: {real_url}")
+                    doi_landing_page = real_url
+                    
+            print("🧠 正在分析可能的数据托管平台...")
+            candidates = identify_candidate_platforms(ds_name, original_url, doi_landing_page, extracted_doi)
+            
+            target_api_name = sample.get("target_api_name", [])
+            if target_api_name:
+                filtered_candidates = []
+                for c in candidates:
+                    c_name = c.get("name", "").lower()
+                    if any(t.lower() in c_name or c_name in t.lower() for t in target_api_name):
+                        filtered_candidates.append(c)
+                candidates = filtered_candidates
+                print(f"🎯 使用 badcase 限定平台过滤后，保留 {len(candidates)} 个候选平台。")
             
         print(f"📋 候选平台列表:")
         for idx, c in enumerate(candidates):

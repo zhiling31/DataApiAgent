@@ -1,0 +1,25 @@
+{
+  "input_summary": {
+    "doi": null,
+    "dataset_url": "https://planet.openstreetmap.org/",
+    "doi_landing_page": null,
+    "dataset_name": "OpenStreetMap Planet (Planet OSM)",
+    "version_name": null,
+    "official_website": "OpenStreetMap Foundation",
+    "target_api_name": [
+      "Registry of Open Data on AWS"
+    ]
+  },
+  "metadata_sources": {
+    "doi_org": {},
+    "datacite_crossref": {},
+    "official_api": {
+      "error": "请求 YAML API 失败: 已达到最大重试次数 (3)，最终失败: HTTP Error 404: "
+    }
+  },
+  "original_input": {
+    "dataset_name": "OpenStreetMap (OSM) Planet / Extracts（开放街道地图全球全量数据 / 区域提取数据）",
+    "url": "Planet：https://planet.openstreetmap.org/；区域 extracts：https://download.geofabrik.de/。"
+  },
+  "error_reason": "请求 YAML API 失败: 已达到最大重试次数 (3)，最终失败: HTTP Error 404: "
+}

@@ -1,0 +1,223 @@
+{
+  "input_summary": {
+    "doi": "10.25921/vvaa-wq11",
+    "dataset_url": "https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.ncdc:C01764",
+    "doi_landing_page": "https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.ncdc:C01764",
+    "dataset_name": "NOAA Global Surface Temperature Dataset (NOAAGlobalTemp)",
+    "version_name": "6.1.0",
+    "official_website": "NOAA National Centers for Environmental Information (NCEI)",
+    "target_api_name": [
+      "NOAA National Centers for Environmental Information (NCEI)"
+    ]
+  },
+  "metadata_sources": {
+    "doi_org": {
+      "source": "doi.org (CSL-JSON)",
+      "data": {
+        "type": "dataset",
+        "id": "https://doi.org/10.25921/vvaa-wq11",
+        "author": [
+          {
+            "family": "Huang",
+            "given": "Boyin"
+          },
+          {
+            "family": "Yin",
+            "given": "Xungang"
+          },
+          {
+            "family": "Menne",
+            "given": "Matthew"
+          },
+          {
+            "family": "Vose",
+            "given": "Russell"
+          }
+        ],
+        "issued": {
+          "date-parts": [
+            [
+              2026
+            ]
+          ]
+        },
+        "DOI": "10.25921/VVAA-WQ11",
+        "publisher": "NOAA National Centers for Environmental Information",
+        "title": "NOAA Global Surface Temperature Dataset (NOAAGlobalTemp), Version 6.1",
+        "URL": "https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.ncdc:C01764"
+      }
+    },
+    "datacite_crossref": {
+      "source": "DataCite",
+      "data": {
+        "id": "10.25921/vvaa-wq11",
+        "type": "dois",
+        "attributes": {
+          "doi": "10.25921/vvaa-wq11",
+          "prefix": "10.25921",
+          "suffix": "vvaa-wq11",
+          "identifiers": [],
+          "alternateIdentifiers": [],
+          "creators": [
+            {
+              "name": "Huang, Boyin",
+              "nameType": "Personal",
+              "givenName": "Boyin",
+              "familyName": "Huang",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0002-2286-1659",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Yin, Xungang",
+              "nameType": "Personal",
+              "givenName": "Xungang",
+              "familyName": "Yin",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0002-3775-6587",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Menne, Matthew",
+              "nameType": "Personal",
+              "givenName": "Matthew",
+              "familyName": "Menne",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0001-9725-248X",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Vose, Russell",
+              "nameType": "Personal",
+              "givenName": "Russell",
+              "familyName": "Vose",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0002-6669-3319",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            }
+          ],
+          "titles": [
+            {
+              "lang": null,
+              "title": "NOAA Global Surface Temperature Dataset (NOAAGlobalTemp), Version 6.1",
+              "titleType": null
+            }
+          ],
+          "publisher": "NOAA National Centers for Environmental Information",
+          "container": {},
+          "publicationYear": 2026,
+          "subjects": [],
+          "contributors": [],
+          "dates": [],
+          "language": null,
+          "types": {
+            "ris": "DATA",
+            "bibtex": "misc",
+            "citeproc": "dataset",
+            "schemaOrg": "Dataset",
+            "resourceTypeGeneral": "Dataset"
+          },
+          "relatedIdentifiers": [],
+          "relatedItems": [],
+          "sizes": [],
+          "formats": [],
+          "version": null,
+          "rightsList": [],
+          "descriptions": [],
+          "geoLocations": [],
+          "fundingReferences": [],
+          "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC00L21ldGFkYXRhLnhzZCI+CiAgPGlkZW50aWZpZXIgaWRlbnRpZmllclR5cGU9IkRPSSI+MTAuMjU5MjEvVlZBQS1XUTExPC9pZGVudGlmaWVyPgogIDxjcmVhdG9ycz4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5IdWFuZywgQm95aW48L2NyZWF0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkJveWluPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkh1YW5nPC9mYW1pbHlOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik9SQ0lEIiBzY2hlbWVVUkk9Imh0dHBzOi8vb3JjaWQub3JnIj5odHRwczovL29yY2lkLm9yZy8wMDAwLTAwMDItMjI4Ni0xNjU5PC9uYW1lSWRlbnRpZmllcj4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5ZaW4sIFh1bmdhbmc8L2NyZWF0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPlh1bmdhbmc8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+WWluPC9mYW1pbHlOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik9SQ0lEIiBzY2hlbWVVUkk9Imh0dHBzOi8vb3JjaWQub3JnIj5odHRwczovL29yY2lkLm9yZy8wMDAwLTAwMDItMzc3NS02NTg3PC9uYW1lSWRlbnRpZmllcj4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5NZW5uZSwgTWF0dGhldzwvY3JlYXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+TWF0dGhldzwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5NZW5uZTwvZmFtaWx5TmFtZT4KICAgICAgPG5hbWVJZGVudGlmaWVyIG5hbWVJZGVudGlmaWVyU2NoZW1lPSJPUkNJRCIgc2NoZW1lVVJJPSJodHRwczovL29yY2lkLm9yZyI+aHR0cHM6Ly9vcmNpZC5vcmcvMDAwMC0wMDAxLTk3MjUtMjQ4WDwvbmFtZUlkZW50aWZpZXI+CiAgICA8L2NyZWF0b3I+CiAgICA8Y3JlYXRvcj4KICAgICAgPGNyZWF0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+Vm9zZSwgUnVzc2VsbDwvY3JlYXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+UnVzc2VsbDwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5Wb3NlPC9mYW1pbHlOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik9SQ0lEIiBzY2hlbWVVUkk9Imh0dHBzOi8vb3JjaWQub3JnIj5odHRwczovL29yY2lkLm9yZy8wMDAwLTAwMDItNjY2OS0zMzE5PC9uYW1lSWRlbnRpZmllcj4KICAgIDwvY3JlYXRvcj4KICA8L2NyZWF0b3JzPgogIDx0aXRsZXM+CiAgICA8dGl0bGU+Tk9BQSBHbG9iYWwgU3VyZmFjZSBUZW1wZXJhdHVyZSBEYXRhc2V0IChOT0FBR2xvYmFsVGVtcCksIFZlcnNpb24gNi4xPC90aXRsZT4KICA8L3RpdGxlcz4KICA8cHVibGlzaGVyIHB1Ymxpc2hlcklkZW50aWZpZXI9Imh0dHBzOi8vcm9yLm9yZy8wNHIwd3JwNTkiIHB1Ymxpc2hlcklkZW50aWZpZXJTY2hlbWU9IlJPUiIgc2NoZW1lVVJJPSJodHRwczovL3Jvci5vcmciPk5PQUEgTmF0aW9uYWwgQ2VudGVycyBmb3IgRW52aXJvbm1lbnRhbCBJbmZvcm1hdGlvbjwvcHVibGlzaGVyPgogIDxwdWJsaWNhdGlvblllYXI+MjAyNjwvcHVibGljYXRpb25ZZWFyPgogIDxyZXNvdXJjZVR5cGUgcmVzb3VyY2VUeXBlR2VuZXJhbD0iRGF0YXNldCIvPgogIDxzaXplcy8+CiAgPGZvcm1hdHMvPgogIDx2ZXJzaW9uLz4KPC9yZXNvdXJjZT4K",
+          "url": "https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.ncdc:C01764",
+          "contentUrl": null,
+          "metadataVersion": 1,
+          "schemaVersion": "http://datacite.org/schema/kernel-4",
+          "source": "fabricaForm",
+          "isActive": true,
+          "state": "findable",
+          "reason": null,
+          "viewCount": 0,
+          "viewsOverTime": [],
+          "downloadCount": 0,
+          "downloadsOverTime": [],
+          "referenceCount": 0,
+          "citationCount": 0,
+          "citationsOverTime": [],
+          "partCount": 0,
+          "partOfCount": 0,
+          "versionCount": 0,
+          "versionOfCount": 0,
+          "created": "2026-03-27T17:00:25.000Z",
+          "registered": "2026-03-27T17:00:25.000Z",
+          "published": "2026",
+          "updated": "2026-03-27T17:06:40.000Z"
+        },
+        "relationships": {
+          "client": {
+            "data": {
+              "id": "noaa.ncei",
+              "type": "clients"
+            }
+          },
+          "provider": {
+            "data": {
+              "id": "noaa",
+              "type": "providers"
+            }
+          },
+          "media": {
+            "data": {
+              "id": "10.25921/vvaa-wq11",
+              "type": "media"
+            }
+          },
+          "references": {
+            "data": []
+          },
+          "citations": {
+            "data": []
+          },
+          "parts": {
+            "data": []
+          },
+          "partOf": {
+            "data": []
+          },
+          "versions": {
+            "data": []
+          },
+          "versionOf": {
+            "data": []
+          }
+        }
+      }
+    },
+    "official_api": {
+      "error": "无法从已知参数中解析出 NCEI Metadata ID"
+    }
+  },
+  "original_input": {
+    "dataset_name": "NOAAGlobalTemp (NOAA Global Surface Temperature, gridded)（美国国家海洋和大气管理局全球地表格点气温数据集）",
+    "url": "元数据与下载入口：https://www.ncei.noaa.gov/access/monitoring/global-temperature-anomalies/；亦有 NOAA PSL 页面说明。"
+  },
+  "error_reason": "无法从已知参数中解析出 NCEI Metadata ID"
+}

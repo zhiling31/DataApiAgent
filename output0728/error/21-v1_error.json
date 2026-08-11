@@ -1,0 +1,21 @@
+{
+  "input_summary": {
+    "doi": null,
+    "dataset_url": null,
+    "doi_landing_page": null,
+    "dataset_name": "General Transit Feed Specification (GTFS)",
+    "version_name": null,
+    "official_website": "gtfs.org",
+    "target_api_name": []
+  },
+  "metadata_sources": {
+    "doi_org": {},
+    "datacite_crossref": {},
+    "official_api": {}
+  },
+  "original_input": {
+    "dataset_name": "GTFS (General Transit Feed Specification)（通用公共交通数据交换格式数据集）",
+    "url": "规范：https://gtfs.org/documentation/schedule/reference/；实时：https://gtfs.org/documentation/realtime/reference/；数据需到各交通机构开放平台获取。"
+  },
+  "error_reason": "未找到对应的官网知识库 API"
+}

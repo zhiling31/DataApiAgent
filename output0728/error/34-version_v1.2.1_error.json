@@ -1,0 +1,25 @@
+{
+  "input_summary": {
+    "doi": null,
+    "dataset_url": "https://github.com/fMoW/dataset",
+    "doi_landing_page": null,
+    "dataset_name": "Functional Map of the World (fMoW)",
+    "version_name": "v1.2.1",
+    "official_website": "SpaceNet",
+    "target_api_name": [
+      "Registry of Open Data on AWS"
+    ]
+  },
+  "metadata_sources": {
+    "doi_org": {},
+    "datacite_crossref": {},
+    "official_api": {
+      "error": "请求 YAML API 失败: 已达到最大重试次数 (3)，最终失败: HTTP Error 404: "
+    }
+  },
+  "original_input": {
+    "dataset_name": "Functional Map of the World (fMoW)",
+    "url": "https://github.com/fMoW/dataset"
+  },
+  "error_reason": "请求 YAML API 失败: 已达到最大重试次数 (3)，最终失败: HTTP Error 404: "
+}

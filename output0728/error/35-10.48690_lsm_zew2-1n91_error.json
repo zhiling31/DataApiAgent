@@ -1,0 +1,402 @@
+{
+  "input_summary": {
+    "doi": "10.48690/lsm/zew2-1n91",
+    "dataset_url": "https://gee-community-catalog.org/projects/landscan_mosaic/",
+    "doi_landing_page": "https://landscan.ornl.gov/",
+    "dataset_name": "LandScan Mosaic Population Data (90m)",
+    "version_name": "Version 1.0 (1975–2024)",
+    "official_website": "Oak Ridge National Laboratory (ORNL)",
+    "target_api_name": [
+      "Google Earth Engine Data Catalog"
+    ]
+  },
+  "metadata_sources": {
+    "doi_org": {
+      "source": "doi.org (CSL-JSON)",
+      "data": {
+        "type": "dataset",
+        "id": "https://doi.org/10.48690/lsm/zew2-1n91",
+        "categories": [
+          "population distribution; ambient population; gridded population; historical population; population time series; human geography; spatial demography; LandScan; LandScan Mosaic; global population; high-resolution population modeling"
+        ],
+        "language": "en",
+        "author": [
+          {
+            "family": "Zimmer",
+            "given": "Andrew"
+          },
+          {
+            "family": "Adams",
+            "given": "Daniel S."
+          },
+          {
+            "family": "Moehl",
+            "given": "Jessica"
+          },
+          {
+            "family": "Buck",
+            "given": "Whitson"
+          },
+          {
+            "family": "Martin",
+            "given": "Aubre"
+          },
+          {
+            "family": "Urban",
+            "given": "Marie"
+          }
+        ],
+        "contributor": [
+          {
+            "literal": "Oak Ridge National Laboratory"
+          },
+          {
+            "literal": "Oak Ridge National Laboratory"
+          },
+          {
+            "literal": "Oak Ridge National Laboratory"
+          },
+          {
+            "literal": "Department of Defence"
+          }
+        ],
+        "issued": {
+          "date-parts": [
+            [
+              2026
+            ]
+          ]
+        },
+        "abstract": "The LandScan Mosaic Annual Global Ambient Population Time Series provides annual high-resolution global ambient population estimates from 1975 to 2024. Version 1.0 is distributed as one Cloud-Optimized GeoTIFF per year on a globally aligned 3 arc-second WGS84 grid. The 2024 layer represents the LandScan Mosaic benchmark reference year, while the 1975–2023 layers are historical annual estimates generated using the LandCast backcasting framework. The dataset is designed as the initial release of a continuing annual LandScan Mosaic temporal series, with future versions expected to extend the record forward as new LandScan Mosaic benchmark years become available.",
+        "DOI": "10.48690/LSM/ZEW2-1N91",
+        "publisher": "Oak Ridge National Laboratory",
+        "title": "LandScan Mosaic Annual Global Ambient Population Time Series, Version 1.0: 1975–2024",
+        "URL": "https://landscan.ornl.gov",
+        "copyright": "Creative Commons Attribution 4.0 International",
+        "version": "1.0"
+      }
+    },
+    "datacite_crossref": {
+      "source": "DataCite",
+      "data": {
+        "id": "10.48690/lsm/zew2-1n91",
+        "type": "dois",
+        "attributes": {
+          "doi": "10.48690/lsm/zew2-1n91",
+          "prefix": "10.48690",
+          "suffix": "lsm/zew2-1n91",
+          "identifiers": [],
+          "alternateIdentifiers": [],
+          "creators": [
+            {
+              "name": "Zimmer, Andrew",
+              "nameType": "Personal",
+              "givenName": "Andrew",
+              "familyName": "Zimmer",
+              "affiliation": [
+                "Oak Ridge National Laboratory"
+              ],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0001-7683-8713",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Adams, Daniel S.",
+              "nameType": "Personal",
+              "givenName": "Daniel S.",
+              "familyName": "Adams",
+              "affiliation": [
+                "Oak Ridge National Laboratory"
+              ],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0001-9695-0577",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Moehl, Jessica",
+              "nameType": "Personal",
+              "givenName": "Jessica",
+              "familyName": "Moehl",
+              "affiliation": [
+                "Oak Ridge National Laboratory"
+              ],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0001-9579-2562",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Buck, Whitson",
+              "nameType": "Personal",
+              "givenName": "Whitson",
+              "familyName": "Buck",
+              "affiliation": [
+                "Oak Ridge National Laboratory"
+              ],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0009-0001-9673-2729",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Martin, Aubre",
+              "nameType": "Personal",
+              "givenName": "Aubre",
+              "familyName": "Martin",
+              "affiliation": [
+                "Oak Ridge National Laboratory"
+              ],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0009-0002-8612-8998",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Urban, Marie",
+              "nameType": "Personal",
+              "givenName": "Marie",
+              "familyName": "Urban",
+              "affiliation": [
+                "Oak Ridge National Laboratory"
+              ],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0001-9571-832X",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            }
+          ],
+          "titles": [
+            {
+              "lang": "en",
+              "title": "LandScan Mosaic Annual Global Ambient Population Time Series, Version 1.0: 1975–2024",
+              "titleType": null
+            },
+            {
+              "lang": "en",
+              "title": "LandScan Mosaic Time Series",
+              "titleType": "AlternativeTitle"
+            }
+          ],
+          "publisher": "Oak Ridge National Laboratory",
+          "container": {},
+          "publicationYear": 2026,
+          "subjects": [
+            {
+              "subject": "population distribution; ambient population; gridded population; historical population; population time series; human geography; spatial demography; LandScan; LandScan Mosaic; global population; high-resolution population modeling"
+            }
+          ],
+          "contributors": [
+            {
+              "name": "Oak Ridge National Laboratory",
+              "nameType": "Organizational",
+              "givenName": null,
+              "familyName": null,
+              "affiliation": [],
+              "contributorType": "Distributor",
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://ror.org",
+                  "nameIdentifier": "https://ror.org/01qz5mb56",
+                  "nameIdentifierScheme": "ROR"
+                }
+              ]
+            },
+            {
+              "name": "Oak Ridge National Laboratory",
+              "nameType": "Organizational",
+              "givenName": null,
+              "familyName": null,
+              "affiliation": [],
+              "contributorType": "HostingInstitution",
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://ror.org",
+                  "nameIdentifier": "https://ror.org/01qz5mb56",
+                  "nameIdentifierScheme": "ROR"
+                }
+              ]
+            },
+            {
+              "name": "Oak Ridge National Laboratory",
+              "nameType": "Organizational",
+              "givenName": null,
+              "familyName": null,
+              "affiliation": [],
+              "contributorType": "RightsHolder",
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://ror.org",
+                  "nameIdentifier": "https://ror.org/01qz5mb56",
+                  "nameIdentifierScheme": "ROR"
+                }
+              ]
+            },
+            {
+              "name": "Department of Defence",
+              "nameType": "Organizational",
+              "givenName": null,
+              "familyName": null,
+              "affiliation": [],
+              "contributorType": "Sponsor",
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://ror.org",
+                  "nameIdentifier": "https://ror.org/042tbn311",
+                  "nameIdentifierScheme": "ROR"
+                }
+              ]
+            }
+          ],
+          "dates": [
+            {
+              "date": "1975 - 2024",
+              "dateType": "Coverage",
+              "dateInformation": null
+            }
+          ],
+          "language": "en",
+          "types": {
+            "ris": "DATA",
+            "bibtex": "misc",
+            "citeproc": "dataset",
+            "schemaOrg": "Dataset",
+            "resourceType": "LandScan Mosaic Time Series ",
+            "resourceTypeGeneral": "Dataset"
+          },
+          "relatedIdentifiers": [],
+          "relatedItems": [],
+          "sizes": [
+            "380 GB"
+          ],
+          "formats": [
+            "image/tiff"
+          ],
+          "version": "1.0",
+          "rightsList": [
+            {
+              "rights": "Creative Commons Attribution 4.0 International",
+              "rightsUri": "https://creativecommons.org/licenses/by/4.0/legalcode",
+              "schemeUri": "https://spdx.org/licenses/",
+              "rightsIdentifier": "cc-by-4.0",
+              "rightsIdentifierScheme": "SPDX"
+            }
+          ],
+          "descriptions": [
+            {
+              "lang": "en",
+              "description": "The LandScan Mosaic Annual Global Ambient Population Time Series provides annual high-resolution global ambient population estimates from 1975 to 2024. Version 1.0 is distributed as one Cloud-Optimized GeoTIFF per year on a globally aligned 3 arc-second WGS84 grid. The 2024 layer represents the LandScan Mosaic benchmark reference year, while the 1975–2023 layers are historical annual estimates generated using the LandCast backcasting framework. The dataset is designed as the initial release of a continuing annual LandScan Mosaic temporal series, with future versions expected to extend the record forward as new LandScan Mosaic benchmark years become available.",
+              "descriptionType": "Abstract"
+            },
+            {
+              "lang": "en",
+              "description": "Version 1.0 was generated by anchoring the time series to the 2024 LandScan Mosaic ambient population surface and estimating earlier annual population distributions using the LandCast backcasting framework. Historical surfaces were informed by built-environment change and adjusted through control-total recovery to maintain consistency with national and/or administrative population totals through time. All annual outputs are provided on a consistent global 3 arc-second WGS84 pixel-is-area grid to support temporal analysis, spatial comparison, and integration with other gridded geospatial datasets.",
+              "descriptionType": "Methods"
+            }
+          ],
+          "geoLocations": [
+            {
+              "geoLocationBox": {
+                "eastBoundLongitude": 180.0,
+                "northBoundLatitude": 90.0,
+                "southBoundLatitude": -90.0,
+                "westBoundLongitude": -180.0
+              },
+              "geoLocationPlace": "World; Global"
+            }
+          ],
+          "fundingReferences": [],
+          "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC00L21ldGFkYXRhLnhzZCI+CiAgPGlkZW50aWZpZXIgaWRlbnRpZmllclR5cGU9IkRPSSI+MTAuNDg2OTAvTFNNL1pFVzItMU45MTwvaWRlbnRpZmllcj4KICA8Y3JlYXRvcnM+CiAgICA8Y3JlYXRvcj4KICAgICAgPGNyZWF0b3JOYW1lIG5hbWVUeXBlPSJQZXJzb25hbCI+WmltbWVyLCBBbmRyZXc8L2NyZWF0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkFuZHJldzwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5aaW1tZXI8L2ZhbWlseU5hbWU+CiAgICAgIDxuYW1lSWRlbnRpZmllciBuYW1lSWRlbnRpZmllclNjaGVtZT0iT1JDSUQiIHNjaGVtZVVSST0iaHR0cHM6Ly9vcmNpZC5vcmciPmh0dHBzOi8vb3JjaWQub3JnLzAwMDAtMDAwMS03NjgzLTg3MTM8L25hbWVJZGVudGlmaWVyPgogICAgICA8YWZmaWxpYXRpb24gYWZmaWxpYXRpb25JZGVudGlmaWVyPSJodHRwczovL3Jvci5vcmcvMDFxejVtYjU2IiBhZmZpbGlhdGlvbklkZW50aWZpZXJTY2hlbWU9IlJPUiIgc2NoZW1lVVJJPSJodHRwczovL3Jvci5vcmciPk9hayBSaWRnZSBOYXRpb25hbCBMYWJvcmF0b3J5PC9hZmZpbGlhdGlvbj4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5BZGFtcywgRGFuaWVsIFMuPC9jcmVhdG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5EYW5pZWwgUy48L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+QWRhbXM8L2ZhbWlseU5hbWU+CiAgICAgIDxuYW1lSWRlbnRpZmllciBuYW1lSWRlbnRpZmllclNjaGVtZT0iT1JDSUQiIHNjaGVtZVVSST0iaHR0cHM6Ly9vcmNpZC5vcmciPmh0dHBzOi8vb3JjaWQub3JnLzAwMDAtMDAwMS05Njk1LTA1Nzc8L25hbWVJZGVudGlmaWVyPgogICAgICA8YWZmaWxpYXRpb24gYWZmaWxpYXRpb25JZGVudGlmaWVyPSJodHRwczovL3Jvci5vcmcvMDFxejVtYjU2IiBhZmZpbGlhdGlvbklkZW50aWZpZXJTY2hlbWU9IlJPUiIgc2NoZW1lVVJJPSJodHRwczovL3Jvci5vcmciPk9hayBSaWRnZSBOYXRpb25hbCBMYWJvcmF0b3J5PC9hZmZpbGlhdGlvbj4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWUgbmFtZVR5cGU9IlBlcnNvbmFsIj5Nb2VobCwgSmVzc2ljYTwvY3JlYXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+SmVzc2ljYTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5Nb2VobDwvZmFtaWx5TmFtZT4KICAgICAgPG5hbWVJZGVudGlmaWVyIG5hbWVJZGVudGlmaWVyU2NoZW1lPSJPUkNJRCIgc2NoZW1lVVJJPSJodHRwczovL29yY2lkLm9yZyI+aHR0cHM6Ly9vcmNpZC5vcmcvMDAwMC0wMDAxLTk1NzktMjU2MjwvbmFtZUlkZW50aWZpZXI+CiAgICAgIDxhZmZpbGlhdGlvbiBhZmZpbGlhdGlvbklkZW50aWZpZXI9Imh0dHBzOi8vcm9yLm9yZy8wMXF6NW1iNTYiIGFmZmlsaWF0aW9uSWRlbnRpZmllclNjaGVtZT0iUk9SIiBzY2hlbWVVUkk9Imh0dHBzOi8vcm9yLm9yZyI+T2FrIFJpZGdlIE5hdGlvbmFsIExhYm9yYXRvcnk8L2FmZmlsaWF0aW9uPgogICAgPC9jcmVhdG9yPgogICAgPGNyZWF0b3I+CiAgICAgIDxjcmVhdG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPkJ1Y2ssIFdoaXRzb248L2NyZWF0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPldoaXRzb248L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+QnVjazwvZmFtaWx5TmFtZT4KICAgICAgPG5hbWVJZGVudGlmaWVyIG5hbWVJZGVudGlmaWVyU2NoZW1lPSJPUkNJRCIgc2NoZW1lVVJJPSJodHRwczovL29yY2lkLm9yZyI+aHR0cHM6Ly9vcmNpZC5vcmcvMDAwOS0wMDAxLTk2NzMtMjcyOTwvbmFtZUlkZW50aWZpZXI+CiAgICAgIDxhZmZpbGlhdGlvbiBhZmZpbGlhdGlvbklkZW50aWZpZXI9Imh0dHBzOi8vcm9yLm9yZy8wMXF6NW1iNTYiIGFmZmlsaWF0aW9uSWRlbnRpZmllclNjaGVtZT0iUk9SIiBzY2hlbWVVUkk9Imh0dHBzOi8vcm9yLm9yZyI+T2FrIFJpZGdlIE5hdGlvbmFsIExhYm9yYXRvcnk8L2FmZmlsaWF0aW9uPgogICAgPC9jcmVhdG9yPgogICAgPGNyZWF0b3I+CiAgICAgIDxjcmVhdG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPk1hcnRpbiwgQXVicmU8L2NyZWF0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkF1YnJlPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPk1hcnRpbjwvZmFtaWx5TmFtZT4KICAgICAgPG5hbWVJZGVudGlmaWVyIG5hbWVJZGVudGlmaWVyU2NoZW1lPSJPUkNJRCIgc2NoZW1lVVJJPSJodHRwczovL29yY2lkLm9yZyI+aHR0cHM6Ly9vcmNpZC5vcmcvMDAwOS0wMDAyLTg2MTItODk5ODwvbmFtZUlkZW50aWZpZXI+CiAgICAgIDxhZmZpbGlhdGlvbiBhZmZpbGlhdGlvbklkZW50aWZpZXI9Imh0dHBzOi8vcm9yLm9yZy8wMXF6NW1iNTYiIGFmZmlsaWF0aW9uSWRlbnRpZmllclNjaGVtZT0iUk9SIiBzY2hlbWVVUkk9Imh0dHBzOi8vcm9yLm9yZyI+T2FrIFJpZGdlIE5hdGlvbmFsIExhYm9yYXRvcnk8L2FmZmlsaWF0aW9uPgogICAgPC9jcmVhdG9yPgogICAgPGNyZWF0b3I+CiAgICAgIDxjcmVhdG9yTmFtZSBuYW1lVHlwZT0iUGVyc29uYWwiPlVyYmFuLCBNYXJpZTwvY3JlYXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+TWFyaWU8L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+VXJiYW48L2ZhbWlseU5hbWU+CiAgICAgIDxuYW1lSWRlbnRpZmllciBuYW1lSWRlbnRpZmllclNjaGVtZT0iT1JDSUQiIHNjaGVtZVVSST0iaHR0cHM6Ly9vcmNpZC5vcmciPmh0dHBzOi8vb3JjaWQub3JnLzAwMDAtMDAwMS05NTcxLTgzMlg8L25hbWVJZGVudGlmaWVyPgogICAgICA8YWZmaWxpYXRpb24gYWZmaWxpYXRpb25JZGVudGlmaWVyPSJodHRwczovL3Jvci5vcmcvMDFxejVtYjU2IiBhZmZpbGlhdGlvbklkZW50aWZpZXJTY2hlbWU9IlJPUiIgc2NoZW1lVVJJPSJodHRwczovL3Jvci5vcmciPk9hayBSaWRnZSBOYXRpb25hbCBMYWJvcmF0b3J5PC9hZmZpbGlhdGlvbj4KICAgIDwvY3JlYXRvcj4KICA8L2NyZWF0b3JzPgogIDx0aXRsZXM+CiAgICA8dGl0bGUgeG1sOmxhbmc9ImVuIj5MYW5kU2NhbiBNb3NhaWMgQW5udWFsIEdsb2JhbCBBbWJpZW50IFBvcHVsYXRpb24gVGltZSBTZXJpZXMsIFZlcnNpb24gMS4wOiAxOTc14oCTMjAyNDwvdGl0bGU+CiAgICA8dGl0bGUgdGl0bGVUeXBlPSJBbHRlcm5hdGl2ZVRpdGxlIiB4bWw6bGFuZz0iZW4iPkxhbmRTY2FuIE1vc2FpYyBUaW1lIFNlcmllczwvdGl0bGU+CiAgPC90aXRsZXM+CiAgPHB1Ymxpc2hlciBwdWJsaXNoZXJJZGVudGlmaWVyPSJodHRwczovL3Jvci5vcmcvMDFxejVtYjU2IiBwdWJsaXNoZXJJZGVudGlmaWVyU2NoZW1lPSJST1IiIHNjaGVtZVVSST0iaHR0cHM6Ly9yb3Iub3JnIj5PYWsgUmlkZ2UgTmF0aW9uYWwgTGFib3JhdG9yeTwvcHVibGlzaGVyPgogIDxwdWJsaWNhdGlvblllYXI+MjAyNjwvcHVibGljYXRpb25ZZWFyPgogIDxyZXNvdXJjZVR5cGUgcmVzb3VyY2VUeXBlR2VuZXJhbD0iRGF0YXNldCI+TGFuZFNjYW4gTW9zYWljIFRpbWUgU2VyaWVzIDwvcmVzb3VyY2VUeXBlPgogIDxzdWJqZWN0cz4KICAgIDxzdWJqZWN0PnBvcHVsYXRpb24gZGlzdHJpYnV0aW9uOyBhbWJpZW50IHBvcHVsYXRpb247IGdyaWRkZWQgcG9wdWxhdGlvbjsgaGlzdG9yaWNhbCBwb3B1bGF0aW9uOyBwb3B1bGF0aW9uIHRpbWUgc2VyaWVzOyBodW1hbiBnZW9ncmFwaHk7IHNwYXRpYWwgZGVtb2dyYXBoeTsgTGFuZFNjYW47IExhbmRTY2FuIE1vc2FpYzsgZ2xvYmFsIHBvcHVsYXRpb247IGhpZ2gtcmVzb2x1dGlvbiBwb3B1bGF0aW9uIG1vZGVsaW5nPC9zdWJqZWN0PgogIDwvc3ViamVjdHM+CiAgPGNvbnRyaWJ1dG9ycz4KICAgIDxjb250cmlidXRvciBjb250cmlidXRvclR5cGU9IkRpc3RyaWJ1dG9yIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iT3JnYW5pemF0aW9uYWwiPk9hayBSaWRnZSBOYXRpb25hbCBMYWJvcmF0b3J5PC9jb250cmlidXRvck5hbWU+CiAgICAgIDxuYW1lSWRlbnRpZmllciBuYW1lSWRlbnRpZmllclNjaGVtZT0iUk9SIiBzY2hlbWVVUkk9Imh0dHBzOi8vcm9yLm9yZyI+aHR0cHM6Ly9yb3Iub3JnLzAxcXo1bWI1NjwvbmFtZUlkZW50aWZpZXI+CiAgICAgIDxhZmZpbGlhdGlvbi8+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iSG9zdGluZ0luc3RpdHV0aW9uIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iT3JnYW5pemF0aW9uYWwiPk9hayBSaWRnZSBOYXRpb25hbCBMYWJvcmF0b3J5PC9jb250cmlidXRvck5hbWU+CiAgICAgIDxuYW1lSWRlbnRpZmllciBuYW1lSWRlbnRpZmllclNjaGVtZT0iUk9SIiBzY2hlbWVVUkk9Imh0dHBzOi8vcm9yLm9yZyI+aHR0cHM6Ly9yb3Iub3JnLzAxcXo1bWI1NjwvbmFtZUlkZW50aWZpZXI+CiAgICAgIDxhZmZpbGlhdGlvbi8+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iUmlnaHRzSG9sZGVyIj4KICAgICAgPGNvbnRyaWJ1dG9yTmFtZSBuYW1lVHlwZT0iT3JnYW5pemF0aW9uYWwiPk9hayBSaWRnZSBOYXRpb25hbCBMYWJvcmF0b3J5PC9jb250cmlidXRvck5hbWU+CiAgICAgIDxuYW1lSWRlbnRpZmllciBuYW1lSWRlbnRpZmllclNjaGVtZT0iUk9SIiBzY2hlbWVVUkk9Imh0dHBzOi8vcm9yLm9yZyI+aHR0cHM6Ly9yb3Iub3JnLzAxcXo1bWI1NjwvbmFtZUlkZW50aWZpZXI+CiAgICAgIDxhZmZpbGlhdGlvbi8+CiAgICA8L2NvbnRyaWJ1dG9yPgogICAgPGNvbnRyaWJ1dG9yIGNvbnRyaWJ1dG9yVHlwZT0iU3BvbnNvciI+CiAgICAgIDxjb250cmlidXRvck5hbWUgbmFtZVR5cGU9Ik9yZ2FuaXphdGlvbmFsIj5EZXBhcnRtZW50IG9mIERlZmVuY2U8L2NvbnRyaWJ1dG9yTmFtZT4KICAgICAgPG5hbWVJZGVudGlmaWVyIG5hbWVJZGVudGlmaWVyU2NoZW1lPSJST1IiIHNjaGVtZVVSST0iaHR0cHM6Ly9yb3Iub3JnIj5odHRwczovL3Jvci5vcmcvMDQydGJuMzExPC9uYW1lSWRlbnRpZmllcj4KICAgICAgPGFmZmlsaWF0aW9uLz4KICAgIDwvY29udHJpYnV0b3I+CiAgPC9jb250cmlidXRvcnM+CiAgPGRhdGVzPgogICAgPGRhdGUgZGF0ZVR5cGU9IkNvdmVyYWdlIj4xOTc1IC0gMjAyNDwvZGF0ZT4KICA8L2RhdGVzPgogIDxsYW5ndWFnZT5lbjwvbGFuZ3VhZ2U+CiAgPHNpemVzPgogICAgPHNpemU+MzgwIEdCPC9zaXplPgogIDwvc2l6ZXM+CiAgPGZvcm1hdHM+CiAgICA8Zm9ybWF0PmltYWdlL3RpZmY8L2Zvcm1hdD4KICA8L2Zvcm1hdHM+CiAgPHZlcnNpb24+MS4wPC92ZXJzaW9uPgogIDxyaWdodHNMaXN0PgogICAgPHJpZ2h0cyByaWdodHNVUkk9Imh0dHBzOi8vY3JlYXRpdmVjb21tb25zLm9yZy9saWNlbnNlcy9ieS80LjAvbGVnYWxjb2RlIj5DcmVhdGl2ZSBDb21tb25zIEF0dHJpYnV0aW9uIDQuMCBJbnRlcm5hdGlvbmFsPC9yaWdodHM+CiAgPC9yaWdodHNMaXN0PgogIDxkZXNjcmlwdGlvbnM+CiAgICA8ZGVzY3JpcHRpb24geG1sOmxhbmc9ImVuIiBkZXNjcmlwdGlvblR5cGU9IkFic3RyYWN0Ij5UaGUgTGFuZFNjYW4gTW9zYWljIEFubnVhbCBHbG9iYWwgQW1iaWVudCBQb3B1bGF0aW9uIFRpbWUgU2VyaWVzIHByb3ZpZGVzIGFubnVhbCBoaWdoLXJlc29sdXRpb24gZ2xvYmFsIGFtYmllbnQgcG9wdWxhdGlvbiBlc3RpbWF0ZXMgZnJvbSAxOTc1IHRvIDIwMjQuIFZlcnNpb24gMS4wIGlzIGRpc3RyaWJ1dGVkIGFzIG9uZSBDbG91ZC1PcHRpbWl6ZWQgR2VvVElGRiBwZXIgeWVhciBvbiBhIGdsb2JhbGx5IGFsaWduZWQgMyBhcmMtc2Vjb25kIFdHUzg0IGdyaWQuIFRoZSAyMDI0IGxheWVyIHJlcHJlc2VudHMgdGhlIExhbmRTY2FuIE1vc2FpYyBiZW5jaG1hcmsgcmVmZXJlbmNlIHllYXIsIHdoaWxlIHRoZSAxOTc14oCTMjAyMyBsYXllcnMgYXJlIGhpc3RvcmljYWwgYW5udWFsIGVzdGltYXRlcyBnZW5lcmF0ZWQgdXNpbmcgdGhlIExhbmRDYXN0IGJhY2tjYXN0aW5nIGZyYW1ld29yay4gVGhlIGRhdGFzZXQgaXMgZGVzaWduZWQgYXMgdGhlIGluaXRpYWwgcmVsZWFzZSBvZiBhIGNvbnRpbnVpbmcgYW5udWFsIExhbmRTY2FuIE1vc2FpYyB0ZW1wb3JhbCBzZXJpZXMsIHdpdGggZnV0dXJlIHZlcnNpb25zIGV4cGVjdGVkIHRvIGV4dGVuZCB0aGUgcmVjb3JkIGZvcndhcmQgYXMgbmV3IExhbmRTY2FuIE1vc2FpYyBiZW5jaG1hcmsgeWVhcnMgYmVjb21lIGF2YWlsYWJsZS48L2Rlc2NyaXB0aW9uPgogICAgPGRlc2NyaXB0aW9uIHhtbDpsYW5nPSJlbiIgZGVzY3JpcHRpb25UeXBlPSJNZXRob2RzIj5WZXJzaW9uIDEuMCB3YXMgZ2VuZXJhdGVkIGJ5IGFuY2hvcmluZyB0aGUgdGltZSBzZXJpZXMgdG8gdGhlIDIwMjQgTGFuZFNjYW4gTW9zYWljIGFtYmllbnQgcG9wdWxhdGlvbiBzdXJmYWNlIGFuZCBlc3RpbWF0aW5nIGVhcmxpZXIgYW5udWFsIHBvcHVsYXRpb24gZGlzdHJpYnV0aW9ucyB1c2luZyB0aGUgTGFuZENhc3QgYmFja2Nhc3RpbmcgZnJhbWV3b3JrLiBIaXN0b3JpY2FsIHN1cmZhY2VzIHdlcmUgaW5mb3JtZWQgYnkgYnVpbHQtZW52aXJvbm1lbnQgY2hhbmdlIGFuZCBhZGp1c3RlZCB0aHJvdWdoIGNvbnRyb2wtdG90YWwgcmVjb3ZlcnkgdG8gbWFpbnRhaW4gY29uc2lzdGVuY3kgd2l0aCBuYXRpb25hbCBhbmQvb3IgYWRtaW5pc3RyYXRpdmUgcG9wdWxhdGlvbiB0b3RhbHMgdGhyb3VnaCB0aW1lLiBBbGwgYW5udWFsIG91dHB1dHMgYXJlIHByb3ZpZGVkIG9uIGEgY29uc2lzdGVudCBnbG9iYWwgMyBhcmMtc2Vjb25kIFdHUzg0IHBpeGVsLWlzLWFyZWEgZ3JpZCB0byBzdXBwb3J0IHRlbXBvcmFsIGFuYWx5c2lzLCBzcGF0aWFsIGNvbXBhcmlzb24sIGFuZCBpbnRlZ3JhdGlvbiB3aXRoIG90aGVyIGdyaWRkZWQgZ2Vvc3BhdGlhbCBkYXRhc2V0cy48L2Rlc2NyaXB0aW9uPgogIDwvZGVzY3JpcHRpb25zPgogIDxnZW9Mb2NhdGlvbnM+CiAgICA8Z2VvTG9jYXRpb24+CiAgICAgIDxnZW9Mb2NhdGlvblBsYWNlPldvcmxkOyBHbG9iYWw8L2dlb0xvY2F0aW9uUGxhY2U+CiAgICAgIDxnZW9Mb2NhdGlvbkJveD4KICAgICAgICA8d2VzdEJvdW5kTG9uZ2l0dWRlPi0xODA8L3dlc3RCb3VuZExvbmdpdHVkZT4KICAgICAgICA8ZWFzdEJvdW5kTG9uZ2l0dWRlPjE4MDwvZWFzdEJvdW5kTG9uZ2l0dWRlPgogICAgICAgIDxzb3V0aEJvdW5kTGF0aXR1ZGU+LTkwPC9zb3V0aEJvdW5kTGF0aXR1ZGU+CiAgICAgICAgPG5vcnRoQm91bmRMYXRpdHVkZT45MDwvbm9ydGhCb3VuZExhdGl0dWRlPgogICAgICA8L2dlb0xvY2F0aW9uQm94PgogICAgPC9nZW9Mb2NhdGlvbj4KICA8L2dlb0xvY2F0aW9ucz4KPC9yZXNvdXJjZT4K",
+          "url": "https://landscan.ornl.gov",
+          "contentUrl": null,
+          "metadataVersion": 7,
+          "schemaVersion": "http://datacite.org/schema/kernel-4",
+          "source": "fabricaForm",
+          "isActive": true,
+          "state": "findable",
+          "reason": null,
+          "viewCount": 0,
+          "viewsOverTime": [],
+          "downloadCount": 0,
+          "downloadsOverTime": [],
+          "referenceCount": 0,
+          "citationCount": 0,
+          "citationsOverTime": [],
+          "partCount": 0,
+          "partOfCount": 0,
+          "versionCount": 0,
+          "versionOfCount": 0,
+          "created": "2026-05-21T18:20:23.000Z",
+          "registered": "2026-05-26T22:26:32.000Z",
+          "published": "2026",
+          "updated": "2026-05-27T20:04:48.000Z"
+        },
+        "relationships": {
+          "client": {
+            "data": {
+              "id": "gshs.gshs",
+              "type": "clients"
+            }
+          },
+          "provider": {
+            "data": {
+              "id": "gshs",
+              "type": "providers"
+            }
+          },
+          "media": {
+            "data": {
+              "id": "10.48690/lsm/zew2-1n91",
+              "type": "media"
+            }
+          },
+          "references": {
+            "data": []
+          },
+          "citations": {
+            "data": []
+          },
+          "parts": {
+            "data": []
+          },
+          "partOf": {
+            "data": []
+          },
+          "versions": {
+            "data": []
+          },
+          "versionOf": {
+            "data": []
+          }
+        }
+      }
+    },
+    "official_api": {
+      "error": "无法从输入参数中解析出 GEE 数据集 ID。请提供以下任一参数：\n1. GEE Data Catalog 页面 URL (如 developers.google.com/earth-engine/datasets/catalog/WorldPop_GP_100m_pop)\n2. 包含可识别提供商名称的 dataset_name (如 'WorldPop Global Population')"
+    }
+  },
+  "original_input": {
+    "dataset_name": "LandScan Mosaic Population Data (ORNL)（LandScan 全球人口镶嵌数据集（美国橡树岭国家实验室））",
+    "url": "入口：https://gee-community-catalog.org/projects/landscan_mosaic/；论文与引用信息页内给出。"
+  },
+  "error_reason": "无法从输入参数中解析出 GEE 数据集 ID。请提供以下任一参数：\n1. GEE Data Catalog 页面 URL (如 developers.google.com/earth-engine/datasets/catalog/WorldPop_GP_100m_pop)\n2. 包含可识别提供商名称的 dataset_name (如 'WorldPop Global Population')"
+}

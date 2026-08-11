@@ -1,0 +1,448 @@
+{
+  "input_summary": {
+    "doi": "10.5258/SOTON/WP00839",
+    "dataset_url": "https://hub.worldpop.org/doi/10.5258/SOTON/WP00839",
+    "doi_landing_page": "https://hub.worldpop.org/doi/10.5258/SOTON/WP00839",
+    "dataset_name": "WorldPop Global Population 100m R2025A v1",
+    "version_name": "R2025A v1",
+    "official_website": "WorldPop Hub",
+    "target_api_name": []
+  },
+  "metadata_sources": {
+    "doi_org": {
+      "source": "doi.org (CSL-JSON)",
+      "data": {
+        "type": "dataset",
+        "id": "https://doi.org/10.5258/soton/wp00839",
+        "categories": [
+          "Constrained, population, Demographic, Global"
+        ],
+        "language": "en",
+        "author": [
+          {
+            "family": "Bondarenko",
+            "given": "Maksym"
+          },
+          {
+            "family": "Priyatikanto",
+            "given": "Rhorom"
+          },
+          {
+            "family": "Tejedor Garavito",
+            "given": "Natalia"
+          },
+          {
+            "family": "Zhang",
+            "given": "Wenbin"
+          },
+          {
+            "family": "McKeen",
+            "given": "Tom"
+          },
+          {
+            "family": "Cunningham",
+            "given": "Alexander"
+          },
+          {
+            "family": "Woods",
+            "given": "Thea"
+          },
+          {
+            "family": "Hilton",
+            "given": "Jason"
+          },
+          {
+            "family": "Cihan",
+            "given": "Duygu"
+          },
+          {
+            "family": "Nosatiuk",
+            "given": "Borys"
+          },
+          {
+            "family": "Brinkhoff",
+            "given": "Thomas"
+          },
+          {
+            "family": "Tatem",
+            "given": "Andrew"
+          },
+          {
+            "family": "Sorichetta",
+            "given": "Alessandro"
+          }
+        ],
+        "issued": {
+          "date-parts": [
+            [
+              2025
+            ]
+          ]
+        },
+        "abstract": "Constrained estimates of 2015-2030 total number of people per grid square at a resolution of 3 arc (approximately 100m at the equator) R2025A version v1. Global Demographic Data Project - Funded by The Bill and Melinda Gates Foundation (INV-045237). WorldPop - School of Geography and Environmental Science, University of Southampton.",
+        "DOI": "10.5258/SOTON/WP00839",
+        "publisher": "University of Southampton",
+        "title": "Constrained estimates of 2015-2030 total number of people per grid square at a resolution of 3 arc (approximately 100m at the equator) R2025A version v1.",
+        "URL": "https://hub.worldpop.org/doi/10.5258/SOTON/WP00839",
+        "copyright": "Creative Commons Attribution 4.0 International"
+      }
+    },
+    "datacite_crossref": {
+      "source": "DataCite",
+      "data": {
+        "id": "10.5258/soton/wp00839",
+        "type": "dois",
+        "attributes": {
+          "doi": "10.5258/soton/wp00839",
+          "prefix": "10.5258",
+          "suffix": "soton/wp00839",
+          "identifiers": [],
+          "alternateIdentifiers": [],
+          "creators": [
+            {
+              "name": "Bondarenko, Maksym",
+              "nameType": null,
+              "givenName": "Maksym",
+              "familyName": "Bondarenko",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0003-4958-6551",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Priyatikanto, Rhorom",
+              "nameType": null,
+              "givenName": "Rhorom",
+              "familyName": "Priyatikanto",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0003-1203-2651",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Tejedor Garavito, Natalia",
+              "nameType": null,
+              "givenName": "Natalia",
+              "familyName": "Tejedor Garavito",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0002-1140-6263",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Zhang, Wenbin",
+              "nameType": null,
+              "givenName": "Wenbin",
+              "familyName": "Zhang",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0002-9295-1019",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "McKeen, Tom",
+              "nameType": null,
+              "givenName": "Tom",
+              "familyName": "McKeen",
+              "affiliation": [],
+              "nameIdentifiers": []
+            },
+            {
+              "name": "Cunningham, Alexander",
+              "nameType": null,
+              "givenName": "Alexander",
+              "familyName": "Cunningham",
+              "affiliation": [],
+              "nameIdentifiers": []
+            },
+            {
+              "name": "Woods, Thea",
+              "nameType": null,
+              "givenName": "Thea",
+              "familyName": "Woods",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0002-9669-9631",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Hilton, Jason",
+              "nameType": null,
+              "givenName": "Jason",
+              "familyName": "Hilton",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0001-9473-757X",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Cihan, Duygu",
+              "nameType": null,
+              "givenName": "Duygu",
+              "familyName": "Cihan",
+              "affiliation": [],
+              "nameIdentifiers": []
+            },
+            {
+              "name": "Nosatiuk, Borys",
+              "nameType": null,
+              "givenName": "Borys",
+              "familyName": "Nosatiuk",
+              "affiliation": [],
+              "nameIdentifiers": []
+            },
+            {
+              "name": "Brinkhoff, Thomas",
+              "nameType": null,
+              "givenName": "Thomas",
+              "familyName": "Brinkhoff",
+              "affiliation": [],
+              "nameIdentifiers": []
+            },
+            {
+              "name": "Tatem, Andrew",
+              "nameType": null,
+              "givenName": "Andrew",
+              "familyName": "Tatem",
+              "affiliation": [],
+              "nameIdentifiers": [
+                {
+                  "schemeUri": "https://orcid.org",
+                  "nameIdentifier": "https://orcid.org/0000-0002-7270-941X",
+                  "nameIdentifierScheme": "ORCID"
+                }
+              ]
+            },
+            {
+              "name": "Sorichetta, Alessandro",
+              "nameType": null,
+              "givenName": "Alessandro",
+              "familyName": "Sorichetta",
+              "affiliation": [],
+              "nameIdentifiers": []
+            }
+          ],
+          "titles": [
+            {
+              "lang": "en-us",
+              "title": "Constrained estimates of 2015-2030 total number of people per grid square at a resolution of 3 arc (approximately 100m at the equator) R2025A version v1.",
+              "titleType": null
+            }
+          ],
+          "publisher": "University of Southampton",
+          "container": {},
+          "publicationYear": 2025,
+          "subjects": [
+            {
+              "lang": "en-us",
+              "subject": "Constrained, population, Demographic, Global"
+            }
+          ],
+          "contributors": [],
+          "dates": [
+            {
+              "date": "2025-09-01/2025-09-01",
+              "dateType": "Collected",
+              "dateInformation": null
+            },
+            {
+              "date": "2025",
+              "dateType": "Issued",
+              "dateInformation": null
+            }
+          ],
+          "language": "en",
+          "types": {
+            "ris": "DATA",
+            "bibtex": "misc",
+            "citeproc": "dataset",
+            "schemaOrg": "Dataset",
+            "resourceType": "Dataset",
+            "resourceTypeGeneral": "Dataset"
+          },
+          "relatedIdentifiers": [],
+          "relatedItems": [],
+          "sizes": [],
+          "formats": [],
+          "version": null,
+          "rightsList": [
+            {
+              "rights": "Creative Commons Attribution 4.0 International",
+              "rightsUri": "https://creativecommons.org/licenses/by/4.0/legalcode",
+              "schemeUri": "https://spdx.org/licenses/",
+              "rightsIdentifier": "cc-by-4.0",
+              "rightsIdentifierScheme": "SPDX"
+            }
+          ],
+          "descriptions": [
+            {
+              "lang": "en-us",
+              "description": "Constrained estimates of 2015-2030 total number of people per grid square at a resolution of 3 arc (approximately 100m at the equator) R2025A version v1. Global Demographic Data Project - Funded by The Bill and Melinda Gates Foundation (INV-045237). WorldPop - School of Geography and Environmental Science, University of Southampton.",
+              "descriptionType": "Abstract"
+            }
+          ],
+          "geoLocations": [
+            {
+              "geoLocationPlace": "Global"
+            }
+          ],
+          "fundingReferences": [],
+          "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHJlc291cmNlIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCIgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vZGF0YWNpdGUub3JnL3NjaGVtYS9rZXJuZWwtNCBodHRwOi8vc2NoZW1hLmRhdGFjaXRlLm9yZy9tZXRhL2tlcm5lbC00L21ldGFkYXRhLnhzZCI+CiAgPGlkZW50aWZpZXIgaWRlbnRpZmllclR5cGU9IkRPSSI+MTAuNTI1OC9TT1RPTi9XUDAwODM5PC9pZGVudGlmaWVyPgogIDxjcmVhdG9ycz4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+Qm9uZGFyZW5rbywgTWFrc3ltPC9jcmVhdG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5NYWtzeW08L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+Qm9uZGFyZW5rbzwvZmFtaWx5TmFtZT4KICAgICAgPG5hbWVJZGVudGlmaWVyIG5hbWVJZGVudGlmaWVyU2NoZW1lPSJPUkNJRCIgc2NoZW1lVVJJPSJodHRwczovL29yY2lkLm9yZyI+aHR0cHM6Ly9vcmNpZC5vcmcvMDAwMC0wMDAzLTQ5NTgtNjU1MTwvbmFtZUlkZW50aWZpZXI+CiAgICA8L2NyZWF0b3I+CiAgICA8Y3JlYXRvcj4KICAgICAgPGNyZWF0b3JOYW1lPlByaXlhdGlrYW50bywgUmhvcm9tPC9jcmVhdG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5SaG9yb208L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+UHJpeWF0aWthbnRvPC9mYW1pbHlOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik9SQ0lEIiBzY2hlbWVVUkk9Imh0dHBzOi8vb3JjaWQub3JnIj5odHRwczovL29yY2lkLm9yZy8wMDAwLTAwMDMtMTIwMy0yNjUxPC9uYW1lSWRlbnRpZmllcj4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+VGVqZWRvciBHYXJhdml0bywgTmF0YWxpYTwvY3JlYXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+TmF0YWxpYTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5UZWplZG9yIEdhcmF2aXRvPC9mYW1pbHlOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik9SQ0lEIiBzY2hlbWVVUkk9Imh0dHBzOi8vb3JjaWQub3JnIj5odHRwczovL29yY2lkLm9yZy8wMDAwLTAwMDItMTE0MC02MjYzPC9uYW1lSWRlbnRpZmllcj4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+WmhhbmcsIFdlbmJpbjwvY3JlYXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+V2VuYmluPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPlpoYW5nPC9mYW1pbHlOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik9SQ0lEIiBzY2hlbWVVUkk9Imh0dHBzOi8vb3JjaWQub3JnIj5odHRwczovL29yY2lkLm9yZy8wMDAwLTAwMDItOTI5NS0xMDE5PC9uYW1lSWRlbnRpZmllcj4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+TWNLZWVuLCBUb208L2NyZWF0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPlRvbTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5NY0tlZW48L2ZhbWlseU5hbWU+CiAgICA8L2NyZWF0b3I+CiAgICA8Y3JlYXRvcj4KICAgICAgPGNyZWF0b3JOYW1lPkN1bm5pbmdoYW0sIEFsZXhhbmRlcjwvY3JlYXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+QWxleGFuZGVyPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPkN1bm5pbmdoYW08L2ZhbWlseU5hbWU+CiAgICA8L2NyZWF0b3I+CiAgICA8Y3JlYXRvcj4KICAgICAgPGNyZWF0b3JOYW1lPldvb2RzLCBUaGVhPC9jcmVhdG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5UaGVhPC9naXZlbk5hbWU+CiAgICAgIDxmYW1pbHlOYW1lPldvb2RzPC9mYW1pbHlOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik9SQ0lEIiBzY2hlbWVVUkk9Imh0dHBzOi8vb3JjaWQub3JnIj5odHRwczovL29yY2lkLm9yZy8wMDAwLTAwMDItOTY2OS05NjMxPC9uYW1lSWRlbnRpZmllcj4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+SGlsdG9uLCBKYXNvbjwvY3JlYXRvck5hbWU+CiAgICAgIDxnaXZlbk5hbWU+SmFzb248L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+SGlsdG9uPC9mYW1pbHlOYW1lPgogICAgICA8bmFtZUlkZW50aWZpZXIgbmFtZUlkZW50aWZpZXJTY2hlbWU9Ik9SQ0lEIiBzY2hlbWVVUkk9Imh0dHBzOi8vb3JjaWQub3JnIj5odHRwczovL29yY2lkLm9yZy8wMDAwLTAwMDEtOTQ3My03NTdYPC9uYW1lSWRlbnRpZmllcj4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+Q2loYW4sIER1eWd1PC9jcmVhdG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5EdXlndTwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5DaWhhbjwvZmFtaWx5TmFtZT4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+Tm9zYXRpdWssIEJvcnlzPC9jcmVhdG9yTmFtZT4KICAgICAgPGdpdmVuTmFtZT5Cb3J5czwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5Ob3NhdGl1azwvZmFtaWx5TmFtZT4KICAgIDwvY3JlYXRvcj4KICAgIDxjcmVhdG9yPgogICAgICA8Y3JlYXRvck5hbWU+QnJpbmtob2ZmLCBUaG9tYXM8L2NyZWF0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPlRob21hczwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5Ccmlua2hvZmY8L2ZhbWlseU5hbWU+CiAgICA8L2NyZWF0b3I+CiAgICA8Y3JlYXRvcj4KICAgICAgPGNyZWF0b3JOYW1lPlRhdGVtLCBBbmRyZXc8L2NyZWF0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkFuZHJldzwvZ2l2ZW5OYW1lPgogICAgICA8ZmFtaWx5TmFtZT5UYXRlbTwvZmFtaWx5TmFtZT4KICAgICAgPG5hbWVJZGVudGlmaWVyIG5hbWVJZGVudGlmaWVyU2NoZW1lPSJPUkNJRCIgc2NoZW1lVVJJPSJodHRwczovL29yY2lkLm9yZyI+aHR0cHM6Ly9vcmNpZC5vcmcvMDAwMC0wMDAyLTcyNzAtOTQxWDwvbmFtZUlkZW50aWZpZXI+CiAgICA8L2NyZWF0b3I+CiAgICA8Y3JlYXRvcj4KICAgICAgPGNyZWF0b3JOYW1lPlNvcmljaGV0dGEsIEFsZXNzYW5kcm88L2NyZWF0b3JOYW1lPgogICAgICA8Z2l2ZW5OYW1lPkFsZXNzYW5kcm88L2dpdmVuTmFtZT4KICAgICAgPGZhbWlseU5hbWU+U29yaWNoZXR0YTwvZmFtaWx5TmFtZT4KICAgIDwvY3JlYXRvcj4KICA8L2NyZWF0b3JzPgogIDx0aXRsZXM+CiAgICA8dGl0bGUgeG1sOmxhbmc9ImVuLXVzIj5Db25zdHJhaW5lZCBlc3RpbWF0ZXMgb2YgMjAxNS0yMDMwIHRvdGFsIG51bWJlciBvZiBwZW9wbGUgcGVyIGdyaWQgc3F1YXJlIGF0IGEgcmVzb2x1dGlvbiBvZiAzIGFyYyAoYXBwcm94aW1hdGVseSAxMDBtIGF0IHRoZSBlcXVhdG9yKSBSMjAyNUEgdmVyc2lvbiB2MS48L3RpdGxlPgogIDwvdGl0bGVzPgogIDxwdWJsaXNoZXI+VW5pdmVyc2l0eSBvZiBTb3V0aGFtcHRvbjwvcHVibGlzaGVyPgogIDxwdWJsaWNhdGlvblllYXI+MjAyNTwvcHVibGljYXRpb25ZZWFyPgogIDxyZXNvdXJjZVR5cGUgcmVzb3VyY2VUeXBlR2VuZXJhbD0iRGF0YXNldCI+RGF0YXNldDwvcmVzb3VyY2VUeXBlPgogIDxzdWJqZWN0cz4KICAgIDxzdWJqZWN0IHhtbDpsYW5nPSJlbi11cyI+Q29uc3RyYWluZWQsIHBvcHVsYXRpb24sIERlbW9ncmFwaGljLCBHbG9iYWw8L3N1YmplY3Q+CiAgPC9zdWJqZWN0cz4KICA8ZGF0ZXM+CiAgICA8ZGF0ZSBkYXRlVHlwZT0iQ29sbGVjdGVkIj4yMDI1LTA5LTAxLzIwMjUtMDktMDE8L2RhdGU+CiAgICA8ZGF0ZSBkYXRlVHlwZT0iSXNzdWVkIj4yMDI1PC9kYXRlPgogIDwvZGF0ZXM+CiAgPGxhbmd1YWdlPmVuPC9sYW5ndWFnZT4KICA8c2l6ZXMvPgogIDxmb3JtYXRzLz4KICA8dmVyc2lvbi8+CiAgPHJpZ2h0c0xpc3Q+CiAgICA8cmlnaHRzIHJpZ2h0c1VSST0iaHR0cHM6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL2xpY2Vuc2VzL2J5LzQuMC9sZWdhbGNvZGUiPkNyZWF0aXZlIENvbW1vbnMgQXR0cmlidXRpb24gNC4wIEludGVybmF0aW9uYWw8L3JpZ2h0cz4KICA8L3JpZ2h0c0xpc3Q+CiAgPGRlc2NyaXB0aW9ucz4KICAgIDxkZXNjcmlwdGlvbiB4bWw6bGFuZz0iZW4tdXMiIGRlc2NyaXB0aW9uVHlwZT0iQWJzdHJhY3QiPkNvbnN0cmFpbmVkIGVzdGltYXRlcyBvZiAyMDE1LTIwMzAgdG90YWwgbnVtYmVyIG9mIHBlb3BsZSBwZXIgZ3JpZCBzcXVhcmUgYXQgYSByZXNvbHV0aW9uIG9mIDMgYXJjIChhcHByb3hpbWF0ZWx5IDEwMG0gYXQgdGhlIGVxdWF0b3IpIFIyMDI1QSB2ZXJzaW9uIHYxLiBHbG9iYWwgRGVtb2dyYXBoaWMgRGF0YSBQcm9qZWN0IC0gRnVuZGVkIGJ5IFRoZSBCaWxsIGFuZCBNZWxpbmRhIEdhdGVzIEZvdW5kYXRpb24gKElOVi0wNDUyMzcpLiBXb3JsZFBvcCAtIFNjaG9vbCBvZiBHZW9ncmFwaHkgYW5kIEVudmlyb25tZW50YWwgU2NpZW5jZSwgVW5pdmVyc2l0eSBvZiBTb3V0aGFtcHRvbi48L2Rlc2NyaXB0aW9uPgogIDwvZGVzY3JpcHRpb25zPgogIDxnZW9Mb2NhdGlvbnM+CiAgICA8Z2VvTG9jYXRpb24+CiAgICAgIDxnZW9Mb2NhdGlvblBsYWNlPkdsb2JhbDwvZ2VvTG9jYXRpb25QbGFjZT4KICAgIDwvZ2VvTG9jYXRpb24+CiAgPC9nZW9Mb2NhdGlvbnM+CjwvcmVzb3VyY2U+Cg==",
+          "url": "https://hub.worldpop.org/doi/10.5258/SOTON/WP00839",
+          "contentUrl": null,
+          "metadataVersion": 1,
+          "schemaVersion": "http://datacite.org/schema/kernel-4",
+          "source": "fabricaForm",
+          "isActive": true,
+          "state": "findable",
+          "reason": null,
+          "viewCount": 0,
+          "viewsOverTime": [],
+          "downloadCount": 0,
+          "downloadsOverTime": [],
+          "referenceCount": 0,
+          "citationCount": 14,
+          "citationsOverTime": [
+            {
+              "year": "2026",
+              "total": 14
+            }
+          ],
+          "partCount": 0,
+          "partOfCount": 0,
+          "versionCount": 0,
+          "versionOfCount": 0,
+          "created": "2026-01-27T16:58:06.000Z",
+          "registered": "2026-01-27T17:01:12.000Z",
+          "published": "2025",
+          "updated": "2026-01-27T17:01:12.000Z"
+        },
+        "relationships": {
+          "client": {
+            "data": {
+              "id": "bl.soton",
+              "type": "clients"
+            }
+          },
+          "provider": {
+            "data": {
+              "id": "hxhf",
+              "type": "providers"
+            }
+          },
+          "media": {
+            "data": {
+              "id": "10.5258/soton/wp00839",
+              "type": "media"
+            }
+          },
+          "references": {
+            "data": []
+          },
+          "citations": {
+            "data": [
+              {
+                "id": "10.11648/j.earth.20261501.16",
+                "type": "dois"
+              },
+              {
+                "id": "10.21203/rs.3.rs-8968676/v1",
+                "type": "dois"
+              },
+              {
+                "id": "10.1088/2752-5295/ae4cc2",
+                "type": "dois"
+              },
+              {
+                "id": "10.70322/ces.2026.10001",
+                "type": "dois"
+              },
+              {
+                "id": "10.21203/rs.3.rs-9231692/v1",
+                "type": "dois"
+              },
+              {
+                "id": "10.1785/0220250388",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s41597-026-07014-8",
+                "type": "dois"
+              },
+              {
+                "id": "10.21203/rs.3.rs-9409038/v1",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s10113-026-02535-9",
+                "type": "dois"
+              },
+              {
+                "id": "10.1029/2025ef007248",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s43247-026-03709-3",
+                "type": "dois"
+              },
+              {
+                "id": "10.1007/s00704-026-06405-6",
+                "type": "dois"
+              },
+              {
+                "id": "10.1038/s44284-026-00479-z",
+                "type": "dois"
+              },
+              {
+                "id": "10.12688/verixiv.3477.1",
+                "type": "dois"
+              }
+            ]
+          },
+          "parts": {
+            "data": []
+          },
+          "partOf": {
+            "data": []
+          },
+          "versions": {
+            "data": []
+          },
+          "versionOf": {
+            "data": []
+          }
+        }
+      }
+    },
+    "official_api": {}
+  },
+  "original_input": {
+    "dataset_name": "WorldPop Global Population (100m/1km)（WorldPop 全球人口格点数据集（100 米 / 1 公里分辨率））",
+    "url": "WorldPop Hub：https://hub.worldpop.org/；示例条目说明 100m 与 WGS84；1km 汇总亦有条目。"
+  },
+  "error_reason": "未找到对应的官网知识库 API"
+}

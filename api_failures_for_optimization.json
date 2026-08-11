@@ -1,0 +1,286 @@
+[
+  {
+    "doi": "10.5281/zenodo.17260370",
+    "dataset_url": "https://zenodo.org/records/17260370",
+    "doi_landing_page": "https://zenodo.org/doi/10.5281/zenodo.17260370",
+    "dataset_name": "Processed LST, NDVI, and Socio-Demographic Data for Urban Heat Island Analysis in New York City (July 2024)",
+    "version_name": null,
+    "official_website": "Zenodo",
+    "official_website_id": "17260370",
+    "dataset_shortname": null,
+    "target_api_name": [
+      "Zenodo"
+    ],
+    "error_reason": "IntegratedDataRepoFetcher.fetch_zenodo() got an unexpected keyword argument 'dataset_url'"
+  },
+  {
+    "doi": "10.18160/GCP-2020",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2020",
+    "doi_landing_page": "https://doi.org/10.18160/GCP-2020",
+    "dataset_name": "Global Carbon Budget",
+    "version_name": "2020",
+    "official_website": "ICOS Carbon Portal",
+    "official_website_id": null,
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS Carbon Portal"
+    ],
+    "error_reason": "ICOS API 需要内部 PID，且通过 SPARQL 未能通过 DOI (10.18160/GCP-2020) 找到对应实体"
+  },
+  {
+    "doi": "10.18160/GCP-2012",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2012",
+    "doi_landing_page": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2012",
+    "dataset_name": "Global Carbon Budget 2012",
+    "version_name": "2012",
+    "official_website": "ICOS",
+    "official_website_id": "GCP-2012",
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS"
+    ],
+    "error_reason": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2012"
+  },
+  {
+    "doi": "10.18160/GCP-2013",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2013",
+    "doi_landing_page": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2013",
+    "dataset_name": "Global Carbon Budget 2013",
+    "version_name": "2013",
+    "official_website": "ICOS",
+    "official_website_id": "GCP-2013",
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS"
+    ],
+    "error_reason": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2013"
+  },
+  {
+    "doi": "10.18160/GCP-2014",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2014",
+    "doi_landing_page": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2014",
+    "dataset_name": "Global Carbon Budget 2014",
+    "version_name": "2014",
+    "official_website": "ICOS",
+    "official_website_id": "GCP-2014",
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS"
+    ],
+    "error_reason": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2014"
+  },
+  {
+    "doi": "10.18160/GCP-2015",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2015",
+    "doi_landing_page": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2015",
+    "dataset_name": "Global Carbon Budget 2015",
+    "version_name": "2015",
+    "official_website": "ICOS",
+    "official_website_id": "GCP-2015",
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS"
+    ],
+    "error_reason": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2015"
+  },
+  {
+    "doi": "10.18160/GCP-2016",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2016",
+    "doi_landing_page": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2016",
+    "dataset_name": "Global Carbon Budget 2016",
+    "version_name": "2016",
+    "official_website": "ICOS",
+    "official_website_id": "GCP-2016",
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS"
+    ],
+    "error_reason": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2016"
+  },
+  {
+    "doi": "10.18160/GCP-2017",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2017",
+    "doi_landing_page": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2017",
+    "dataset_name": "Global Carbon Budget 2017",
+    "version_name": "2017",
+    "official_website": "ICOS",
+    "official_website_id": "GCP-2017",
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS"
+    ],
+    "error_reason": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2017"
+  },
+  {
+    "doi": "10.18160/GCP-2018",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2018",
+    "doi_landing_page": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2018",
+    "dataset_name": "Global Carbon Budget 2018",
+    "version_name": "2018",
+    "official_website": "ICOS",
+    "official_website_id": "GCP-2018",
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS"
+    ],
+    "error_reason": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2018"
+  },
+  {
+    "doi": "10.18160/GCP-2019",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2019",
+    "doi_landing_page": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2019",
+    "dataset_name": "Global Carbon Budget 2019",
+    "version_name": "2019",
+    "official_website": "ICOS",
+    "official_website_id": "GCP-2019",
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS"
+    ],
+    "error_reason": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2019"
+  },
+  {
+    "doi": "10.18160/GCP-2020",
+    "dataset_url": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2020",
+    "doi_landing_page": "https://www.icos-cp.eu/impact/science/global-carbon-budget/2020",
+    "dataset_name": "Global Carbon Budget 2020",
+    "version_name": "2020",
+    "official_website": "ICOS",
+    "official_website_id": "GCP-2020",
+    "dataset_shortname": "GCB",
+    "target_api_name": [
+      "ICOS"
+    ],
+    "error_reason": "No collection found in ICOS Carbon Portal for DOI: 10.18160/GCP-2020"
+  },
+  {
+    "doi": "10.7289/V5C8276M",
+    "dataset_url": "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1",
+    "doi_landing_page": "https://doi.org/10.7289/V5C8276M",
+    "dataset_name": "ETOPO1 1 Arc-Minute Global Relief Model",
+    "version_name": "ETOPO1",
+    "official_website": "NOAA National Centers for Environmental Information (NCEI)",
+    "official_website_id": null,
+    "dataset_shortname": "ETOPO1",
+    "target_api_name": [
+      "NOAA National Centers for Environmental Information (NCEI)"
+    ],
+    "error_reason": "已达到最大重试次数 (3)，最终失败: HTTP Error 404: "
+  },
+  {
+    "doi": "10.7289/V5J1012Q",
+    "dataset_url": "https://www.ncei.noaa.gov/products/etopo-global-relief-model",
+    "doi_landing_page": "https://doi.org/10.7289/V5J1012Q",
+    "dataset_name": "2-minute Gridded Global Relief Data (ETOPO2) v2",
+    "version_name": "ETOPO2",
+    "official_website": "NOAA National Centers for Environmental Information (NCEI)",
+    "official_website_id": null,
+    "dataset_shortname": "ETOPO2",
+    "target_api_name": [
+      "NOAA National Centers for Environmental Information (NCEI)"
+    ],
+    "error_reason": "已达到最大重试次数 (3)，最终失败: HTTP Error 404: "
+  },
+  {
+    "doi": "10.7289/V5D798BF",
+    "dataset_url": "https://www.ncei.noaa.gov/products/etopo-global-relief-model",
+    "doi_landing_page": "https://doi.org/10.7289/V5D798BF",
+    "dataset_name": "5-minute Gridded Global Relief Data (ETOPO5)",
+    "version_name": "ETOPO5",
+    "official_website": "NOAA National Centers for Environmental Information (NCEI)",
+    "official_website_id": null,
+    "dataset_shortname": "ETOPO5",
+    "target_api_name": [
+      "NOAA National Centers for Environmental Information (NCEI)"
+    ],
+    "error_reason": "无法从已知参数中解析出 NCEI Metadata ID"
+  },
+  {
+    "doi": null,
+    "dataset_url": "https://www.bts.gov/geospatial/national-transportation-atlas-database",
+    "doi_landing_page": null,
+    "dataset_name": "National Transportation Atlas Database (NTAD)",
+    "version_name": "2015",
+    "official_website": "Bureau of Transportation Statistics (BTS)",
+    "official_website_id": null,
+    "dataset_shortname": "NTAD",
+    "target_api_name": [
+      "ROSAP (National Transportation Library)"
+    ],
+    "error_reason": "缺少关键参数，无法解析出内部ID。需要包含 rosap.ntl.bts.gov/view/dot/{id} 格式的URL或有效DOI。"
+  },
+  {
+    "doi": null,
+    "dataset_url": "https://www.bts.gov/geospatial/national-transportation-atlas-database",
+    "doi_landing_page": null,
+    "dataset_name": "National Transportation Atlas Database (NTAD)",
+    "version_name": "2016",
+    "official_website": "Bureau of Transportation Statistics (BTS)",
+    "official_website_id": null,
+    "dataset_shortname": "NTAD",
+    "target_api_name": [
+      "ROSAP (National Transportation Library)"
+    ],
+    "error_reason": "缺少关键参数，无法解析出内部ID。需要包含 rosap.ntl.bts.gov/view/dot/{id} 格式的URL或有效DOI。"
+  },
+  {
+    "doi": null,
+    "dataset_url": null,
+    "doi_landing_page": null,
+    "dataset_name": "National Transportation Atlas Database",
+    "version_name": "2022",
+    "official_website": "ROSAP (National Transportation Library)",
+    "target_api_name": [
+      "ROSAP (National Transportation Library)"
+    ],
+    "error_reason": "缺少关键参数，无法解析出内部ID。需要包含 rosap.ntl.bts.gov/view/dot/{id} 格式的URL或有效DOI。"
+  },
+  {
+    "doi": null,
+    "dataset_url": "https://www.bts.gov/geospatial/national-transportation-atlas-database",
+    "doi_landing_page": null,
+    "dataset_name": "National Transportation Atlas Database",
+    "version_name": null,
+    "official_website": "https://www.bts.gov/ntad",
+    "target_api_name": [
+      "ROSAP (National Transportation Library)"
+    ],
+    "error_reason": "缺少关键参数，无法解析出内部ID。需要包含 rosap.ntl.bts.gov/view/dot/{id} 格式的URL或有效DOI。"
+  },
+  {
+    "doi": null,
+    "dataset_url": null,
+    "doi_landing_page": null,
+    "dataset_name": "National Transportation Atlas Database",
+    "version_name": "2015",
+    "official_website": "https://www.bts.gov/ntad",
+    "target_api_name": [
+      "ROSAP (National Transportation Library)"
+    ],
+    "error_reason": "缺少关键参数，无法解析出内部ID。需要包含 rosap.ntl.bts.gov/view/dot/{id} 格式的URL或有效DOI。"
+  },
+  {
+    "doi": null,
+    "dataset_url": "https://www.bts.gov/geospatial/national-transportation-atlas-database",
+    "doi_landing_page": null,
+    "dataset_name": "National Transportation Atlas Database (NTAD)",
+    "version_name": "2012",
+    "official_website": "Bureau of Transportation Statistics (BTS)",
+    "target_api_name": [
+      "ROSAP (National Transportation Library)"
+    ],
+    "error_reason": "缺少关键参数，无法解析出内部ID。需要包含 rosap.ntl.bts.gov/view/dot/{id} 格式的URL或有效DOI。"
+  },
+  {
+    "doi": null,
+    "dataset_url": "https://www.bts.gov/geospatial/national-transportation-atlas-database",
+    "doi_landing_page": null,
+    "dataset_name": "National Transportation Atlas Database 2014 (NTAD2014)",
+    "version_name": "2014",
+    "official_website": "Bureau of Transportation Statistics (BTS)",
+    "target_api_name": [
+      "ROSAP (National Transportation Library)"
+    ],
+    "error_reason": "缺少关键参数，无法解析出内部ID。需要包含 rosap.ntl.bts.gov/view/dot/{id} 格式的URL或有效DOI。"
+  }
+]
