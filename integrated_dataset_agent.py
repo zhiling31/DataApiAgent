@@ -28,19 +28,22 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # 0. 全局配置 (文件路径修改区)
 # ==========================================
 # 你可以在这里修改所有的输入输出文件路径
-INPUT_DATASET_FILE = "../45个数据集target_datasets.txt"       # 输入的原始数据集文件 (制表符分隔)
-OUTPUT_RESULTS_DIR = "agent_result0807"                     # 运行结果(成功或报错的 JSON)的保存目录
-MISSING_REGISTRY_FILE = "agent_result0807/missing_registry_datasets.txt"  # 未命中知识库的数据集保存文件
-API_FALLBACK_LOG_FILE = "agent_result0807/api_fallback_errors.log"            # 多API尝试时，中间失败的日志
-REGISTRY_API_LOG_FILE = "agent_result0807/registry_api_errors.log"            # 注册机构(doi.org, DataCite, Crossref)的报错日志
-MAX_RECORDS_TO_PROCESS = 45                               # 每次批量测试的最大数量
+INPUT_DATASET_FILE = r"D:\地学\doi\数据清单\geophysics-Electrical and Electromagnetic Exploration Methods.txt"       # 输入的原始数据集文件 (制表符分隔)
+OUTPUT_RESULTS_DIR = r"D:\地学\doi\数据清单\geophysics-Electrical and Electromagnetic Exploration Methods"                     # 运行结果(成功或报错的 JSON)的保存目录
+USE_DATASET_INFO_CACHE = True                               # 是否启用数据集提取信息缓存
+dataset_info_cache_file = os.path.join(OUTPUT_RESULTS_DIR, "dataset_info_cache.json")
+MISSING_REGISTRY_FILE = os.path.join(OUTPUT_RESULTS_DIR, "missing_registry_datasets.txt")  # 未命中知识库的数据集保存文件
+API_FALLBACK_LOG_FILE = os.path.join(OUTPUT_RESULTS_DIR, "api_fallback_errors.log")            # 多API尝试时，中间失败的日志
+REGISTRY_API_LOG_FILE = os.path.join(OUTPUT_RESULTS_DIR, "doi_registry_api_errors.log")            # 注册机构(doi.org, DataCite, Crossref)的报错日志
+MAX_RECORDS_TO_PROCESS = 60                              # 每次批量测试的最大数量
 # 续传模式: 
 # "1": 只要有结果(成功或报错)即跳过
 # "2-1": 只要有报错结果(_error.json)，即删除报错文件并重新跑完整大模型检索流程
 # "2-2": 只要有报错结果(_error.json)，提取原报错文件中的信息，跳过大模型检索，直接重新跑 API 获取流程
+# "2-3": 只要有报错结果(_error.json)，提取原报错文件中的信息，但是重新匹配API
 RESUME_MODE = "2-2"                                      
 MAX_SEARCH_ITERATIONS = 35                               # 大模型检索的最大循环思考次数 (默认25，值过大会增加死循环和Token爆炸的风险)
-INTEGRATED_FETCHER_MODULE = "output0728.fetch_top_dataset_integrated_0728"  # 动态导入抓取脚本的模块路径，方便后续更新
+INTEGRATED_FETCHER_MODULE = "code_result.fetch_top_dataset_integrated_0728"  # 动态导入抓取脚本的模块路径，方便后续更新
 
 import logging
 import sys
@@ -72,137 +75,10 @@ IntegratedDataRepoFetcher = importlib.import_module(INTEGRATED_FETCHER_MODULE).I
 from fetch_datacite_metadata import fetch_from_datacite, fetch_from_crossref, fetch_with_retry
 
 
-# 配置 Tavily API Key
-# "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"
-# zhizhi333333@gmail.com           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
-# 2524258132@qq.com    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
+# Tools are now imported from dataset_extractor.py
+from dataset_extractor import tools
 
-os.environ["TAVILY_API_KEY"] = "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"
-
-web_search_tool = TavilySearch(
-    max_results=5,
-    include_answer=True,
-    search_depth="advanced"
-)
-
-
-@tool
-def academic_web_search(query: str) -> str:
-    """
-    【发现工具】用于全网关键词检索，寻找未知的标杆论文或数据托管平台。
-    使用场景：当不知道具体的链接或 DOI 时使用。
-    使用技巧：
-    - 找论文可附加关键词示例: "Data Descriptor" OR "Methodology" OR "article"
-    - 找数据本体可附加关键词示例: "Data Repository" OR "DOI" OR "Zenodo" OR "PANGAEA"
-    """
-    try:
-        result = web_search_tool.invoke({"query": query})
-        result_str = str(result)
-        logger.info(f"Tavily search result (first 100 chars): {result_str[:100]}")
-        if "Error 432: This request exceeds your plan's set usage limit" in result_str:
-            logger.error(f"Encountered 432 error: {result_str}. Exiting program.")
-            sys.exit(1)
-        return result
-    except Exception as e:
-        return f"搜索失败: {str(e)}"
-
-@tool
-def read_and_verify_url(url_or_doi: str) -> str:
-    """
-    【精准阅读与验证工具】用于解析具体的 URL 网页内容，或验证 DOI 是否真实存在并指向数据。
-    使用场景：
-    1. 用户在初始描述中提供了具体的链接（如 ESSD/Nature 文章页），使用此工具提取网页内文（特别是类似于 Data Availability 的段落）。
-    2. 需要验证某个 10.xxxx/xxxx 格式的 DOI 是否是合法的数据本体链接时，传入 https://doi.org/10.xxxx/xxxx 进行验证。
-    """
-    # ----------------- Content Negotiation 补丁 开始 -----------------
-    # 修改时间: 2026-06-01
-    # 修改原因: 原始逻辑使用简单的 requests 抓取落地页，遇到 Zenodo 等强 WAF 站点会直接返回 403 Forbidden。
-    # 现改为：识别为 DOI 时，优先使用 DOI Content Negotiation (Accept: application/vnd.citationstyles.csl+json) 
-    # 直接向 doi.org 获取干净的结构化 JSON 元数据，避免网页抓取；普通 URL 则回退到原逻辑。
-    
-    # 提取纯粹的 DOI 字符串
-    import re
-    doi = ""
-    # 尝试正则提取标准 DOI 格式
-    doi_match = re.search(r'(10\.\d{4,9}/[-._;()/:A-Za-z0-9]+)', url_or_doi)
-    if doi_match:
-        doi = doi_match.group(1)
-    # # 专门处理 Zenodo 链接 (支持普通网页和 API 链接)
-    # elif "zenodo.org" in url_or_doi:
-    #     record_id = re.search(r'records?/(\d+)', url_or_doi)
-    #     if record_id:
-    #         doi = f"10.5281/zenodo.{record_id.group(1)}"
-        
-    if doi:
-        # 使用 DOI Content Negotiation 优雅地获取元数据，不触发目标网站(如Zenodo)的反爬虫
-        try:
-            headers = {
-                "Accept": "application/vnd.citationstyles.csl+json",
-                "User-Agent": "DataLibrarianAgent/1.0"
-            }
-            response = requests.get(f"https://doi.org/{doi}", headers=headers, timeout=10, allow_redirects=True)
-            response.raise_for_status()
-            
-            data = response.json()
-            summary = [
-                f"【DOI 验证成功 (Content Negotiation)】: {doi}",
-                f"标题 (Title): {data.get('title', 'N/A')}",
-                f"类型 (Type): {data.get('type', 'N/A')}",
-                f"发布者 (Publisher): {data.get('publisher', 'N/A')}",
-                f"落地页 URL: {data.get('URL', 'N/A')}",
-                f"摘要 (Abstract): {str(data.get('abstract', 'N/A'))[:1500]}" 
-            ]
-            return "\n".join(summary)
-            
-        except requests.exceptions.RequestException as e:
-            # 如果 DOI 解析失败，继续尝试当做普通 URL 抓取
-            pass
-
-    
-    # 自动补全普通 URL 协议 (用于兜底的普通网页抓取)
-    if not url_or_doi.startswith("http"):
-        if url_or_doi.startswith("10."):
-            url_or_doi = f"https://doi.org/{url_or_doi}"
-        else:
-            url_or_doi = f"https://{url_or_doi}"
-            
-    # ----------------- 本地 CDP 浏览器复用 补丁 开始 -----------------
-    # 修改时间: 2026-06-01 17:15
-    # 修改原因: 传统的 requests 库无法渲染现代 SPA/CSR 网页 (如 HuggingFace)，导致抓取到的都是无用骨架代码。
-    # 现改为使用 Playwright 通过 CDP 协议 (Chrome DevTools Protocol) 寄生并复用本地正在运行的 Chrome 浏览器 (需开启 9222 端口)。
-    # 这样不仅能完美渲染 JavaScript，还能利用本地浏览器真实的指纹和 Cookie 彻底绕过验证码和 WAF 拦截。
-    try:
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            # 尝试连接本地开着 debug 端口的 Chrome
-            browser = p.chromium.connect_over_cdp("http://127.0.0.1:9223")
-            default_context = browser.contexts[0]
-            page = default_context.new_page()
-            # 设置较长的超时以应对复杂的页面加载
-            page.goto(url_or_doi, timeout=60000, wait_until="domcontentloaded")
-            # 拿到渲染后的纯文本
-            text = page.locator("body").inner_text()
-            page.close()
-            
-            # 清理多余的空白符
-            import re
-            text = re.sub(r'\s+', ' ', text).strip()
-            
-            return f"【CDP 网页抓取成功】(截取了前10000字符):\n{text[:10000]}"
-
-                
-    except Exception as e:
-        # 记录报错，如果是连接失败，提示用户开启 Chrome 的 debugging 端口
-        logger.error(f"无法使用 CDP 连接本地浏览器进行验证。请确保已使用 '--remote-debugging-port=9222' 启动了 Chrome。详细报错: {str(e)}")
-        return f"无法使用 CDP 连接本地浏览器进行验证。请确保已使用 '--remote-debugging-port=9222' 启动了 Chrome。详细报错: {str(e)}"
-    
-
-
-# Agent 可用的工具列表
-tools = [academic_web_search, read_and_verify_url]
-
-
-def custom_request_llm_invoke(messages, use_tools=False, json_mode=False):
+def custom_request_llm_invoke(messages, use_tools=False, json_mode=False, custom_tools=None):
     url = "https://ai.zj-computility.com/maas/v1/chat/completions"
     headers = {
         "Authorization": "Bearer sk-5ve6fyd4fyd2ne33",
@@ -250,13 +126,14 @@ def custom_request_llm_invoke(messages, use_tools=False, json_mode=False):
         payload["response_format"] = {"type": "json_object"}
         
     if use_tools:
-        payload["tools"] = [convert_to_openai_tool(t) for t in tools]
+        tools_to_use = custom_tools if custom_tools is not None else tools
+        payload["tools"] = [convert_to_openai_tool(t) for t in tools_to_use]
         
     import time
     max_retries = 6
     for attempt in range(max_retries):
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=120)
+            response = requests.post(url, headers=headers, json=payload, timeout=120, verify=False)
             response.raise_for_status()
             break
         except requests.exceptions.RequestException as e:
@@ -287,6 +164,8 @@ def custom_request_llm_invoke(messages, use_tools=False, json_mode=False):
     if not reasoning and msg_data.get("model_extra"):
         reasoning = msg_data.get("model_extra").get("reasoning_content", "")
         
+
+        
     tool_calls = []
     if "tool_calls" in msg_data and msg_data["tool_calls"]:
         for tc in msg_data["tool_calls"]:
@@ -309,148 +188,47 @@ def custom_request_llm_invoke(messages, use_tools=False, json_mode=False):
     return ai_message
 # ----------------- 手动补丁 (Request 接口改写) 结束 -----------------
 
-class DatasetInfo(BaseModel):
-    doi: Optional[str] = Field(description="官方 DOI (10.xxxx/xxxx)，若无明确本体DOI则返回 null", default=None)
-    dataset_url: Optional[str] = Field(description="数据集原始链接", default=None)
-    doi_landing_page: Optional[str] = Field(description="DOI 解析落地页", default=None)
-    dataset_name: Optional[str] = Field(description="数据集名称", default=None)
-    version_name: Optional[str] = Field(description="该数据集的具体版本号或年份标识 (例如: '2024', 'v1.2', 'Collection 2')，用于区分同名数据集的不同历史快照，若无则返回 null", default=None)
-    official_website: Optional[str] = Field(description="数据集官网或托管平台名称 (例如: Zenodo, PANGAEA, ScienceDB, OSTI, GBIF等)，若无则返回 null", default=None)
-    target_api_name: Optional[List[str]] = Field(
-        description=IntegratedDataRepoFetcher.get_api_schema_desc() + "【语义生态穿透匹配】：请利用你的图情专业知识，判断当前数据集的托管机构或系统简称是否属于上述列表中的某个机构。如果是，请把列表中的准确名称提取出来；如果毫无关联，再返回空列表 []。记住，不用强行越界匹配",
-        default=None
+from dataset_extractor import extract_dataset_info
+
+class TargetApiMatch(BaseModel):
+    target_api_name: List[str] = Field(
+        description= "【语义生态穿透匹配】：请利用你的图情专业知识，判断当前数据集的托管机构或系统简称是否属于上述列表中的某个机构。如果是，请把列表中的准确名称提取出来；如果毫无关联，再返回空列表 []。记住，不用强行越界匹配"
     )
 
-class DatasetExtractionList(BaseModel):
-    datasets: List[DatasetInfo] = Field(description="基于收集到的所有信息，提取出匹配的数据集")
-
-# ==========================================
-# 2. Graph 状态定义
-# ==========================================
-class AgentState(TypedDict):
-    messages: Annotated[List, lambda x, y: x + y]
-    extracted_datasets: List[dict]
-    final_results: List[dict]
-    original_dataset_url: str # 🌟 专用隔离字段：储存用户的原始输入 URL，防范全 None 塌陷！
-
-# ==========================================
-# 3. Graph 节点实现
-# ==========================================
-
-# ----------------------------------
-# (1) 智能体检索节点 (使用全网搜索与工具)
-# ----------------------------------
-def research_and_verify_node(state: AgentState):
-    """复用 agent_doi 的检索节点：使用 LLM 决定是否调用工具进行信息收集"""
-    logger.info("⚡ [节点: 检索] 大模型正在思考是否需要使用全网搜索或抓取工具...")
-    messages = state["messages"]
-    # 开启工具调用
-    response = custom_request_llm_invoke(messages, use_tools=True)
-    return {"messages": [response]}
-
-def should_continue(state: AgentState):
-    search_tool_count = sum(1 for m in state["messages"] if hasattr(m, "tool_calls") and m.tool_calls for tc in m.tool_calls if tc.get("name") == "academic_web_search")
+def match_target_api_with_llm(dataset_info: dict, custom_request_llm_invoke) -> List[str]:
+    """使用大模型根据提取的数据集信息匹配目标 API"""
+    schema_str = json.dumps(TargetApiMatch.model_json_schema(), ensure_ascii=False, indent=2)
     
-    last_message = state["messages"][-1]
-    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
-        # 如果历史累计调用加上这一次请求超过了最大限制，则强制拦截
-        if search_tool_count > MAX_SEARCH_ITERATIONS:
-            logger.warning(f"   ⚠️ 已达到最大 Tavily 搜索次数上限 ({MAX_SEARCH_ITERATIONS}次)，强制终止检索并进入提取阶段！")
-            return "extract"
-            
-        logger.info(f"   🔧 决定调用工具 (共 {len(last_message.tool_calls)} 个) [Tavily搜索累计: {search_tool_count}/{MAX_SEARCH_ITERATIONS}]:")
-        for tc in last_message.tool_calls:
-            args = tc.get('args', {})
-            if tc['name'] == 'academic_web_search':
-                logger.info(f"      - 🔍 搜索关键词: {args.get('query')}")
-            elif tc['name'] == 'read_and_verify_url':
-                logger.info(f"      - 📖 阅读网页: {args.get('url_or_doi')}")
-            else:
-                logger.info(f"      - ⚙️ {tc['name']}: {args}")
-        return "tools"
-    
-    # 打印大模型在检索阶段最后的总结论
-    conclusion = getattr(last_message, "content", "无结论")
-    if conclusion:
-        # 如果结论太长，可能需要截断显示或者完整显示，这里展示完整结论
-        logger.info(f"   💡 检索阶段得出结论:\n      {conclusion.strip()}")
-    else:
-        logger.info("   ✅ 检索完毕 (未输出结论文本)")
-        
-    logger.info("   ✅ 准备提取结构化数据...")
-    return "extract"
+    # 兼容老缓存
+    publisher_list = dataset_info.get("official_websites", [])
+    if not publisher_list and "official_website" in dataset_info:
+        val = dataset_info["official_website"]
+        publisher_list = [val] if val else []
 
-# ----------------------------------
-# Phase 2: 深度挖掘节点 (Deep Dive Nodes)
-# ----------------------------------
-def extract_node(state: AgentState):
-    """基于前期检索到的信息，强制结构化输出 DatasetExtractionList"""
-    logger.info("⚡ [节点: 提取] 开始从收集到的信息中获取目标版本的数据集...")
-    context = "\n".join([m.content for m in state["messages"] if hasattr(m, "content") and m.content])
-    original_input = getattr(state["messages"][1], "content", "") if len(state["messages"]) > 1 else ""
-    
-    schema_str = json.dumps(DatasetExtractionList.model_json_schema(), ensure_ascii=False, indent=2)
-    
-    extraction_prompt = f"""
-基于以下收集到的信息，严格提取目标版本的数据集的版本信息、DOI、落地页。
-如果没有找到某个字段对应的值，请返回 null。
+    prompt = f"""
+【数据集托管平台匹配】：请利用你的图情专业知识，判断当前数据集的托管机构或系统简称是否属于可选官网列表中的某个机构。如果是，请把列表中的准确名称提取出来；如果找不到可匹配的官网，再返回空列表 []。记住，不用强行越界匹配
 
-【目标版本数据集提取】
-1. 若用户的初始描述或URL中明确指定了某个特定版本，你【必须且只能】提取这一个指定的版本，严禁提取任何历史旧版或新版本或平行版本！
-2. 若用户【没有】提及具体版本，请遵循保留最新的版本的逻辑：务必提取与用户初始描述完全匹配的标准版/科学版数据集。对于跨越多年度的系列数据集，请找出最新的官方发布的该年度/历史主快照。严禁提取任何非官方的衍生版、附加版。
-    【重要】最新版本定位法则：
-        1. 如果用户请求的是【特定子数据集/单项数据】：
-        - 你的目标【必须且只能】是该【特定子数据集本身】！
-        - 如果该子数据集有自己独立的专有 DOI，必须提取该子数据集的专有 DOI！绝对禁止用其父级大集合的 DOI 或 URL 来顶替！
-        
-        2. 如果用户请求的是【宏观大型集合/数据库】：
-        - 请提取该大集合在官方仓库中最新发布的官方标准归档版（拥有独立归档页面/独立 DOI)的最新版本。
-        - 严禁将网页上宣传的实时动态更新标语识别为版本！因为动态更新服务在档案馆中没有打包存档链接。
-        - 必须提取指向具体数据集归档页面的落地页 URL。
+【数据集信息】
+- 候选官网/托管平台列表: {publisher_list}
 
-【目标版本数据集的DOI 提取】
-请务必仔细检查目标版本在上下文中的元数据，只要上下文中出现了该版本的 DOI（通常以 10.xxxx/xxxx 的格式出现），你【必须】将其提取到 doi 字段中，绝不允许漏提 DOI！请务必在收到的文本中仔细排查 DOI。
+【可选官网列表】
+{IntegratedDataRepoFetcher.get_api_schema_desc()}
 
-【核心纪律】：宁缺毋滥，用户输入的 URL 实体即为检索与提取的最高物理边界，绝对禁止跨越实体边界去强行拼凑其他地理/项目子集的 DOI。仔细核对你找的数据集内容与用户描述的目标数据集名称以及URL内容是否一致，如果不一致，则不予收集，不要强行搜集DOI。根据最终确认的数据集链接确认数据存储官网。
-
-
-【格式要求】
-你必须输出一段合法的 JSON 字符串，且必须严格符合以下 JSON Schema 结构：
+请严格按照以下 JSON Schema 输出：
 {schema_str}
-不要输出任何解释性文本或 markdown 代码块语法，只能输出 JSON 数据本身。
-
-========================
-【原始用户请求】（这是判断是否指定了特定版本的唯一依据）：
-{original_input}
-========================
-
-【大模型检索总结与收集到的上下文】：
-{context}
 """
-    # 强制让 LLM 只输出 JSON
-    response = custom_request_llm_invoke(
-        [HumanMessage(content=extraction_prompt)], 
-        json_mode=True
-    )
-    
-    # 清理 markdown 标签
-    raw_json_str = response.content.strip()
-    if raw_json_str.startswith("```json"): raw_json_str = raw_json_str[7:]
-    if raw_json_str.startswith("```"): raw_json_str = raw_json_str[3:]
-    if raw_json_str.endswith("```"): raw_json_str = raw_json_str[:-3]
-    
+    messages = [
+        SystemMessage(content="你是一个专业的图情学数据生态专家。请严格按照要求进行匹配，并返回符合 JSON Schema 的 JSON 对象。"),
+        HumanMessage(content=prompt)
+    ]
     try:
-        json_data = json.loads(raw_json_str.strip())
-        validated_obj = DatasetExtractionList(**json_data)
-        extracted_datasets = [d.model_dump() for d in validated_obj.datasets]
+        response = custom_request_llm_invoke(messages, use_tools=False, json_mode=True)
+        content = response.content
+        data = json.loads(content)
+        return data.get("target_api_name", [])
     except Exception as e:
-        logger.warning(f"⚠️ 解析 LLM 输出失败: {e}")
-        extracted_datasets = []
-        
-    logger.info(f"   ➤ 提取到 {len(extracted_datasets)} 个版本结果")
-    return {"messages": [response], "extracted_datasets": extracted_datasets}
-
-# ----------------------------------
+        logger.error(f"API 匹配 LLM 调用失败: {e}")
+        return []
 
 def resolve_doi_to_url(doi: str) -> str:
     try:
@@ -461,7 +239,7 @@ def resolve_doi_to_url(doi: str) -> str:
         logger.error(f"  {doi} ⚠️ [DOI重定向] 解析失败: {e}")
         return ""
 
-def fetch_metadata_node(state: AgentState):
+def fetch_metadata_node(state: dict):
     """根据提取到的信息，循环分别调用三个工具获取所有版本的元数据"""
     logger.info("⚡ [节点: 抓取] 开始从各大 API 获取元数据...")
     raw_extracted_datasets = state.get("extracted_datasets", [])
@@ -480,8 +258,10 @@ def fetch_metadata_node(state: AgentState):
     
     for idx, extracted_info in enumerate(extracted_datasets):
         doi = extracted_info.get("doi")
-        
-        publisher = extracted_info.get("official_website")
+        publisher_list = extracted_info.get("official_websites", [])
+        if not publisher_list and "official_website" in extracted_info:
+            publisher_list = [extracted_info["official_website"]]
+            
         target_api = extracted_info.get("target_api_name")
         version_name = extracted_info.get("version_name")
         
@@ -491,12 +271,14 @@ def fetch_metadata_node(state: AgentState):
             
         logger.info(f"\n   🔄 [版本 {idx+1}/{len(extracted_datasets)}] 开始抓取流程" + (f" ({display_name})" if display_name else "") + "...")
         logger.info(f"      - DOI: {doi}")
-        logger.info(f"      - 官网: {publisher}")
+        logger.info(f"      - 候选官网: {publisher_list}")
         logger.info(f"      - 目标API: {target_api}")
         
         doi_org_data = {}
         datacite_crossref_data = {}
         official_api_data = {}
+        success_api = None
+        api_attempts = []
     
         # [1] 抓取 doi.org
         if doi:
@@ -547,7 +329,7 @@ def fetch_metadata_node(state: AgentState):
                         with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
                             f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: Crossref | ERROR: {err2}\n")
 
-        # [3] 抓取 官网 API
+
         target_apis = []
         if target_api:
             if isinstance(target_api, list):
@@ -555,13 +337,12 @@ def fetch_metadata_node(state: AgentState):
             elif isinstance(target_api, str):
                 target_apis = [target_api]
 
-        if publisher and target_apis:
+        if publisher_list and target_apis:
             logger.info(f"   👉 [官网 API] 智能匹配到插件列表: {target_apis} ...")
             fetcher = IntegratedDataRepoFetcher()
             route_map = fetcher.get_route_map()
         
             success = False
-            all_errors = []
             for api_name in target_apis:
                 logger.info(f"      ▶ 尝试 API: {api_name}")
                 matched_func = route_map.get(api_name)
@@ -569,7 +350,7 @@ def fetch_metadata_node(state: AgentState):
                 if not matched_func:
                     err_msg = f"未找到 '{api_name}' 的生成代码"
                     logger.warning(f"      ⚠️ {err_msg}")
-                    all_errors.append(err_msg)
+                    api_attempts.append({"api": api_name, "error": err_msg})
                     import datetime
                     with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
                         f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
@@ -583,32 +364,33 @@ def fetch_metadata_node(state: AgentState):
                         import re
                         raw_error = re.sub(r'，[^，]*兜底.*', '', raw_error)
                         err_msg = raw_error
-                        all_errors.append(err_msg)
+                        api_attempts.append({"api": api_name, "error": err_msg})
                         logger.warning(f"      ⚠️ API 报错: {err_msg}")
                         import datetime
                         with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
                             f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
                     else:
                         logger.info(f"      ✅ 官网抓取调用完成 (使用 {api_name})")
+                        success_api = api_name
                         success = True
                         break # 成功命中并获取数据，跳出循环
                 except ValueError as e:
                     err_msg = str(e)
-                    all_errors.append(err_msg)
+                    api_attempts.append({"api": api_name, "error": err_msg})
                     logger.warning(f"      ⚠️ 参数不足: {err_msg}")
                     import datetime
                     with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
                         f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
                 except Exception as e:
                     err_msg = str(e)
-                    all_errors.append(err_msg)
+                    api_attempts.append({"api": api_name, "error": err_msg})
                     logger.warning(f"      ⚠️ 调用异常: {err_msg}")
                     import datetime
                     with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
                         f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
                 
             if not success:
-                official_api_data = {"error": " | ".join(all_errors)}
+                official_api_data = {"error": " | ".join([f"{a['api']}:{a['error']}" for a in api_attempts])}
                 logger.warning(f"      ⚠️ API 调用失败: {official_api_data['error']}")
                 
         # 组装当前版本的结果
@@ -620,32 +402,16 @@ def fetch_metadata_node(state: AgentState):
                 "official_api": official_api_data
             }
         }
+        if success_api:
+            final_result["success_api"] = success_api
+        if api_attempts:
+            final_result["api_attempts"] = api_attempts
+            
         final_results.append(final_result)
         
     return {"final_results": final_results}
 
-# ==========================================
-# 4. 构建 LangGraph 流程
-# ==========================================
-def build_agent():
-    workflow = StateGraph(AgentState)
-    
-    workflow.add_node("researcher", research_and_verify_node)
-    workflow.add_node("tools", ToolNode(tools))
-    workflow.add_node("extractor", extract_node)
-    workflow.add_node("fetcher", fetch_metadata_node)
-    
-    # 流程编排
-    workflow.set_entry_point("researcher")
-    # 如果大模型调用工具，去 tools；否则去提取
-    workflow.add_conditional_edges("researcher", should_continue, {"tools": "tools", "extract": "extractor"})
-    workflow.add_edge("tools", "researcher") # 工具执行完返回给大脑
-    workflow.add_edge("extractor", "fetcher")
-    workflow.add_edge("fetcher", END)
-    
-    return workflow.compile()
 
-# ==========================================
 # 5. 批量测试与日志输出
 # ==========================================
 import os
@@ -657,12 +423,26 @@ if sys.stdout.encoding.lower() != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
 
 def process_target_datasets(target_id=None):
-    app = build_agent()
     
     # 确保输出目录存在
     output_dir = OUTPUT_RESULTS_DIR
+    data_dir = os.path.join(output_dir, "data")
     os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(data_dir, exist_ok=True)
     
+    # 加载数据集信息缓存
+    dataset_info_cache = {}
+    if USE_DATASET_INFO_CACHE:
+        if os.path.exists(dataset_info_cache_file):
+            try:
+                with open(dataset_info_cache_file, "r", encoding="utf-8") as cf:
+                    dataset_info_cache = json.load(cf)
+                logger.info(f"✅ 成功加载数据集信息缓存: {dataset_info_cache_file} (共 {len(dataset_info_cache)} 条)")
+            except Exception as e:
+                logger.warning(f"⚠️ 读取缓存文件失败，将不使用缓存: {e}")
+        else:
+            logger.warning(f"⚠️ 缓存文件不存在，将降级调用大模型提取: {dataset_info_cache_file}")
+
     log_file = os.path.join(output_dir, "batch_process.log")
     if not os.path.exists(INPUT_DATASET_FILE):
         logger.error(f"❌ 找不到输入文件: {INPUT_DATASET_FILE}")
@@ -672,32 +452,58 @@ def process_target_datasets(target_id=None):
         lines = f.readlines()
         
     header_line = ""
-    # 去除表头并保存
-    if len(lines) > 0 and "数据集ID" in lines[0]:
-        header_line = lines[0]
+    headers = []
+    # 动态解析表头
+    if len(lines) > 0:
+        header_line = lines[0].strip()
+        headers = header_line.split('\t')
         lines = lines[1:]
         
     # 限制处理数量 (如果是单测模式，则不截断)
     if not target_id:
         lines = lines[:MAX_RECORDS_TO_PROCESS]
     
-    for line in lines:
+    for idx_line, line in enumerate(lines):
         line = line.strip()
         if not line: continue
         parts = line.split('\t')
-        if len(parts) < 2: continue
+        if not parts: continue
         
-        dataset_id = parts[0]
+        # 提取各个字段值，通过列名匹配或者索引降级
+        row_dict = {h: (parts[i] if i < len(parts) else "") for i, h in enumerate(headers)}
+        
+        dataset_id = ""
+        dataset_name = ""
+        dataset_description = ""
+        url = ""
+        
+        for h, v in row_dict.items():
+            if "ID" in h.upper() or "标识" in h:
+                if not dataset_id: dataset_id = v
+            elif "名称" in h or "NAME" in h.upper():
+                if not dataset_name: dataset_name = v
+            elif "描述" in h or "DESCRIPTION" in h.upper():
+                if not dataset_description: dataset_description = v
+            elif "URL" in h.upper() or "链接" in h:
+                if not url: url = v
+                
+        # Fallbacks
+        if not dataset_id: dataset_id = parts[0] if len(parts) > 0 else str(idx_line + 1)
+        if not dataset_name: dataset_name = parts[1] if len(parts) > 1 else ""
+        if not dataset_description: dataset_description = parts[2] if len(parts) > 2 else ""
+        if not url: url = parts[3] if len(parts) > 3 else ""
         
         # 如果指定了单测 ID，跳过其他数据
         if target_id and dataset_id != str(target_id):
             continue
-            
-        dataset_name = parts[1]
+
+        # 构造格式化的输入给大模型
+        formatted_line = "，".join([f"{h}:{v}" for h, v in zip(headers, parts) if h and v])
+        logger.info(f"用户原始输入：{formatted_line}")
         
         # 断点续传逻辑更新：检查是否存在以该 dataset_id- 开头的 JSON 文件
         import glob
-        existing_files = glob.glob(os.path.join(output_dir, f"{dataset_id}-*.json"))
+        existing_files = glob.glob(os.path.join(data_dir, f"{dataset_id}-*.json"))
         success_files = [f for f in existing_files if not f.endswith("_error.json") and not f.endswith("_crash.json")]
         error_files = [f for f in existing_files if f.endswith("_error.json") or f.endswith("_crash.json")]
         
@@ -706,7 +512,7 @@ def process_target_datasets(target_id=None):
             # 模式1：只要有结果（成功或报错或崩溃），即跳过
             if len(existing_files) > 0:
                 should_skip = True
-        elif RESUME_MODE in ["2-1", "2-2"]:
+        elif RESUME_MODE in ["2-1", "2-2", "2-3"]:
             # 模式2：只要有报错或崩溃结果(_error.json / _crash.json)，就不跳过（需要重跑）；否则如果全是成功则跳过
             if len(success_files) > 0 and len(error_files) == 0:
                 should_skip = True
@@ -720,7 +526,7 @@ def process_target_datasets(target_id=None):
         is_mode_2_2_valid = False
         
         if len(error_files) > 0:
-            if RESUME_MODE == "2-2":
+            if RESUME_MODE in ["2-2", "2-3"]:
                 is_mode_2_2_valid = True
                 for ef in error_files:
                     if ef.endswith("_crash.json"):
@@ -751,54 +557,48 @@ def process_target_datasets(target_id=None):
         logger.info(f"--------------------------------------------------")
         logger.info(f"⚡ 开始处理数据集 ID: {dataset_id} | 名称: {dataset_name}")
         
-        test_input = f"【目标数据集描述】\n{line}\n请先搜搜这篇数据，并确认具体信息后再提取。"
-        
-        system_prompt = """你是一个资深的数据科学家。
-你的任务是根据用户提供的数据集描述，定位该数据集的目标版本以及目标版本的DOI、数据集链接（落地页）和数据托管平台名称。
-你可以使用网页搜索(academic_web_search)和网页阅读工具(read_and_verify_url)收集信息。
-【版本处理规则】：
-1、如果用户在描述或URL中明确指定了某个特定版本（如年份、Revision号等），请专门调查该指定版本，该版本为目标版本，不需要再去搜索其他版本；
-2、如果用户没有提及具体版本，请务必找到最新的官方标准版本/历史主快照，设定为目标版本。
-    【重要】最新版本定位法则（颗粒度严格对齐）：
-        1. 如果用户请求的是【特定子数据集/单项数据】：
-        - 你的目标【必须且只能】是该【特定子数据集本身】！
-        - 如果该子数据集有自己独立的专有 DOI，必须提取该子数据集的专有 DOI！绝对禁止用其父级大集合的 DOI 或 URL 来顶替！
-        
-        2. 如果用户请求的是【宏观大型集合/数据库】：
-        - 请提取该大集合在官方仓库中最新发布的官方标准归档版（拥有独立归档页面/独立 DOI)的最新版本。
-        - 严禁将网页上宣传的实时动态更新标语识别为版本！因为动态更新服务在档案馆中没有打包存档链接。
-        - 必须提取指向具体数据集归档页面的落地页 URL。
-
-【DOI提取】重点留意目标版本的 DOI，务必准确收集到其对应的 DOI 并保留。
-
-【核心纪律1】：请优先阅读数据集的官方介绍页。绝对避免反复阅读整篇长达数十页的期刊论文，这会导致上下文超限崩溃！你只需要粗略搜索目标版本的DOI、数据集链接、数据托管平台即可。
-1. 优先调用 `read_and_verify_url` 读取用户输入的线索网址或官方主页。
-2. 只要通过 `read_and_verify_url` 或搜索拿到了【与用户请求颗粒度完全对齐】的官方落地页 URL 、 10.xxxx/xxxx DOI和数据托管平台，【立刻停止发起任何进一步搜索】！直接进入结构化提取！
-
-【核心纪律2】：宁缺毋滥，用户输入的 URL 实体即为检索与提取的最高物理边界，绝对禁止跨越实体边界去强行拼凑其他地理/项目子集的 DOI。仔细核对你找的数据集内容与用户描述的目标数据集名称以及URL内容是否一致，如果不一致，则不予收集，不要强行搜集DOI。根据最终确认的数据集链接确认数据存储官网。
-
-"""
-        
-        initial_state = {
-            "messages": [
-                SystemMessage(content=system_prompt),
-                HumanMessage(content=test_input)
-            ],
-            "extracted_datasets": [],
-            "final_results": []
+        test_input_dict = {
+            "dataset_id": dataset_id,
+            "dataset_name": dataset_name,
+            "dataset_description": dataset_description,
+            "url": url
         }
         
         try:
-            if RESUME_MODE == "2-2" and is_mode_2_2_valid and len(extracted_datasets_for_mode_2_2) > 0:
+            if RESUME_MODE == "2-3" and is_mode_2_2_valid and len(extracted_datasets_for_mode_2_2) > 0:
+                logger.info(f"🚀 [模式 2-3] 跳过大模型检索，基于 {len(extracted_datasets_for_mode_2_2)} 个原结果重新匹配目标 API 并抓取...")
+                for ds in extracted_datasets_for_mode_2_2:
+                    if "target_api_name" in ds:
+                        del ds["target_api_name"]
+                    ds["target_api_name"] = match_target_api_with_llm(ds, custom_request_llm_invoke)
+                mock_state = {"extracted_datasets": extracted_datasets_for_mode_2_2}
+                fetch_result = fetch_metadata_node(mock_state)
+                final_results = fetch_result.get("final_results", [])
+            elif RESUME_MODE == "2-2" and is_mode_2_2_valid and len(extracted_datasets_for_mode_2_2) > 0:
                 logger.info(f"🚀 [模式 2-2] 跳过大模型检索，直接基于 {len(extracted_datasets_for_mode_2_2)} 个原结果信息重新触发 API 抓取...")
                 mock_state = {"extracted_datasets": extracted_datasets_for_mode_2_2}
                 fetch_result = fetch_metadata_node(mock_state)
                 final_results = fetch_result.get("final_results", [])
             else:
-                # 运行 LangGraph，强制加上递归深度限制，为了配合 MAX_SEARCH_ITERATIONS 限制大模型特定工具，这里我们将底层步数设大。
-                # 增大 recursion_limit 以支持双阶段多版本循环 (20+ 版本 x 每个版本5步 = 100+ 步)
-                final_state = app.invoke(initial_state, config={"recursion_limit": 1000})
-                final_results = final_state.get("final_results", [])
+                extracted_datasets = None
+                
+                # 检查缓存
+                if USE_DATASET_INFO_CACHE and str(dataset_id) in dataset_info_cache:
+                    logger.info(f"🎯 从缓存中命中了数据集提取信息: {dataset_id}")
+                    import copy
+                    extracted_datasets = copy.deepcopy(dataset_info_cache[str(dataset_id)])
+                
+                # 如果没命中缓存，则走大模型提取
+                if not extracted_datasets:
+                    extracted_datasets = extract_dataset_info(test_input_dict, custom_request_llm_invoke)
+                
+                for ds in extracted_datasets:
+                    if "target_api_name" not in ds:
+                        ds["target_api_name"] = match_target_api_with_llm(ds, custom_request_llm_invoke)
+                
+                mock_state = {"extracted_datasets": extracted_datasets}
+                fetch_result = fetch_metadata_node(mock_state)
+                final_results = fetch_result.get("final_results", [])
             
             if not final_results:
                 logger.warning(f"⚠️ 提取失败: 未找到任何数据集版本")
@@ -807,8 +607,9 @@ def process_target_datasets(target_id=None):
             for idx, final_metadata in enumerate(final_results):
                 # 注入初始输入的参数
                 final_metadata["original_input"] = {
-                    "dataset_name": parts[1] if len(parts) > 1 else "",
-                    "url": parts[3] if len(parts) > 3 else ""
+                    "dataset_name": dataset_name,
+                    "dataset_description": dataset_description,
+                    "url": url
                 }
                 
                 input_summary = final_metadata.get("input_summary", {})
@@ -840,12 +641,12 @@ def process_target_datasets(target_id=None):
                     is_missing_registry = True
                 
                 if not has_error and api_meta:
-                    success_file = os.path.join(output_dir, f"{dataset_id}-{suffix}.json")
+                    success_file = os.path.join(data_dir, f"{dataset_id}-{suffix}.json")
                     with open(success_file, "w", encoding="utf-8") as f:
                         json.dump(final_metadata, f, ensure_ascii=False, indent=2)
                     logger.info(f"✅ 处理成功！已保存至 {success_file}")
                 else:
-                    error_file = os.path.join(output_dir, f"{dataset_id}-{suffix}_error.json")
+                    error_file = os.path.join(data_dir, f"{dataset_id}-{suffix}_error.json")
                     
                     # 在输出 JSON 中注入 error_reason 字段，便于直接查看失败原因
                     error_reason = ""
@@ -880,7 +681,7 @@ def process_target_datasets(target_id=None):
         except Exception as e:
             error_msg = f"系统异常: {str(e)}\n{traceback.format_exc()}"
             logger.error(f"❌ 运行崩溃: {error_msg}")
-            error_file = os.path.join(output_dir, f"{dataset_id}_crash.json")
+            error_file = os.path.join(data_dir, f"{dataset_id}_crash.json")
             with open(error_file, "w", encoding="utf-8") as f:
                 json.dump({"error_traceback": error_msg}, f, ensure_ascii=False, indent=2)
 
