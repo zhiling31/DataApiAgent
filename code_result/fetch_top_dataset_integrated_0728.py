@@ -250,6 +250,111 @@ class IntegratedDataRepoFetcher:
             # 极端情况下服务器未返回合法 JSON，则原样透传文本
             return {"source": "Zenodo", "format": "json", "data": resp.text}
 
+    def auto_fetch_openei___geothermal_data_repository__gdr_modified(self, **kwargs):
+        """抓取 DOE Geothermal Data Repository (OSTI API -> 语义网 JSON-LD 提取)"""
+        dataset_url = kwargs.get("dataset_url") or ""
+        doi_landing_page = kwargs.get("doi_landing_page") or ""
+        dataset_name = kwargs.get("dataset_name") or ""
+        doi = kwargs.get("doi") or ""
+        gdr_id = None
+        osti_data = None
+        if doi_landing_page:
+            m = re.search(r'(?<=submissions\/)\d+', doi_landing_page)
+            if m:
+                gdr_id = m.group(0)
+
+        if (not gdr_id) and (not doi):
+            for candidate in (doi_landing_page, dataset_url, dataset_name):
+                if candidate:
+                    m = re.search(r'10\.\d{4,9}/[^\s"\'<>]+', candidate)
+                    if m:
+                        doi = m.group(0).rstrip('.,;')
+                        break
+
+            if not doi:
+                return {"error": "缺少关键参数，无法解析出 GDR_ID或者DOI"}
+
+            print(f'\n[DOE GDR] 正在解析 DOI: {doi}')
+            match = re.search(r'10\.15121/(\d+)', doi, re.IGNORECASE)
+            if not match:
+                return {'error': '不是标准的 DOE (OSTI) DOI'}
+            osti_id = match.group(1)
+            api_url = f'https://www.osti.gov/api/v1/records/{osti_id}'
+            print(f'[DOE GDR] 🚀 第一级：请求 DOE 官方 OSTI API 查询真实 ID...')
+            request_headers = {'Accept': 'application/json', 'User-Agent': 'curl/7.88.1'}
+            response = requests.get(api_url, headers=request_headers, timeout=15)
+            response.raise_for_status()
+            response_json = response.json()
+            osti_data = response_json[0] if isinstance(response_json, list) and len(response_json) > 0 else response_json
+            gdr_id = osti_data.get('report_number')
+        
+        local_data_json_path = LOCAL_GDR_DATA_PATH
+        
+        try:
+            if gdr_id and gdr_id.isdigit():
+                print(f'[DOE GDR] 🎯 成功拿到 GDR 内部 ID: {gdr_id}')
+                
+                dcat_data = None
+                print(f'[DOE GDR] 🚀 尝试从本地 {local_data_json_path} 读取 DCAT-US 数据...')
+                try:
+                    with open(local_data_json_path, 'r', encoding='utf-8') as f:
+                        local_json = json.load(f)
+                        datasets = local_json.get('dataset', []) if isinstance(local_json, dict) else local_json
+                        target_id = f"https://gdr.openei.org/submissions/{gdr_id}"
+                        for ds in datasets:
+                            if ds.get('identifier') == target_id or (ds.get('DOI') and ds.get('DOI').lower() == doi.lower()):
+                                dcat_data = ds
+                                print(f'[DOE GDR] ✅ 成功从本地匹配到 DCAT-US 数据！')
+                                break
+                        if not dcat_data:
+                            print(f'[DOE GDR] ⚠️ 本地 data.json 未匹配到对应数据集')
+                except Exception as local_e:
+                    print(f'[DOE GDR] ⚠️ 读取本地 data.json 失败: {str(local_e)}')
+                
+                print(f'[DOE GDR] 🚀 第二级：执行语义网收割 (提取网页端专为机器渲染的 JSON-LD 数据)...')
+                gdr_url = f'https://gdr.openei.org/submissions/{gdr_id}'
+                html_headers = {'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'Accept-Language': 'en-US,en;q=0.5'}
+                
+                gdr_data = None
+                try:
+                    gdr_res = requests.get(gdr_url, headers=html_headers, timeout=20)
+                    gdr_res.raise_for_status()
+                    ld_json_match = re.search('<script[^>]*type=["\\\']application/ld\\+json["\\\'][^>]*>(.*?)</script>', gdr_res.text, re.DOTALL | re.IGNORECASE)
+                    if ld_json_match:
+                        gdr_data = json.loads(ld_json_match.group(1).strip())
+                        print('[DOE GDR] ✅ 完美！成功提取标准的 JSON-LD 语义网机器数据！')
+                    else:
+                        print('[DOE GDR] ⚠️ 网页中未包含 JSON-LD 结构化数据。')
+                except Exception as fallback_e:
+                    print(f'[DOE GDR] ❌ JSON-LD 提取失败 ({str(fallback_e)})。')
+
+                if dcat_data or gdr_data:
+                    final_result = []
+                    if dcat_data:
+                        final_result.append({
+                            "source": "Geothermal Data Repository (GDR)-DCAT-US-api",
+                            "format": "json",
+                            "data": dcat_data
+                        })
+                    if gdr_data:
+                        final_result.append({
+                            "source": "Geothermal Data Repository (GDR)-submissions-api",
+                            "format": "json",
+                            "data": gdr_data
+                        })
+                    return final_result
+                if osti_data:
+                    print('[DOE GDR] ⚠️ 仅能返回 OSTI 基础数据。')
+                    return {'source': 'OSTI-Fallback', 'data': osti_data, 'extracted_gdr_id': gdr_id}
+            else:
+                if osti_data:
+                    print('[DOE GDR] ⚠️ OSTI 数据中未包含有效 GDR ID。仅返回 OSTI 基础数据。')
+                    return {'source': 'OSTI-Fallback', 'data': osti_data}
+            return {'error': f'请求或解析失败: {str(e)}'}
+        except Exception as e:
+            return {'error': f'请求或解析失败: {str(e)}'}
+
+
     import re
     def auto_fetch_osti(self, **kwargs):
         doi = kwargs.get('doi')
@@ -292,7 +397,7 @@ class IntegratedDataRepoFetcher:
             "data": data,
         }
 
-    def auto_fetch_geoscience_australia(self, **kwargs):
+    def auto_fetch_geoscience_australi_modified(self, **kwargs):
         import re
 
         doi = kwargs.get('doi') or ''
@@ -300,9 +405,8 @@ class IntegratedDataRepoFetcher:
         landing_page = kwargs.get('doi_landing_page') or ''
 
         ecat_id = None
-
         if doi:
-            m = re.search(r'10\.\d+/([a-zA-Z0-9]+)', doi)
+            m = re.search(r'10\.26186/(\d+)', doi)
             if m:
                 ecat_id = m.group(1)
         if not ecat_id and landing_page:
@@ -324,7 +428,7 @@ class IntegratedDataRepoFetcher:
 
         if not ecat_id:
             return {"error": "缺少关键参数，无法解析出内部 eCat ID"}
-        
+
         csw_search_url = (
             "https://ecat.ga.gov.au/geonetwork/srv/eng/csw"
             "?service=CSW"
@@ -374,8 +478,6 @@ class IntegratedDataRepoFetcher:
             + uuid
             + "/formatters/xml"
         )
-        print(final_url)
-        
         final_resp = self._get_with_retry(final_url, headers={'Accept': 'application/xml'})
         final_text = final_resp.text if hasattr(final_resp, 'text') else str(final_resp)
 
@@ -519,102 +621,1048 @@ class IntegratedDataRepoFetcher:
             "data": data,
         }
 
-    def fetch_doe_gdr(self, **kwargs):
-        """抓取 DOE Geothermal Data Repository (OSTI API -> 语义网 JSON-LD 提取)"""
+    def auto_fetch_gfz_data_services(self, **kwargs):
+        import re
+
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url')
+        dlp = kwargs.get('doi_landing_page')
+        dataset_name = kwargs.get('dataset_name')
+
+        if not any([doi, dataset_url, dlp, dataset_name]):
+            return {"error": "缺少关键参数：doi/dataset_url/doi_landing_page/dataset_name 均为空"}
+
+        uuid_pat = re.compile(r'(?:id=|item=)([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})')
+
+        def _extract_uuid(text):
+            if not text:
+                return None
+            m = uuid_pat.search(text)
+            return m.group(1) if m else None
+
+        uuid = None
+
+        if dlp:
+            uuid = _extract_uuid(dlp)
+
+        if not uuid and dataset_url:
+            uuid = _extract_uuid(dataset_url)
+
+        if not uuid and doi:
+            try:
+                doi_resp = self._get_with_retry('https://doi.org/' + doi.strip())
+                uuid = _extract_uuid(getattr(doi_resp, 'text', ''))
+            except Exception:
+                uuid = None
+
+        if not uuid:
+            return {"error": "无法从提供的 DOI/URL 解析出 GFZ panmetaworks 内部数据集 UUID",
+                    "hint": "需要 doi_landing_page 或 dataset_url 包含 showshort.php?id=<uuid> 格式"}
+
+        api_url = ('https://dataservices.gfz-potsdam.de/panmetaworks/download.php'
+                   '?item={uuid}&mdrecord=iso19115'.format(uuid=uuid))
+        resp = self._get_with_retry(api_url)
+        text = getattr(resp, 'text', None) if resp is not None else None
+        if not text or not text.strip():
+            return {"error": "原生 API 返回了空内容"}
+
+        return {
+            "source": "GFZ Data Services",
+            "format": "xml",
+            "data": text,
+        }
+
+    def auto_fetch_noaa_national_centers_for_environmental_information__ncei_(self, **kwargs):
+        import re
+        import urllib.parse
+    
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url')
+        doi_landing_page = kwargs.get('doi_landing_page')
+        dataset_name = kwargs.get('dataset_name')
+    
+        metadata_id = None
+    
+        # ========== OLD STRATEGIES (legacy, keep untouched) ==========
+    
+        # Strategy 1: Extract from doi_landing_page URL pattern
+        # Pattern: ...?xml=.../iso/xml/{name}.xml&...
+        if not metadata_id and doi_landing_page:
+            m = re.search(r'/iso/xml/([^/.&]+)\.xml', doi_landing_page)
+            if m:
+                name = m.group(1)
+                metadata_id = f"gov.noaa.ngdc.mgg.dem:{name}"
+    
+        # Strategy 2: Scrape doi_landing_page for NCEI Metadata ID
+        if not metadata_id and doi_landing_page:
+            try:
+                resp = self._get_with_retry(doi_landing_page)
+                if resp and resp.text:
+                    m = re.search(r'NCEI\s+Metadata\s+ID:\s*(gov\.noaa\.[^\s<]+)', resp.text)
+                    if m:
+                        metadata_id = m.group(1)
+            except Exception:
+                pass
+    
+        # Strategy 3: Scrape dataset_url for NCEI Metadata ID
+        if not metadata_id and dataset_url:
+            try:
+                resp = self._get_with_retry(dataset_url)
+                if resp and resp.text:
+                    m = re.search(r'NCEI\s+Metadata\s+ID:\s*(gov\.noaa\.[^\s<]+)', resp.text)
+                    if m:
+                        metadata_id = m.group(1)
+            except Exception:
+                pass
+    
+        # ========== NEW STRATEGIES (for WOD / product-page type datasets) ==========
+    
+        # Strategy 4: Scrape pages for NCEI metadata landing page URLs
+        # Pattern: ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=xxx
+        if not metadata_id:
+            pages_to_scrape = []
+            if doi_landing_page:
+                pages_to_scrape.append(doi_landing_page)
+            if dataset_url:
+                pages_to_scrape.append(dataset_url)
+            for page_url in pages_to_scrape:
+                if not page_url:
+                    continue
+                try:
+                    resp = self._get_with_retry(page_url)
+                    if resp and resp.text:
+                        m = re.search(
+                            r'ncei\.noaa\.gov/access/metadata/landing-page/bin/iso\?id=([^"\'&\s<>]+)',
+                            resp.text
+                        )
+                        if m:
+                            metadata_id = urllib.parse.unquote(m.group(1))
+                            break
+                except Exception:
+                    continue
+    
+        # Strategy 5: Scrape pages for any gov.noaa.nodc: or gov.noaa.ngdc: identifier
+        if not metadata_id:
+            pages_to_scrape = []
+            if doi_landing_page:
+                pages_to_scrape.append(doi_landing_page)
+            if dataset_url:
+                pages_to_scrape.append(dataset_url)
+            for page_url in pages_to_scrape:
+                if not page_url:
+                    continue
+                try:
+                    resp = self._get_with_retry(page_url)
+                    if resp and resp.text:
+                        m = re.search(r'(gov\.noaa\.(?:nodc|ngdc)[^\s"\'<>&]+)', resp.text)
+                        if m:
+                            candidate = m.group(1)
+                            candidate = candidate.rstrip('.,;:')
+                            metadata_id = candidate
+                            break
+                except Exception:
+                    continue
+    
+        # Strategy 6: If dataset_url is an NCEI products page, try to construct 
+        # metadata landing page URL and scrape it for the metadata ID
+        if not metadata_id and dataset_url and 'ncei.noaa.gov/products/' in dataset_url:
+            try:
+                resp = self._get_with_retry(dataset_url)
+                if resp and resp.text:
+                    for pattern in [
+                        r'/(?:access/metadata|metadata/geoportal)[^"\'<\s]+',
+                    ]:
+                        m = re.search(pattern, resp.text)
+                        if m:
+                            sub_url = m.group(0)
+                            id_m = re.search(r'id=([^&"\'<\s]+)', sub_url)
+                            if id_m:
+                                metadata_id = urllib.parse.unquote(id_m.group(1))
+                                break
+                            id_m = re.search(r'/item/([^/"\'<\s]+)', sub_url)
+                            if id_m:
+                                metadata_id = urllib.parse.unquote(id_m.group(1))
+                                break
+            except Exception:
+                pass
+    
+        if not metadata_id:
+            return {"error": "无法从已知参数中解析出 NCEI Metadata ID"}
+    
+        # Use NCEI Geoportal REST API
+        api_url = f"https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/{metadata_id}/xml"
+    
+        resp = self._get_with_retry(api_url)
+    
+        return {
+            "source": "NOAA NCEI",
+            "format": "xml",
+            "data": resp.text
+        }
+
+    def auto_fetch_nasa_earthdata__socioeconomic_data_and_applications_center___sedac_(self, **kwargs):
+        """
+        Fetch collection-level metadata from NASA Earthdata CMR for SEDAC datasets.
+    
+        Uses the CMR (Common Metadata Repository) API: 
+        - Resolves DOI or URL to a concept ID via CMR search
+        - Retrieves full UMM-JSON metadata via the concept endpoint
+        """
+        import re
+        import urllib.parse
+    
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url') or kwargs.get('doi_landing_page')
+    
+        concept_id = None
+    
+        # --- Polymorphic parameter resolution: resolve concept ID ---
+        # Path 1: Use DOI to search CMR collections
+        if doi:
+            search_url = (
+                "https://cmr.earthdata.nasa.gov/search/collections.umm_json"
+                f"?doi={urllib.parse.quote(doi, safe='')}"
+            )
+            try:
+                search_resp = self._get_with_retry(search_url)
+                search_data = search_resp.json()
+                items = search_data.get('items', [])
+                if items and len(items) > 0:
+                    concept_id = items[0].get('meta', {}).get('concept-id')
+            except Exception:
+                pass
+    
+        # Path 2: If no DOI, extract slug from URL and search CMR by entry_id
+        if not concept_id and dataset_url:
+            # Extract the last meaningful path segment from Earthdata catalog URL
+            # e.g. ".../catalog/sedac-ciesin-sedac-gpwv4-popdens-r11-4.11"
+            match = re.search(
+                r'/catalog/(?:sedac-)?([a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)+'
+                r'(?:-r\d+)?(?:-\d+\.\d+)?)',
+                dataset_url
+            )
+            if match:
+                raw_slug = match.group(1)
+                # Transform to CMR entry_id format: lowercase with underscores
+                entry_id = raw_slug.upper().replace('-', '_')
+                search_url = (
+                    "https://cmr.earthdata.nasa.gov/search/collections.umm_json"
+                    f"?entry_id={entry_id}"
+                )
+                try:
+                    search_resp = self._get_with_retry(search_url)
+                    search_data = search_resp.json()
+                    items = search_data.get('items', [])
+                    if items and len(items) > 0:
+                        concept_id = items[0].get('meta', {}).get('concept-id')
+                except Exception:
+                    pass
+    
+        # Path 3: Try broader URL extraction - just grab the catalog slug portion
+        if not concept_id and dataset_url:
+            match = re.search(r'/catalog/([^/\s?#]+)', dataset_url)
+            if match:
+                raw_slug = match.group(1)
+                # Remove leading 'sedac-' if present, then transform
+                if raw_slug.lower().startswith('sedac-'):
+                    raw_slug = raw_slug[6:]
+                # Try entry_id and short_name searches
+                candidate = raw_slug.upper().replace('-', '_')
+                for param in ['entry_id', 'short_name']:
+                    search_url = (
+                        "https://cmr.earthdata.nasa.gov/search/collections.umm_json"
+                        f"?{param}={candidate}"
+                    )
+                    try:
+                        search_resp = self._get_with_retry(search_url)
+                        search_data = search_resp.json()
+                        items = search_data.get('items', [])
+                        if items and len(items) > 0:
+                            concept_id = items[0].get('meta', {}).get('concept-id')
+                            break
+                    except Exception:
+                        continue
+    
+        if not concept_id:
+            return {
+                "error": (
+                    "无法解析出 CMR concept ID。请提供有效的 DOI 或包含 "
+                    "Earthdata catalog slug 的 dataset_url。"
+                )
+            }
+    
+        # --- Final API: CMR Concept endpoint (UMM-JSON) ---
+        # This is the most data-rich, native RESTful API for a single collection
+        concept_url = (
+            "https://cmr.earthdata.nasa.gov/search/concepts"
+            f"/{concept_id}.umm_json"
+        )
+        resp = self._get_with_retry(concept_url)
+    
+        return {
+            "source": "NASA Earthdata CMR",
+            "format": "json",
+            "data": resp.json()
+        }
+
+    def auto_fetch_laads_daac(self, **kwargs):
+        import re
+    
+        dataset_url = kwargs.get('dataset_url', '')
+        doi_landing_page = kwargs.get('doi_landing_page', '')
+        dataset_name = kwargs.get('dataset_name', '')
+    
+        short_name = None
+    
+        # 路径1: 从 dataset_url 提取 short_name
+        if dataset_url:
+            m = re.search(r'/products/([A-Za-z0-9_-]+)', dataset_url)
+            if m:
+                short_name = m.group(1)
+    
+        # 路径2: 从 doi_landing_page 提取 short_name
+        if not short_name and doi_landing_page:
+            m = re.search(r'/products/([A-Za-z0-9_-]+)', doi_landing_page)
+            if m:
+                short_name = m.group(1)
+    
+        # 路径3: 直接使用 dataset_name 作为 short_name
+        if not short_name and dataset_name:
+            short_name = dataset_name.strip()
+    
+        if not short_name:
+            return {"error": "缺少关键参数，无法解析出产品 short_name。请提供 dataset_url、doi_landing_page 或 dataset_name。"}
+    
+        # 使用 CMR UMM-JSON 格式 API 获取集合级元数据
+        # CMR 是 NASA EOSDIS 的中央元数据仓库，LAADS DAAC 的所有产品元数据均注册于此
+        url = f"https://cmr.earthdata.nasa.gov/search/collections.umm_json?short_name={short_name}"
+    
+        response = self._get_with_retry(url)
+    
+        return {
+            "source": "NASA CMR (LAADS DAAC)",
+            "format": "json",
+            "data": response.json()
+        }
+
+    def auto_fetch_rosap__national_transportation_library_(self, **kwargs):
+        import re
+    
+        # 获取入参
+        dataset_url = kwargs.get('dataset_url', '')
+        doi_landing_page = kwargs.get('doi_landing_page', '')
+        doi = kwargs.get('doi', '')
+    
+        # 内部数字ID
+        internal_numeric_id = None
+    
+        # 瀑布流1: 从 doi_landing_page 正则提取
+        if doi_landing_page:
+            match = re.search(r'/view/dot/(\d+)', doi_landing_page)
+            if match:
+                internal_numeric_id = match.group(1)
+    
+        # 瀑布流2: 从 dataset_url 正则提取
+        if not internal_numeric_id and dataset_url:
+            match = re.search(r'/view/dot/(\d+)', dataset_url)
+            if match:
+                internal_numeric_id = match.group(1)
+    
+        # 瀑布流3: 通过DOI解析获取ROSAP落地页URL
+        if not internal_numeric_id and doi:
+            doi_resolve_url = f'https://doi.org/{doi}'
+            try:
+                resp = self._get_with_retry(doi_resolve_url, headers={'Accept': 'text/html'})
+                # self._get_with_retry 返回的是 requests.Response 对象
+                final_url = ''
+                if hasattr(resp, 'url'):
+                    final_url = resp.url
+                elif hasattr(resp, 'headers'):
+                    final_url = resp.headers.get('Location', '')
+                if final_url:
+                    match = re.search(r'/view/dot/(\d+)', final_url)
+                    if match:
+                        internal_numeric_id = match.group(1)
+            except Exception:
+                pass
+    
+        if not internal_numeric_id:
+            return {"error": "缺少关键参数，无法解析出内部ID。需要包含 rosap.ntl.bts.gov/view/dot/{id} 格式的URL或有效DOI。"}
+    
+        # 构建OAI-PMH identifier: oai:dot.stacks:dot:{numeric_id}
+        oai_identifier = f"oai:dot.stacks:dot:{internal_numeric_id}"
+    
+        # 请求OAI-PMH GetRecord
+        api_url = f"https://rosap.ntl.bts.gov/fedora/oai?verb=GetRecord&identifier={oai_identifier}&metadataPrefix=oai_dc"
+    
+        response = self._get_with_retry(api_url)
+    
+        return {
+            "source": "ROSAP (National Transportation Library)",
+            "format": "xml",
+            "data": response.text
+        }
+
+    import re
+    import json
+    def auto_fetch_po_daac(self, **kwargs):
+        """
+        Fetch PO.DAAC dataset-level metadata via NASA CMR (Common Metadata Repository) API.
+    
+        PO.DAAC datasets are registered in NASA's CMR, which provides the authoritative
+        UMM-JSON metadata via its RESTful search API. This is the official API used by
+        PO.DAAC for programmatic metadata access.
+    
+        Parsing strategy (waterfall):
+          1. DOI -> CMR search by doi parameter (most reliable)
+          2. dataset_url -> extract short_name from /dataset/{short_name}
+          3. Fallback to dataset_name as short_name
+        """
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url')
+        doi_landing_page = kwargs.get('doi_landing_page')
+        dataset_name = kwargs.get('dataset_name')
+    
+        cmr_base = "https://cmr.earthdata.nasa.gov/search/collections.umm_json"
+    
+        # --- Path 1: Search by DOI (preferred) ---
+        if doi:
+            # DOI may contain '/' which needs URL encoding
+            doi_safe = doi.replace('/', '%2F')
+            url = f"{cmr_base}?doi={doi_safe}&page_size=1"
+            resp = self._get_with_retry(url)
+            try:
+                data = resp.json()
+            except json.JSONDecodeError:
+                return {"error": "CMR returned non-JSON response for DOI search", "source": "NASA CMR (PO.DAAC)"}
+            if data and data.get('hits', 0) > 0:
+                return {"source": "NASA CMR (PO.DAAC)", "format": "json", "data": data}
+    
+        # --- Path 2: Extract short_name from dataset_url ---
+        short_name = None
+        if dataset_url:
+            m = re.search(r'/dataset/([^/?#]+)', dataset_url)
+            if m:
+                short_name = m.group(1).strip()
+    
+        # --- Path 3: Use dataset_name as fallback ---
+        if not short_name and dataset_name:
+            short_name = dataset_name.strip()
+    
+        # --- Search CMR by short_name ---
+        if short_name:
+            url = f"{cmr_base}?short_name={short_name}&page_size=1"
+            resp = self._get_with_retry(url)
+            try:
+                data = resp.json()
+            except json.JSONDecodeError:
+                return {"error": "CMR returned non-JSON response for short_name search", "source": "NASA CMR (PO.DAAC)"}
+            if data and data.get('hits', 0) > 0:
+                return {"source": "NASA CMR (PO.DAAC)", "format": "json", "data": data}
+    
+        # --- Nothing found ---
+        return {"error": "Could not find dataset in CMR. Provide a valid DOI or dataset URL containing short_name.", "source": "NASA CMR (PO.DAAC)"}
+
+    def auto_fetch_geus_dataverse(self, **kwargs):
+        import re
+        import json
+        import urllib.parse
+
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url')
+        doi_landing_page = kwargs.get('doi_landing_page')
+
+        persistent_id = None
+
+        # ---- 路径 1：由 DOI 构造 persistentId ----
+        if doi and isinstance(doi, str):
+            d = doi.strip()
+            if d:
+                d = re.sub(r'^https?://(dx\.)?doi\.org/', '', d, flags=re.IGNORECASE).strip()
+            if d:
+                if not d.lower().startswith('doi:'):
+                    d = 'doi:' + d
+                persistent_id = d
+
+        # ---- 路径 2：从落地页/下载页 URL 正则提取 persistentId ----
+        if not persistent_id:
+            for url in (dataset_url, doi_landing_page):
+                if url and isinstance(url, str):
+                    m = re.search(
+                        r'persistentId\s*=\s*doi[%3A:]+([^&"\s]+)',
+                        url,
+                        flags=re.IGNORECASE,
+                    )
+                    if m:
+                        raw = urllib.parse.unquote(m.group(1)).strip()
+                        if raw:
+                            if not raw.lower().startswith('doi:'):
+                                raw = 'doi:' + raw
+                            persistent_id = raw
+                            break
+
+        if not persistent_id:
+            return {
+                "error": "缺少关键参数，无法解析出内部 persistentId（需 doi / dataset_url / doi_landing_page 之一）"
+            }
+
+        # Dataverse 原生数据集元数据 API（第一优先级：官方标准 RESTful 接口）
+        encoded_pid = urllib.parse.quote(persistent_id, safe='')
+        api_url = (
+            "https://dataverse.geus.dk/api/datasets/:persistentId/"
+            f"?persistentId={encoded_pid}"
+        )
+
+        resp = self._get_with_retry(api_url)
+        if resp is None:
+            return {"error": "请求失败，未获得响应"}
+
+        # 结构化数据绝对透传：JSON 原样返回，绝不二次拆解/清洗
+        try:
+            data = resp.json()
+            return {"source": "GEUS Dataverse", "format": "json", "data": data}
+        except (json.JSONDecodeError, AttributeError, ValueError):
+            return {"source": "GEUS Dataverse", "format": "text", "data": resp.text}
+
+    def auto_fetch_nerc_eds_uk_polar_data_centre(self, **kwargs):
+        """Fetch collection-level metadata from UK Polar Data Centre CSW API.
+
+        The UK PDC (BAS) Discovery Metadata System exposes an OGC CSW 2.0.2
+        endpoint (pycsw) at api.bas.ac.uk. A dataset's Discovery Metadata System
+        identifier (e.g. GB/NERC/BAS/PDC/01669) is embedded in the landing page
+        URL / DOI landing page. This function polymorphically extracts that
+        identifier and retrieves the native ISO 19139 metadata record.
+        """
+        import re
+        from urllib.parse import unquote, quote
+
+        dataset_url = kwargs.get("dataset_url") or ""
+        doi_landing_page = kwargs.get("doi_landing_page") or ""
+
+        candidate_sources = []
+        if dataset_url:
+            candidate_sources.append(dataset_url)
+        if doi_landing_page:
+            candidate_sources.append(doi_landing_page)
+
+        dms_id = None
+        for src in candidate_sources:
+            if not isinstance(src, str) or not src.strip():
+                continue
+            decoded = unquote(src)
+            m = re.search(r"(GB/NERC/BAS/PDC/\d+)", decoded, flags=re.IGNORECASE)
+            if m:
+                dms_id = m.group(1).upper()
+                break
+
+        if not dms_id:
+            doi = kwargs.get("doi") or ""
+            if doi and isinstance(doi, str):
+                m = re.search(r"(GB/NERC/BAS/PDC/\d+)", doi, flags=re.IGNORECASE)
+                if m:
+                    dms_id = m.group(1).upper()
+
+        if not dms_id:
+            return {
+                "error": (
+                    "缺少关键参数，无法解析出内部 ID。请提供 dataset_url 或 "
+                    "doi_landing_page，其中需包含 GB/NERC/BAS/PDC/XXXXX 形式的标识符。"
+                )
+            }
+
+        api_url = (
+            "https://api.bas.ac.uk/data/metadata/csw/v2"
+            "?service=CSW"
+            "&version=2.0.2"
+            "&request=GetRecordById"
+            "&id=" + quote(dms_id, safe="") +
+            "&elementSetName=full"
+            "&outputSchema=http://www.isotc211.org/2005/gmd"
+        )
+
+        headers = {"Accept": "application/xml"}
+
+        response = self._get_with_retry(api_url, headers=headers)
+
+        return {
+            "source": "NERC EDS UK Polar Data Centre",
+            "format": "xml",
+            "data": response.text,
+        }
+
+    def auto_fetch_colorado_geological_survey(self, **kwargs):
+        import re
+        import json
+        from urllib.parse import urlencode, quote
+
+        dataset_url = kwargs.get('dataset_url') or ''
+        doi_landing_page = kwargs.get('doi_landing_page') or ''
+        dataset_name = kwargs.get('dataset_name') or ''
+
+        slug = None
+
+        # Path 1/2: extract publication slug from landing page URLs
+        for candidate_url in (dataset_url, doi_landing_page):
+            if not candidate_url:
+                continue
+            match = re.search(r'/publications/([^/?#]+)', candidate_url)
+            if match and match.group(1):
+                slug = match.group(1).strip('/')
+                break
+
+        # Path 3: resolve slug by exact-title match via the native search API
+        if not slug and dataset_name:
+            query = urlencode({
+                'search': dataset_name,
+                'per_page': 50,
+                '_fields': 'slug,title',
+            })
+            search_url = 'https://coloradogeologicalsurvey.org/wp-json/wp/v2/publications?' + query
+            try:
+                search_resp = self._get_with_retry(search_url)
+                search_data = search_resp.json()
+            except Exception:
+                search_data = None
+            if isinstance(search_data, list):
+                target = dataset_name.strip().lower()
+                for item in search_data:
+                    if not isinstance(item, dict):
+                        continue
+                    title_obj = item.get('title') or {}
+                    title = (title_obj.get('rendered') or '').strip().lower()
+                    if title and target and title == target:
+                        slug = item.get('slug')
+                        break
+
+        if not slug:
+            return {"error": "缺少关键参数，无法解析出内部 slug"}
+
+        final_url = (
+            'https://coloradogeologicalsurvey.org/wp-json/wp/v2/publications'
+            '?slug=' + quote(slug)
+        )
+        resp = self._get_with_retry(final_url)
+        try:
+            data = resp.json()
+        except Exception:
+            data = resp.text
+
+        return {
+            "source": "Colorado Geological Survey",
+            "format": "json",
+            "data": data,
+        }
+
+    def auto_fetch_icgem(self, **kwargs):
+        import re
+        from urllib.parse import quote_plus
+
+        doi = kwargs.get('doi') or ''
+        dataset_url = kwargs.get('dataset_url') or ''
+        doi_landing_page = kwargs.get('doi_landing_page') or ''
+        dataset_name = kwargs.get('dataset_name') or ''
+
+        if not any([doi, dataset_url, doi_landing_page, dataset_name]):
+            return {"error": "缺少有效参数"}
+
+        # 若外部未直接提供 DOI，则尝试从原始链接/落地页 URL 中正则提取 DOI
+        if not doi:
+            m = re.search(r'10\.\d{4,9}/[^\s"\']+', (dataset_url + ' ' + doi_landing_page), re.IGNORECASE)
+            if m:
+                doi = m.group(0).rstrip(';,.)')
+        if not doi:
+            return {"error": "缺少 DOI，无法映射内部 OAI 记录 ID"}
+
+        oai_base = 'http://doidb.wdc-terra.org/oaip/oai'
+        oai_id = None
+
+        # 第一步：在 DOIDB.ICGEM 集合的 ListRecords 流中，用 DOI 定位内部数字 OAI 标识符
+        url = oai_base + '?verb=ListRecords&metadataPrefix=oai_dc&set=DOIDB.ICGEM'
+        for _ in range(10):
+            try:
+                resp = self._get_with_retry(url)
+            except Exception:
+                break
+            text = resp.text
+            for block in text.split('<record>'):
+                if doi.lower() in block.lower():
+                    m = re.search(r'<identifier>\s*(oai:[^<\s]+)\s*</identifier>', block)
+                    if m:
+                        oai_id = m.group(1)
+                        break
+            if oai_id:
+                break
+            m = re.search(r'<resumptionToken[^>]*>\s*([^<\s]+)\s*</resumptionToken>', text)
+            if not m:
+                break
+            token = m.group(1)
+            if not token or token.lower() == 'none':
+                break
+            url = oai_base + '?verb=ListRecords&resumptionToken=' + quote_plus(token)
+
+        if not oai_id:
+            return {"error": "无法在 ICGEM 集合中检索到目标 DOI 对应的内部记录 ID"}
+
+        # 第二步：用定位到的内部 ID 请求 ISO19139 数据集级元数据（唯一最终出口，原样透传）
+        final_url = oai_base + '?verb=GetRecord&metadataPrefix=iso19139&identifier=' + quote_plus(oai_id)
+        resp = self._get_with_retry(final_url)
+        return {
+            "source": "GFZ Data Services (ICGEM / DOIDB OAI-PMH)",
+            "format": "xml",
+            "data": resp.text,
+        }
+
+    def auto_fetch_figshare(self, **kwargs):
+        import re
+        import json
+        from urllib.parse import quote
+
+        """通过 figshare 官方原生 RESTful API 获取文章/数据集级集合元数据。
+
+        生产环境唯一可靠入参为 kwargs 中的 doi / dataset_url / doi_landing_page / dataset_name。
+        代码内部以多态瀑布流方式解析 figshare 内部 article_id：
+          1) figshare DOI 尾部数字（形如 10.6084/m9.figshare.<ID>）
+          2) figshare 文章落地页 URL（形如 .../articles/dataset/<title>/<ID> 或 .../articles/<ID>）
+          3) 通用 URL 尾部数字段兜底
+          4) 调用 figshare 公共列表接口按 DOI 反查内部 ID（最后手段）
+        最终仅请求一条最优原生元数据 API：
+          GET https://api.figshare.com/v2/articles/{article_id}
+        """
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url')
+        doi_landing_page = kwargs.get('doi_landing_page')
+
+        article_id = None
+
+        # --- 多态解析：内部 ID 提取瀑布流 ---
+        if doi:
+            m = re.search(r'figshare\.(\d+)', doi)
+            if m:
+                article_id = m.group(1)
+
+        if not article_id and doi_landing_page:
+            m = re.search(r'/articles/(?:[^/]+/)*(\d+)', doi_landing_page)
+            if m:
+                article_id = m.group(1)
+
+        if not article_id and dataset_url:
+            m = re.search(r'/(\d+)(?:[/?#]|$)', dataset_url)
+            if m:
+                article_id = m.group(1)
+
+        if not article_id and doi:
+            # figshare 公共列表接口支持按 doi 过滤，用于反查内部 article_id
+            try:
+                search_url = 'https://api.figshare.com/v2/articles?doi=' + quote(doi, safe='')
+                resp = self._get_with_retry(search_url, headers={'Accept': 'application/json'})
+                if resp is not None:
+                    records = resp.json()
+                    if isinstance(records, list) and len(records) > 0 and isinstance(records[0], dict):
+                        found_id = records[0].get('id')
+                        if found_id is not None:
+                            article_id = str(found_id)
+            except Exception:
+                article_id = None
+
+        if not article_id:
+            return {"error": "缺少关键参数，无法从 DOI/URL 中解析出 figshare article_id"}
+
+        api_url = 'https://api.figshare.com/v2/articles/' + str(article_id)
+        resp = self._get_with_retry(api_url, headers={'Accept': 'application/json'})
+        if resp is None:
+            return {"error": "figshare API 无响应: " + api_url}
+
+        try:
+            data = resp.json()
+        except (json.JSONDecodeError, ValueError):
+            data = None
+
+        if data is None:
+            raw_text = resp.text if hasattr(resp, 'text') else ''
+            return {"source": "figshare", "format": "text", "data": raw_text}
+
+        return {"source": "figshare", "format": "json", "data": data}
+
+    def auto_fetch_council_for_geoscience(self, **kwargs):
+        import re
+        from urllib.parse import quote
+
+        api_base = "https://www.geoscience.org.za/wp-json/wp/v2/pages"
         dataset_url = kwargs.get("dataset_url") or ""
         doi_landing_page = kwargs.get("doi_landing_page") or ""
         dataset_name = kwargs.get("dataset_name") or ""
-        doi = kwargs.get("doi") or ""
 
-        if not doi:
-            for candidate in (doi_landing_page, dataset_url, dataset_name):
-                if candidate:
-                    m = re.search(r'10\.\d{4,9}/[^\s"\'<>]+', candidate)
-                    if m:
-                        doi = m.group(0).rstrip('.,;')
-                        break
+        ignored_slugs = {"cgs", "systems", "publications", "category", "author", "tag"}
 
-        if not doi:
-            return {"error": "缺少关键参数，无法解析出 DOI"}
+        def normalize_slug(name):
+            if not name or not str(name).strip():
+                return None
+            slug = re.sub(r"[^a-z0-9]+", "-", str(name).strip().lower()).strip("-")
+            if slug and slug not in ignored_slugs:
+                return slug
+            return None
 
-        print(f'\n[DOE GDR] 正在解析 DOI: {doi}')
-        match = re.search(r'10\.15121/(\d+)', doi, re.IGNORECASE)
-        if not match:
-            return {'error': '不是标准的 DOE (OSTI) DOI'}
-        osti_id = match.group(1)
-        api_url = f'https://www.osti.gov/api/v1/records/{osti_id}'
-        print(f'[DOE GDR] 🚀 第一级：请求 DOE 官方 OSTI API 查询真实 ID...')
-        request_headers = {'Accept': 'application/json', 'User-Agent': 'curl/7.88.1'}
-        
-        local_data_json_path = LOCAL_GDR_DATA_PATH
-        
+        slug = None
+
+        raw_urls = []
+        for raw in (dataset_url, doi_landing_page):
+            if raw and str(raw).strip():
+                raw_urls.extend(re.findall(r"https?://[^\s;，,、\"'）)]+", str(raw)))
+
+        for url in raw_urls:
+            if not url:
+                continue
+            clean = url.split("#", 1)[0].split("?", 1)[0].rstrip("/")
+            if not clean:
+                continue
+            lower = clean.lower()
+            if "/download/" in lower:
+                continue
+            if lower.endswith((".zip", ".pdf", ".xml", ".json", ".csv", ".asc", ".tif", ".png")):
+                continue
+            m = re.search(r"/([a-z0-9-]+)/?$", clean)
+            if m:
+                slug = normalize_slug(m.group(1))
+                if slug:
+                    break
+
+        if not slug:
+            slug = normalize_slug(dataset_name)
+
+        if not slug:
+            return {"error": "缺少关键参数，无法从链接/名称解析出目标集合的 slug"}
+
+        api_url = "{}?slug={}".format(api_base, quote(slug, safe=""))
+
         try:
-            response = requests.get(api_url, headers=request_headers, timeout=15)
-            response.raise_for_status()
-            response_json = response.json()
-            osti_data = response_json[0] if isinstance(response_json, list) and len(response_json) > 0 else response_json
-            gdr_id = osti_data.get('report_number')
-            
-            if gdr_id and gdr_id.isdigit():
-                print(f'[DOE GDR] 🎯 成功拿到 GDR 内部 ID: {gdr_id}')
-                
-                dcat_data = None
-                print(f'[DOE GDR] 🚀 尝试从本地 {local_data_json_path} 读取 DCAT-US 数据...')
-                try:
-                    with open(local_data_json_path, 'r', encoding='utf-8') as f:
-                        local_json = json.load(f)
-                        datasets = local_json.get('dataset', []) if isinstance(local_json, dict) else local_json
-                        target_id = f"https://gdr.openei.org/submissions/{gdr_id}"
-                        for ds in datasets:
-                            if ds.get('identifier') == target_id or (ds.get('DOI') and ds.get('DOI').lower() == doi.lower()):
-                                dcat_data = ds
-                                print(f'[DOE GDR] ✅ 成功从本地匹配到 DCAT-US 数据！')
-                                break
-                        if not dcat_data:
-                            print(f'[DOE GDR] ⚠️ 本地 data.json 未匹配到对应数据集')
-                except Exception as local_e:
-                    print(f'[DOE GDR] ⚠️ 读取本地 data.json 失败: {str(local_e)}')
-                
-                print(f'[DOE GDR] 🚀 第二级：执行语义网收割 (提取网页端专为机器渲染的 JSON-LD 数据)...')
-                gdr_url = f'https://gdr.openei.org/submissions/{gdr_id}'
-                html_headers = {'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', 'Accept-Language': 'en-US,en;q=0.5'}
-                
-                gdr_data = None
-                try:
-                    gdr_res = requests.get(gdr_url, headers=html_headers, timeout=20)
-                    gdr_res.raise_for_status()
-                    ld_json_match = re.search('<script[^>]*type=["\\\']application/ld\\+json["\\\'][^>]*>(.*?)</script>', gdr_res.text, re.DOTALL | re.IGNORECASE)
-                    if ld_json_match:
-                        gdr_data = json.loads(ld_json_match.group(1).strip())
-                        print('[DOE GDR] ✅ 完美！成功提取标准的 JSON-LD 语义网机器数据！')
-                    else:
-                        print('[DOE GDR] ⚠️ 网页中未包含 JSON-LD 结构化数据。')
-                except Exception as fallback_e:
-                    print(f'[DOE GDR] ❌ JSON-LD 提取失败 ({str(fallback_e)})。')
+            resp = self._get_with_retry(api_url)
+        except Exception as exc:
+            return {"error": "请求 WordPress REST API 失败: {}".format(exc)}
 
-                if dcat_data or gdr_data:
-                    final_result = []
-                    if dcat_data:
-                        final_result.append({
-                            "source": "Geothermal Data Repository (GDR)-DCAT-US-api",
-                            "format": "json",
-                            "data": dcat_data
-                        })
-                    if gdr_data:
-                        final_result.append({
-                            "source": "Geothermal Data Repository (GDR)-submissions-api",
-                            "format": "json",
-                            "data": gdr_data
-                        })
-                    return final_result
-                
-                print('[DOE GDR] ⚠️ 仅能返回 OSTI 基础数据。')
-                return {'source': 'OSTI-Fallback', 'data': osti_data, 'extracted_gdr_id': gdr_id}
-            else:
-                print('[DOE GDR] ⚠️ OSTI 数据中未包含有效 GDR ID。仅返回 OSTI 基础数据。')
-                return {'source': 'OSTI-Fallback', 'data': osti_data}
+        try:
+            payload = resp if isinstance(resp, dict) else resp.json()
+        except Exception as exc:
+            return {"error": "响应 JSON 解析失败: {}".format(exc)}
+
+        if isinstance(payload, list) and len(payload) == 0:
+            return {"error": "slug 未能匹配到任何页面记录: {}".format(slug)}
+
+        return {
+            "source": "Council for Geoscience (geoscience.org.za WordPress REST API)",
+            "format": "json",
+            "data": payload,
+        }
+
+    def auto_fetch_esa_earth_online(self, **kwargs):
+        import re
+        import json
+        import urllib.parse
+
+        doi = kwargs.get("doi") or ""
+        dataset_url = kwargs.get("dataset_url") or ""
+        doi_landing_page = kwargs.get("doi_landing_page") or ""
+        dataset_name = kwargs.get("dataset_name") or ""
+
+        # ---- 解析查询关键词（从 URL slug 中提取或由数据集名称构造） ----
+        slug = ""
+        for src in (dataset_url, doi_landing_page):
+            if src:
+                m = re.search(r"/catalog/([A-Za-z0-9\-_]+)", src)
+                if m:
+                    slug = m.group(1)
+                    break
+        if not slug and dataset_name:
+            slug = dataset_name.strip()
+        if not slug:
+            return {"error": "缺少关键参数，无法确定目标数据集标识"}
+
+        terms = [t for t in re.split(r"[^A-Za-z0-9]+", slug) if t]
+        if not terms:
+            return {"error": "无法从数据集标识中解析出查询关键词"}
+        query = " ".join(terms[:6])
+
+        headers = {"Accept": "application/geo+json, application/json"}
+
+        # ---- 第一次请求：FedEO STAC 集合搜索，动态解析集合 id ----
+        search_url = "https://fedeo.ceos.org/collections?q=" + urllib.parse.quote(query)
+        try:
+            search_resp = self._get_with_retry(search_url, headers=headers)
+            payload = search_resp.json()
+        except (ValueError, AttributeError) as e:
+            return {"error": f"FEDEO 搜索接口响应异常: {e}"}
+
+        collections = payload.get("collections") or []
+        if not collections:
+            return {"error": f"FEDEO 未命中目标集合，查询词: {query}"}
+
+        target = None
+        doi_norm = re.sub(r"\s+", "", doi).lower()
+        for item in collections:
+            item_id = item.get("id") or ""
+            stac_doi = re.sub(r"\s+", "", item.get("sci:doi") or "").lower()
+            if doi_norm and stac_doi and (stac_doi in doi_norm or doi_norm in stac_doi):
+                target = item
+                break
+        if target is None:
+            for item in collections:
+                title = (item.get("title") or "").lower()
+                if title and "gravity" in title and ("goce" in title or "field" in title):
+                    target = item
+                    break
+        if target is None or not target.get("id"):
+            return {"error": "FEDEO 搜索命中但未能定位与目标 DOI/标题匹配的集合"}
+
+        collection_id = target["id"]
+
+        # ---- 第二次请求：按解析出的集合 id 获取集合级元数据并原样透传 ----
+        final_url = "https://fedeo.ceos.org/collections/" + urllib.parse.quote(collection_id, safe="")
+        detail_resp = self._get_with_retry(final_url, headers=headers)
+        try:
+            detail_data = detail_resp.json()
+        except (ValueError, AttributeError) as e:
+            return {"error": f"FEDEO 集合详情接口响应异常: {e}"}
+
+        return {
+            "source": "ESA FedEO STAC Catalogue (FedEO Clearinghouse / ESA EO-CAT)",
+            "format": "json",
+            "data": detail_data,
+        }
+
+    def auto_fetch_nsw_resources(self, **kwargs):
+        import re
+        from urllib.parse import quote
+
+        dataset_url = kwargs.get('dataset_url') or ''
+        landing = kwargs.get('doi_landing_page') or ''
+        name = kwargs.get('dataset_name') or ''
+
+        base = 'https://geonetwork.geoscience.nsw.gov.au/geonetwork'
+
+        # ---- Step 1: derive a search keyword from available inputs ----
+        keyword = None
+        if dataset_url:
+            m = re.search(r'([^/]+)\.(?:zip|tif|ers|img|asc|bin)$', dataset_url, re.IGNORECASE)
+            if m:
+                stem = m.group(1)
+                stem = re.sub(r'[_-](?:GDA\d+|MGA\d+|EPSG\d+).*$', '', stem, flags=re.IGNORECASE)
+                keyword = stem.replace('_', ' ').strip()
+        if not keyword and landing:
+            m = re.search(r'/([^/]+?)(?:\.html?)?/?$', landing)
+            if m:
+                keyword = m.group(1).replace('-', ' ').replace('_', ' ').strip()
+        if not keyword and name:
+            keyword = name.strip()
+
+        if not keyword:
+            return {'error': '缺少关键参数，无法解析出检索关键词'}
+
+        # ---- Step 2: dynamic mapping (keyword -> catalogue UUID) ----
+        search_url = base + '/srv/eng/q?any=' + quote(keyword) + '&resultType=results&fast=index'
+        search_resp = self._get_with_retry(search_url)
+        search_text = search_resp.text if hasattr(search_resp, 'text') else str(search_resp)
+
+        uuid_m = re.search(r'<uuid>([0-9a-fA-F-]{36})</uuid>', search_text)
+        if not uuid_m:
+            uuid_m = re.search(r'uuid="([0-9a-fA-F-]{36})"', search_text)
+        if not uuid_m:
+            return {'error': '未能在 GeoNetwork 目录中检索到匹配的元数据记录', 'search_response': search_text[:500]}
+
+        record_uuid = uuid_m.group(1)
+
+        # ---- Step 3: fetch native ISO 19115 (19139) metadata ----
+        meta_url = base + '/srv/api/records/' + record_uuid + '/formatters/iso19139'
+        resp = self._get_with_retry(meta_url)
+        body = resp.text if hasattr(resp, 'text') else str(resp)
+
+        return {
+            'source': 'NSW Geoscience Metadata (GeoNetwork)',
+            'format': 'xml',
+            'data': body,
+            'resolved_uuid': record_uuid,
+        }
+
+    def auto_fetch_british_geological_survey__bgs____national_geoscience_data_centre__ngdc_(self, **kwargs):
+        """Fetch collection-level metadata from BGS NGDC via GeoNetwork OGC API Records + ISO19139 formatter."""
+        import re
+        import urllib.parse
+
+        doi = kwargs.get('doi') or ''
+        dataset_url = kwargs.get('dataset_url') or ''
+        doi_landing_page = kwargs.get('doi_landing_page') or ''
+        dataset_name = kwargs.get('dataset_name') or ''
+
+        # Step 1: Extract a UUID-like DOI suffix from any available identifier field.
+        candidate_uuid = None
+        uuid_re = re.compile(r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}')
+        for raw in (doi, dataset_url, doi_landing_page):
+            if raw:
+                m = uuid_re.search(raw)
+                if m:
+                    candidate_uuid = m.group(0).lower()
+                    break
+
+        def _normalise(s):
+            return re.sub(r'[^a-z0-9]+', '', (s or '').lower())
+
+        search_base = 'https://metadata.bgs.ac.uk/geonetwork/api/collections/main/items'
+        internal_uuid = None
+
+        search_terms = []
+        if dataset_name and dataset_name.strip():
+            search_terms.append(' '.join(dataset_name.strip().split()))
+        if candidate_uuid:
+            search_terms.append(candidate_uuid)
+
+        search_terms = list(dict.fromkeys(search_terms))
+
+        if not search_terms:
+            return {"error": "缺少关键参数，无法解析出内部记录 ID"}
+
+        norm_name = _normalise(dataset_name) if dataset_name and dataset_name.strip() else None
+
+        for term in search_terms:
+            try:
+                q = urllib.parse.quote(term)
+                url = f"{search_base}?f=json&limit=10&q={q}"
+                resp = self._get_with_retry(url)
+                payload = resp.json()
+                features = payload.get('features') or []
+                if not features:
+                    continue
+
+                chosen = None
+                if norm_name:
+                    for f in features:
+                        props = f.get('properties') or {}
+                        title = props.get('title') or ''
+                        norm_title = _normalise(title)
+                        if norm_title and (norm_title == norm_name or norm_name in norm_title):
+                            chosen = f
+                            break
+                else:
+                    chosen = features[0]
+
+                if chosen and chosen.get('id'):
+                    internal_uuid = chosen.get('id')
+                    break
+            except Exception:
+                continue
+
+        if not internal_uuid:
+            return {"error": "无法通过名称或 DOI 后缀解析出内部记录 UUID"}
+
+        xml_url = f"https://metadata.bgs.ac.uk/geonetwork/srv/api/records/{internal_uuid}/formatters/xml"
+        try:
+            xml_resp = self._get_with_retry(xml_url, headers={'Accept': 'application/xml'})
+            if xml_resp.status_code >= 400:
+                return {"error": f"ISO19139 元数据请求失败，HTTP {xml_resp.status_code}"}
+            return {
+                "source": "British Geological Survey (BGS) - National Geoscience Data Centre (NGDC)",
+                "format": "xml",
+                "data": xml_resp.text,
+            }
         except Exception as e:
-            return {'error': f'请求或解析失败: {str(e)}'}
+            return {"error": f"ISO19139 元数据获取异常: {e}"}
 
     def get_route_map(self):
         """返回动态生成的 API 路由映射"""
@@ -623,17 +1671,32 @@ class IntegratedDataRepoFetcher:
             "NERC EDS National Geoscience Data Centre": self.auto_fetch_nerc_eds_national_geoscience_data_centre,
             "PANGAEA": self.auto_fetch_pangaea,
             "Zenodo": self.auto_fetch_zenodo,
+            "OpenEI / Geothermal Data Repository (GDR)": self.auto_fetch_openei___geothermal_data_repository__gdr_modified,
             "OSTI": self.auto_fetch_osti,
-            "Geoscience Australia": self.auto_fetch_geoscience_australia,
+            "Geoscience Australia": self.auto_fetch_geoscience_australi_modified,
             "U.S. Geological Survey (USGS)": self.auto_fetch_u_s__geological_survey__usgs_,
             "OpenDataNI": self.auto_fetch_opendatani,
-            "OpenEI / Geothermal Data Repository (GDR)":self.fetch_doe_gdr
+            "GFZ Data Services": self.auto_fetch_gfz_data_services,
+            "NOAA National Centers for Environmental Information (NCEI)": self.auto_fetch_noaa_national_centers_for_environmental_information__ncei_,
+            "NASA Earthdata (Socioeconomic Data and Applications Center – SEDAC)": self.auto_fetch_nasa_earthdata__socioeconomic_data_and_applications_center___sedac_,
+            "LAADS DAAC": self.auto_fetch_laads_daac,
+            "ROSAP (National Transportation Library)": self.auto_fetch_rosap__national_transportation_library_,
+            "PO.DAAC": self.auto_fetch_po_daac,
+            "GEUS Dataverse": self.auto_fetch_geus_dataverse,
+            "NERC EDS UK Polar Data Centre": self.auto_fetch_nerc_eds_uk_polar_data_centre,
+            "Colorado Geological Survey": self.auto_fetch_colorado_geological_survey,
+            "ICGEM": self.auto_fetch_icgem,
+            "figshare": self.auto_fetch_figshare,
+            "Council for Geoscience": self.auto_fetch_council_for_geoscience,
+            "ESA Earth Online": self.auto_fetch_esa_earth_online,
+            "NSW Resources": self.auto_fetch_nsw_resources,
+            "British Geological Survey (BGS) - National Geoscience Data Centre (NGDC)": self.auto_fetch_british_geological_survey__bgs____national_geoscience_data_centre__ngdc_,
         }
 
     @staticmethod
     def get_api_schema_desc():
         """返回给大模型用的 API Schema 动态提示词"""
-        return """可匹配的官网列表：['Open Government Portal', 'NERC EDS National Geoscience Data Centre', 'PANGAEA', 'Zenodo', 'OSTI', 'Geoscience Australia', 'U.S. Geological Survey (USGS)', 'OpenDataNI',"OpenEI / Geothermal Data Repository (GDR)"]"""
+        return """可匹配的官网列表：['Open Government Portal', 'NERC EDS National Geoscience Data Centre', 'PANGAEA', 'Zenodo', 'OpenEI / Geothermal Data Repository (GDR)', 'OSTI', 'Geoscience Australia', 'U.S. Geological Survey (USGS)', 'OpenDataNI', 'GFZ Data Services', 'NOAA National Centers for Environmental Information (NCEI)', 'NASA Earthdata (Socioeconomic Data and Applications Center – SEDAC)', 'LAADS DAAC', 'ROSAP (National Transportation Library)', 'PO.DAAC', 'GEUS Dataverse', 'NERC EDS UK Polar Data Centre', 'Colorado Geological Survey', 'ICGEM', 'figshare', 'Council for Geoscience', 'ESA Earth Online', 'NSW Resources', 'British Geological Survey (BGS) - National Geoscience Data Centre (NGDC)']"""
     # --- AUTOGENERATED API FETCHERS END ---
 
 if __name__ == '__main__':
@@ -652,7 +1715,7 @@ if __name__ == '__main__':
     doi_landing_page = kwargs.get('doi_landing_page', '')
         
     print("Debug inputs:", kwargs)
-    result = fetcher.auto_fetch_geoscience_australia(**kwargs)
+    result = fetcher.auto_fetch_geoscience_australi_modified(**kwargs)
         
     # 使用 utf-8 编码安全输出，防止 Windows 控制台 gbk 报错
     # import sys
