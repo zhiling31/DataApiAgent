@@ -258,8 +258,8 @@ class IntegratedDataRepoFetcher:
         doi = kwargs.get("doi") or ""
         gdr_id = None
         osti_data = None
-        if doi_landing_page:
-            m = re.search(r'(?<=submissions\/)\d+', doi_landing_page)
+        if dataset_url:
+            m = re.search(r'(?<=submissions\/)\d+', dataset_url)
             if m:
                 gdr_id = m.group(0)
 
@@ -660,7 +660,7 @@ class IntegratedDataRepoFetcher:
                     "hint": "需要 doi_landing_page 或 dataset_url 包含 showshort.php?id=<uuid> 格式"}
 
         api_url = ('https://dataservices.gfz-potsdam.de/panmetaworks/download.php'
-                   '?item={uuid}&mdrecord=iso19115'.format(uuid=uuid))
+                   '?item={uuid}&mdrecord=iso19139'.format(uuid=uuid))
         resp = self._get_with_retry(api_url)
         text = getattr(resp, 'text', None) if resp is not None else None
         if not text or not text.strip():
@@ -1702,10 +1702,10 @@ class IntegratedDataRepoFetcher:
 if __name__ == '__main__':
     fetcher = IntegratedDataRepoFetcher()
     kwargs = {
-        "doi": "10.26186/147992",
-        "dataset_url": "https://data.gov.au/data/dataset/eastern-resources-corridor-airborne-electromagnetic-interpretation-data-package;https://d28rz98at9flks.cloudfront.net/147992/147992_00_0.zip;https://pid.geoscience.gov.au/dataset/ga/147992",
-        "doi_landing_page": "https://ecat.ga.gov.au/geonetwork/srv/eng/catalog.search#/metadata/147992",
-        "dataset_name": "Eastern Resources Corridor Airborne Electromagnetic Interpretation Data Package",
+            "doi": None,
+            "dataset_url": r"https://gdr.openei.org/submissions/1704;https://gdr.openei.org/files/1704/Download%20Data%20Files.zip",
+            "doi_landing_page": None,
+            "dataset_name": "Nationwide Heat Flow, Well Data, and Related Files in the SMU Node of the National Geothermal Database System (NGDS)",
         }
 
     
@@ -1715,7 +1715,7 @@ if __name__ == '__main__':
     doi_landing_page = kwargs.get('doi_landing_page', '')
         
     print("Debug inputs:", kwargs)
-    result = fetcher.auto_fetch_geoscience_australi_modified(**kwargs)
+    result = fetcher.auto_fetch_openei___geothermal_data_repository__gdr_modified(**kwargs)
         
     # 使用 utf-8 编码安全输出，防止 Windows 控制台 gbk 报错
     # import sys
