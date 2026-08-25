@@ -425,7 +425,11 @@ class IntegratedDataRepoFetcher:
             m = re.search(r'/dataset/([^/?#]+)', dataset_url)
             if m and re.fullmatch(r'\d+', m.group(1)):
                 ecat_id = m.group(1)
-
+        if not ecat_id and dataset_url:
+            m = re.search(r'dataset/ga/([^/?#]+)', dataset_url)
+            if m and re.fullmatch(r'\d+', m.group(1)):
+                ecat_id = m.group(1)
+        # ecat_id = '146111'
         if not ecat_id:
             return {"error": "缺少关键参数，无法解析出内部 eCat ID"}
 
@@ -1265,13 +1269,77 @@ class IntegratedDataRepoFetcher:
         if not any([doi, dataset_url, doi_landing_page, dataset_name]):
             return {"error": "缺少有效参数"}
 
-        # 若外部未直接提供 DOI，则尝试从原始链接/落地页 URL 中正则提取 DOI
+        escidoc_id = None
+
+        # 策略 1：优先尝试获取 escidoc ID，进而获取 iso19115 数据
+        # 路径 A：从 dataset_url / doi_landing_page / doi 直接提取 escidoc ID
+        for text in (dataset_url, doi_landing_page, doi):
+            if text:
+                m = re.search(r'escidoc(?:%3A|:)\s*(\d+)', text, re.I)
+                if m:
+                    escidoc_id = m.group(1)
+                    break
+
+        # 路径 B：仅有数据集名称时，从 ICGEM 列表页匹配模型名 -> DOI
+        if not escidoc_id and dataset_name:
+            list_url = 'https://icgem.gfz-potsdam.de/tom_longtime'
+            try:
+                r = self._get_with_retry(list_url)
+                html = r.text if hasattr(r, 'text') else str(r)
+                name_core = re.sub(r'[\s\-_]+', '', dataset_name).upper()
+                doi_pattern = re.compile(r'10\.5880/[iI][cC][gG][eE][mM][\d\.]+')
+                best_doi = None
+                best_dist = 999999
+                for m in re.finditer(re.escape(name_core[:20]), html, re.I):
+                    window = html[m.start():m.start() + 3000]
+                    dm = doi_pattern.search(window)
+                    if dm:
+                        dist = dm.start()
+                        if dist < best_dist:
+                            best_dist = dist
+                            best_doi = dm.group(0)
+                if best_doi:
+                    try:
+                        rr = self._get_with_retry('https://doi.org/' + best_doi)
+                        landing_text = rr.text if hasattr(rr, 'text') else str(rr)
+                        mm = re.search(r'escidoc(?:%3A|:)\s*(\d+)', landing_text, re.I)
+                        if mm:
+                            escidoc_id = mm.group(1)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+        # 路径 C：DOI 或 DOI 落地页 -> 解析 escidoc ID
+        if not escidoc_id and (doi or doi_landing_page):
+            target = doi_landing_page if doi_landing_page else ('https://doi.org/' + doi)
+            try:
+                r = self._get_with_retry(target)
+                html = r.text if hasattr(r, 'text') else str(r)
+                m = re.search(r'escidoc(?:%3A|:)\s*(\d+)', html, re.I)
+                if m:
+                    escidoc_id = m.group(1)
+            except Exception:
+                pass
+
+        if escidoc_id:
+            try:
+                api_url = ('https://dataservices.gfz-potsdam.de/icgem/download.php'
+                           '?item=/ir/item/escidoc:' + escidoc_id + '&mdrecord=iso19115')
+                r = self._get_with_retry(api_url, headers={'Accept': 'application/xml'})
+                raw = r.text if hasattr(r, 'text') else str(r)
+                if raw:
+                    return {"source": "GFZ Data Services (ICGEM)", "format": "xml", "data": raw}
+            except Exception:
+                pass
+
+        # 策略 2（备用）：使用 OAI-PMH 获取 iso19139 数据
         if not doi:
             m = re.search(r'10\.\d{4,9}/[^\s"\']+', (dataset_url + ' ' + doi_landing_page), re.IGNORECASE)
             if m:
                 doi = m.group(0).rstrip(';,.)')
         if not doi:
-            return {"error": "缺少 DOI，无法映射内部 OAI 记录 ID"}
+            return {"error": "缺少 DOI 或 escidoc ID，无法提取数据"}
 
         oai_base = 'http://doidb.wdc-terra.org/oaip/oai'
         oai_id = None
@@ -1301,16 +1369,19 @@ class IntegratedDataRepoFetcher:
             url = oai_base + '?verb=ListRecords&resumptionToken=' + quote_plus(token)
 
         if not oai_id:
-            return {"error": "无法在 ICGEM 集合中检索到目标 DOI 对应的内部记录 ID"}
+            return {"error": "无法解析出 escidoc ID，且无法在 ICGEM 集合中检索到目标 DOI 对应的内部记录 ID"}
 
-        # 第二步：用定位到的内部 ID 请求 ISO19139 数据集级元数据（唯一最终出口，原样透传）
-        final_url = oai_base + '?verb=GetRecord&metadataPrefix=iso19139&identifier=' + quote_plus(oai_id)
-        resp = self._get_with_retry(final_url)
-        return {
-            "source": "GFZ Data Services (ICGEM / DOIDB OAI-PMH)",
-            "format": "xml",
-            "data": resp.text,
-        }
+        # 第二步：用定位到的内部 ID 请求 ISO19139 数据集级元数据
+        try:
+            final_url = oai_base + '?verb=GetRecord&metadataPrefix=iso19139&identifier=' + quote_plus(oai_id)
+            resp = self._get_with_retry(final_url)
+            return {
+                "source": "GFZ Data Services (ICGEM / DOIDB OAI-PMH)",
+                "format": "xml",
+                "data": resp.text,
+            }
+        except Exception as e:
+            return {"error": f"备用 OAI-PMH 请求异常: {e}"}
 
     def auto_fetch_figshare(self, **kwargs):
         import re
@@ -1562,6 +1633,7 @@ class IntegratedDataRepoFetcher:
         search_text = search_resp.text if hasattr(search_resp, 'text') else str(search_resp)
 
         uuid_m = re.search(r'<uuid>([0-9a-fA-F-]{36})</uuid>', search_text)
+        print("uuid",uuid_m)
         if not uuid_m:
             uuid_m = re.search(r'uuid="([0-9a-fA-F-]{36})"', search_text)
         if not uuid_m:
@@ -1577,8 +1649,7 @@ class IntegratedDataRepoFetcher:
         return {
             'source': 'NSW Geoscience Metadata (GeoNetwork)',
             'format': 'xml',
-            'data': body,
-            'resolved_uuid': record_uuid,
+            'data': body
         }
 
     def auto_fetch_british_geological_survey__bgs____national_geoscience_data_centre__ngdc_(self, **kwargs):
@@ -1664,6 +1735,9 @@ class IntegratedDataRepoFetcher:
         except Exception as e:
             return {"error": f"ISO19139 元数据获取异常: {e}"}
 
+    def auto_fetch_center_for_space_research__csr___the_university_of_texas_at_austin_modified(self, **kwargs):
+        return self.auto_fetch_icgem(**kwargs)
+
     def get_route_map(self):
         """返回动态生成的 API 路由映射"""
         return {
@@ -1685,28 +1759,29 @@ class IntegratedDataRepoFetcher:
             "GEUS Dataverse": self.auto_fetch_geus_dataverse,
             "NERC EDS UK Polar Data Centre": self.auto_fetch_nerc_eds_uk_polar_data_centre,
             "Colorado Geological Survey": self.auto_fetch_colorado_geological_survey,
-            "ICGEM": self.auto_fetch_icgem,
+            "GFZ Data Services (ICGEM / DOIDB OAI-PMH)": self.auto_fetch_icgem,
             "figshare": self.auto_fetch_figshare,
             "Council for Geoscience": self.auto_fetch_council_for_geoscience,
             "ESA Earth Online": self.auto_fetch_esa_earth_online,
             "NSW Resources": self.auto_fetch_nsw_resources,
             "British Geological Survey (BGS) - National Geoscience Data Centre (NGDC)": self.auto_fetch_british_geological_survey__bgs____national_geoscience_data_centre__ngdc_,
+            "GFZ Data Services (ICGEM)": self.auto_fetch_center_for_space_research__csr___the_university_of_texas_at_austin_modified,
         }
 
     @staticmethod
     def get_api_schema_desc():
         """返回给大模型用的 API Schema 动态提示词"""
-        return """可匹配的官网列表：['Open Government Portal', 'NERC EDS National Geoscience Data Centre', 'PANGAEA', 'Zenodo', 'OpenEI / Geothermal Data Repository (GDR)', 'OSTI', 'Geoscience Australia', 'U.S. Geological Survey (USGS)', 'OpenDataNI', 'GFZ Data Services', 'NOAA National Centers for Environmental Information (NCEI)', 'NASA Earthdata (Socioeconomic Data and Applications Center – SEDAC)', 'LAADS DAAC', 'ROSAP (National Transportation Library)', 'PO.DAAC', 'GEUS Dataverse', 'NERC EDS UK Polar Data Centre', 'Colorado Geological Survey', 'ICGEM', 'figshare', 'Council for Geoscience', 'ESA Earth Online', 'NSW Resources', 'British Geological Survey (BGS) - National Geoscience Data Centre (NGDC)']"""
+        return """可匹配的官网列表：['Open Government Portal', 'NERC EDS National Geoscience Data Centre', 'PANGAEA', 'Zenodo', 'OpenEI / Geothermal Data Repository (GDR)', 'OSTI', 'Geoscience Australia', 'U.S. Geological Survey (USGS)', 'OpenDataNI', 'GFZ Data Services', 'NOAA National Centers for Environmental Information (NCEI)', 'NASA Earthdata (Socioeconomic Data and Applications Center – SEDAC)', 'LAADS DAAC', 'ROSAP (National Transportation Library)', 'PO.DAAC', 'GEUS Dataverse', 'NERC EDS UK Polar Data Centre', 'Colorado Geological Survey', 'GFZ Data Services (ICGEM / DOIDB OAI-PMH)', 'figshare', 'Council for Geoscience', 'ESA Earth Online', 'NSW Resources', 'British Geological Survey (BGS) - National Geoscience Data Centre (NGDC)', 'GFZ Data Services (ICGEM)']"""
     # --- AUTOGENERATED API FETCHERS END ---
 
 if __name__ == '__main__':
     fetcher = IntegratedDataRepoFetcher()
     kwargs = {
-            "doi": None,
-            "dataset_url": r"https://gdr.openei.org/submissions/1704;https://gdr.openei.org/files/1704/Download%20Data%20Files.zip",
-            "doi_landing_page": None,
-            "dataset_name": "Nationwide Heat Flow, Well Data, and Related Files in the SMU Node of the National Geothermal Database System (NGDS)",
-        }
+    "doi": None,
+    "dataset_url": "https://www.ga.gov.au/about/projects/resources/geophysical-acquisition-and-processing/gravity;https://portal.ga.gov.au/persona/gadds;https://pid.geoscience.gov.au/dataset/ga/146111",
+    "doi_landing_page": None,
+    "dataset_name": "Australian National Gravity Database",
+    }
 
     
     dataset_name = kwargs.get('dataset_name', '')
@@ -1715,10 +1790,10 @@ if __name__ == '__main__':
     doi_landing_page = kwargs.get('doi_landing_page', '')
         
     print("Debug inputs:", kwargs)
-    result = fetcher.auto_fetch_openei___geothermal_data_repository__gdr_modified(**kwargs)
+    result = fetcher.auto_fetch_geoscience_australi_modified(**kwargs)
         
-    # 使用 utf-8 编码安全输出，防止 Windows 控制台 gbk 报错
-    # import sys
-    # sys.stdout.reconfigure(encoding='utf-8')
-    # print(result)
+    # # 使用 utf-8 编码安全输出，防止 Windows 控制台 gbk 报错
+    import sys
+    sys.stdout.reconfigure(encoding='utf-8')
+    print(result)
     
