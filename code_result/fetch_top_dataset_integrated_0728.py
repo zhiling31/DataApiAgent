@@ -1846,43 +1846,22 @@ class IntegratedDataRepoFetcher:
     def fetch_icos_carbon_portal(self, **kwargs):
         """处理 ICOS Carbon Portal 复杂的 PID 解析问题"""
         print(f"\n[ICOS Carbon Portal] 开始智能匹配抓取")
-        params = kwargs.get("extracted_api_params") or {}
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url')
+        doi_landing_page = kwargs.get('doi_landing_page')
+        dataset_name = kwargs.get('dataset_name')
         
-        object_id = params.get("object_id")
-        doi = kwargs.get("doi") or params.get("doi")
-        
+
         base_url = "https://meta.icos-cp.eu/objects"
         
-        # 1. 优先尝试直接使用 object_id 请求（无需人造规则判断，直接试探一次）
-        if object_id:
-            try:
-                full_url = f"{base_url}/{object_id}"
-                print(f"   👉 尝试直接请求提供的 object_id: {full_url}")
-                import requests
-                requests.packages.urllib3.disable_warnings()
-                custom_headers = self.headers.copy()
-                custom_headers["Accept"] = "application/json"
-                # 仅试探一次，超时设短一点，如果是错误的 ID 往往直接返回 404
-                response = requests.get(full_url, headers=custom_headers, verify=False, timeout=5)
-                if response.status_code == 200:
-                    print(f"   ✅ object_id 验证成功！")
-                    return {"source": "ICOS-Carbon-Portal-Custom", "data": response.json()}
-                else:
-                    print(f"   ⚠️ object_id ({object_id}) 请求失败 (HTTP {response.status_code})，可能为大模型误提的假 ID。准备尝试回退...")
-            except Exception as e:
-                print(f"   ⚠️ object_id ({object_id}) 请求异常 ({str(e)})。准备尝试回退...")
-        
-        # 2. 如果 object_id 失败或者没给，且提供了 DOI，则走 SPARQL 尝试解析
         if doi:
             print(f"   💡 当前仅有 DOI ({doi})。将尝试通过 ICOS SPARQL 接口解析内部 PID...")
             sparql_url = "https://meta.icos-cp.eu/sparql"
-            # 清理 DOI
-            doi_clean = self._clean_doi(doi)
             query = f'''
             PREFIX cpmeta: <http://meta.icos-cp.eu/ontologies/cpmeta/>
             SELECT ?dobj WHERE {{
               ?dobj cpmeta:hasDoi ?doi .
-              FILTER (lcase(str(?doi)) = lcase("{doi_clean}"))
+              FILTER (lcase(str(?doi)) = lcase("{doi}"))
             }} LIMIT 1
             '''
             try:
@@ -1901,9 +1880,13 @@ class IntegratedDataRepoFetcher:
                         json_headers = self.headers.copy()
                         json_headers["Accept"] = "application/json"
                         response = requests.get(pid_uri, headers=json_headers, verify=False, timeout=15)
-                        return {"source": "ICOS-Carbon-Portal-SPARQL", "data": response.json()}
+                        return {
+                            "source": "ICOS Carbon Portal",
+                            "format": "json",
+                            "data": response.json()
+                        }
                 else:
-                    print(f"   ⚠️ SPARQL 未找到 DOI ({doi_clean}) 对应的单体数据对象 (可能是 Collection 或是仅在 DataCite 注册)。")
+                    print(f"   ⚠️ SPARQL 未找到 DOI ({doi}) 对应的单体数据对象 (可能是 Collection 或是仅在 DataCite 注册)。")
             except Exception as e:
                 print(f"   ❌ SPARQL 解析异常: {str(e)}")
                 
@@ -1912,9 +1895,16 @@ class IntegratedDataRepoFetcher:
         return {"error": "缺少可供查询的 ICOS PID 或 DOI"}
 
     
-    def fetch_sciencedb(self, doi: str):
+    def fetch_sciencedb(self, **kwargs):
         """抓取 Science Data Bank (ScienceDB) (使用官方 Open API)"""
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url')
+        doi_landing_page = kwargs.get('doi_landing_page')
+        dataset_name = kwargs.get('dataset_name')
+        
         print(f'\n[ScienceDB] 正在解析 DOI: {doi}')
+        if not doi:
+            return {'error': '缺少可供查询的 ScienceDB DOI'}
         clean_doi = doi.replace('https://doi.org/', '').replace('http://doi.org/', '')
         api_url = f'https://www.scidb.cn/api/sdb-openapi-service/json?doi={clean_doi}'
         print(f'[ScienceDB] 组装的官方 Open API URL: {api_url}')
@@ -1922,16 +1912,27 @@ class IntegratedDataRepoFetcher:
         try:
             response = requests.get(api_url, headers=request_headers, timeout=15, verify=False)
             response.raise_for_status()
-            return {'source': 'ScienceDB-OpenAPI', 'data': response.json()}
+            return {
+                "source": "Science Data Bank (ScienceDB)",
+                "format": "json",
+                "data": response.json()
+            }
         except requests.exceptions.HTTPError as e:
             return {'error': f'HTTP错误: {str(e)}', 'details': e.response.text[:200]}
         except requests.exceptions.RequestException as e:
             return {'error': f'网络请求失败: {str(e)}'}
 
     
-    def fetch_ess_dive(self, doi: str):
+    def fetch_ess_dive(self, **kwargs):
         """从 ESS-DIVE 获取指定 DOI 的公开数据记录"""
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url')
+        doi_landing_page = kwargs.get('doi_landing_page')
+        dataset_name = kwargs.get('dataset_name')
+        
         print(f'\n[ESS-DIVE] 正在解析 DOI: {doi}')
+        if not doi:
+            return {'error': '缺少可供查询的 ESS-DIVE DOI'}
         clean_doi = doi.replace('https://doi.org/', '').replace('http://doi.org/', '')
         solr_q = f'id:"doi:{clean_doi}" OR seriesId:"doi:{clean_doi}" OR identifier:"doi:{clean_doi}"'
         import urllib
@@ -1948,51 +1949,75 @@ class IntegratedDataRepoFetcher:
                 if docs:
                     dataset = docs[0]
                     print(f"   ✅ 成功获取到数据集宏观元数据! 标题: {dataset.get('title')}")
-                    return {'source': 'DataONE-CN', 'data': dataset}
+                    return {
+                        "source": "ESS-DIVE",
+                        "format": "json",
+                        "data": dataset
+                    }
             except Exception as e:
                 print(f'   ⚠️ 节点请求异常或无数据 ({e})，尝试备用方案...')
         print(f'   ⚠️ DataONE 节点未找到匹配的数据集。')
         return None
     
 
-    def fetch_gbif(self, identifier: str):
+    def fetch_gbif(self, **kwargs):
         """
             1. 抓取 GBIF (全球生物多样性信息网络)
             支持直接传入 UUID，或传入 DOI 进行自动映射。
             """
-        print(f"\n[GBIF] 正在请求目标: '{identifier}'")
-        is_doi_mode = self._is_doi(identifier)
-        clean_id = self._clean_doi(identifier) if is_doi_mode else identifier
-        if is_doi_mode:
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url')
+        doi_landing_page = kwargs.get('doi_landing_page')
+        dataset_name = kwargs.get('dataset_name')
+        
+        if not dataset_url:
+            m = re.search(r'dataset/([a-fA-F0-9\-]{36})', dataset_url)
+            if m:
+                identifier = m.group(1)
+        if (not doi) or (not identifier):
+            return {'error': '缺少可供查询的 GBIF DOI 或 UUID'}
+
+        if doi:
             print('   👉 检测到输入为 DOI，正在通过全局映射接口寻找底层数据集...')
-            api_url = f'https://api.gbif.org/v1/dataset?doi={clean_id}'
+            api_url = f'https://api.gbif.org/v1/dataset/doi/{doi}'
         else:
-            api_url = f'https://api.gbif.org/v1/dataset/{clean_id}'
+            api_url = f'https://api.gbif.org/v1/dataset/{identifier}'
         try:
             response = requests.get(api_url, headers=self.headers, timeout=15)
             response.raise_for_status()
             data = response.json()
-            if is_doi_mode:
+            if doi:
                 results = data.get('results', [])
                 if not results:
-                    print(f'   ⚠️ GBIF 中未找到映射该 DOI ({clean_id}) 的数据集。')
+                    print(f'   ⚠️ GBIF 中未找到映射该 DOI ({doi}) 的数据集。')
                     return None
                 dataset = results[0]
                 print(f"   ✅ GBIF DOI 映射成功！底层 UUID 为: {dataset.get('key')}")
             else:
                 dataset = data
             print(f"   ✅ GBIF 抓取成功！数据集标题: {dataset.get('title', '未知')}")
-            return {'source': 'GBIF-REST-API', 'data': dataset}
+            return {
+                "source": "GBIF",
+                "format": "json",
+                "data": dataset
+            }
         except Exception as e:
             print(f'   ❌ GBIF 抓取失败: {e}')
             return None
 
-    def fetch_mendeley(self, doi: str, api_key: str=None):
+    def fetch_mendeley(self, **kwargs):
         """
             抓取 Mendeley Data 
             【核心修正】：使用 Mendeley 正式的 public-api，完美解决旧版获取和数据匹配错误的问题，不再需要网页爬虫。
             """
+        doi = kwargs.get('doi')
+        dataset_url = kwargs.get('dataset_url')
+        doi_landing_page = kwargs.get('doi_landing_page')
+        dataset_name = kwargs.get('dataset_name')
+        
         print(f'\n[Mendeley Data] 正在解析 DOI: {doi}')
+        if not doi:
+            return {'error': '缺少可供查询的 Mendeley DOI'}
         clean_doi = doi.replace('https://doi.org/', '').replace('http://doi.org/', '')
         match = re.search('10\\.17632/([^.]+)(?:\\.(\\d+))?', clean_doi)
         if not match:
@@ -2022,7 +2047,11 @@ class IntegratedDataRepoFetcher:
             if response:
                 data = response.json()
                 print(f'   ✅ Mendeley 官方原生 API 抓取成功 (已获取精确版本)！')
-                return {'source': 'Mendeley-Public-API', 'data': data}
+                return {
+                    "source": "Mendeley Data",
+                    "format": "json",
+                    "data": data
+                }
         except ImportError:
             print(f"   ⚠️ 未安装 curl_cffi 库，无法绕过 Cloudflare。请使用 'pip install curl_cffi' 安装。")
         except Exception as e:
@@ -2056,13 +2085,18 @@ class IntegratedDataRepoFetcher:
             "NSW Resources": self.auto_fetch_nsw_resources,
             "British Geological Survey (BGS) - National Geoscience Data Centre (NGDC)": self.auto_fetch_british_geological_survey__bgs____national_geoscience_data_centre__ngdc_,
             "GFZ Data Services (ICGEM)": self.auto_fetch_center_for_space_research__csr___the_university_of_texas_at_austin_modified,
-            "U.S. Geological Survey (USGS) - Mineral Resources Online Spatial Data (MRData)":self.fetch_mrdata_bouguer
+            "U.S. Geological Survey (USGS) - Mineral Resources Online Spatial Data (MRData)":self.fetch_mrdata_bouguer,
+            "ICOS Carbon Portal": self.fetch_icos_carbon_portal,
+            "Science Data Bank (ScienceDB)": self.fetch_sciencedb,
+            "ESS-DIVE": self.fetch_ess_dive,
+            "GBIF": self.fetch_gbif,
+            "Mendeley Data": self.fetch_mendeley
         }
 
     @staticmethod
     def get_api_schema_desc():
         """返回给大模型用的 API Schema 动态提示词"""
-        return """可匹配的官网列表：['Open Government Portal', 'NERC EDS National Geoscience Data Centre', 'PANGAEA', 'Zenodo', 'OpenEI / Geothermal Data Repository (GDR)', 'OSTI', 'Geoscience Australia', 'U.S. Geological Survey (USGS)', 'OpenDataNI', 'GFZ Data Services', 'NOAA National Centers for Environmental Information (NCEI)', 'NASA Earthdata (Socioeconomic Data and Applications Center – SEDAC)', 'LAADS DAAC', 'ROSAP (National Transportation Library)', 'PO.DAAC', 'GEUS Dataverse', 'NERC EDS UK Polar Data Centre', 'Colorado Geological Survey', 'GFZ Data Services (ICGEM / DOIDB OAI-PMH)', 'figshare', 'Council for Geoscience', 'ESA Earth Online', 'NSW Resources', 'British Geological Survey (BGS) - National Geoscience Data Centre (NGDC)', 'GFZ Data Services (ICGEM)','U.S. Geological Survey (USGS) - Mineral Resources Online Spatial Data (MRData)']"""
+        return """可匹配的官网列表：['Open Government Portal', 'NERC EDS National Geoscience Data Centre', 'PANGAEA', 'Zenodo', 'OpenEI / Geothermal Data Repository (GDR)', 'OSTI', 'Geoscience Australia', 'U.S. Geological Survey (USGS)', 'OpenDataNI', 'GFZ Data Services', 'NOAA National Centers for Environmental Information (NCEI)', 'NASA Earthdata (Socioeconomic Data and Applications Center – SEDAC)', 'LAADS DAAC', 'ROSAP (National Transportation Library)', 'PO.DAAC', 'GEUS Dataverse', 'NERC EDS UK Polar Data Centre', 'Colorado Geological Survey', 'GFZ Data Services (ICGEM / DOIDB OAI-PMH)', 'figshare', 'Council for Geoscience', 'ESA Earth Online', 'NSW Resources', 'British Geological Survey (BGS) - National Geoscience Data Centre (NGDC)', 'GFZ Data Services (ICGEM)','U.S. Geological Survey (USGS) - Mineral Resources Online Spatial Data (MRData)', 'ICOS Carbon Portal', 'Science Data Bank (ScienceDB)', 'ESS-DIVE', 'GBIF', 'Mendeley Data']"""
     # --- AUTOGENERATED API FETCHERS END ---
 
 if __name__ == '__main__':
