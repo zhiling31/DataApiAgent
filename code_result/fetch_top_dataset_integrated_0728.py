@@ -1842,6 +1842,192 @@ class IntegratedDataRepoFetcher:
                 'data': iso_text
             }
 
+
+    def fetch_icos_carbon_portal(self, **kwargs):
+        """处理 ICOS Carbon Portal 复杂的 PID 解析问题"""
+        print(f"\n[ICOS Carbon Portal] 开始智能匹配抓取")
+        params = kwargs.get("extracted_api_params") or {}
+        
+        object_id = params.get("object_id")
+        doi = kwargs.get("doi") or params.get("doi")
+        
+        base_url = "https://meta.icos-cp.eu/objects"
+        
+        # 1. 优先尝试直接使用 object_id 请求（无需人造规则判断，直接试探一次）
+        if object_id:
+            try:
+                full_url = f"{base_url}/{object_id}"
+                print(f"   👉 尝试直接请求提供的 object_id: {full_url}")
+                import requests
+                requests.packages.urllib3.disable_warnings()
+                custom_headers = self.headers.copy()
+                custom_headers["Accept"] = "application/json"
+                # 仅试探一次，超时设短一点，如果是错误的 ID 往往直接返回 404
+                response = requests.get(full_url, headers=custom_headers, verify=False, timeout=5)
+                if response.status_code == 200:
+                    print(f"   ✅ object_id 验证成功！")
+                    return {"source": "ICOS-Carbon-Portal-Custom", "data": response.json()}
+                else:
+                    print(f"   ⚠️ object_id ({object_id}) 请求失败 (HTTP {response.status_code})，可能为大模型误提的假 ID。准备尝试回退...")
+            except Exception as e:
+                print(f"   ⚠️ object_id ({object_id}) 请求异常 ({str(e)})。准备尝试回退...")
+        
+        # 2. 如果 object_id 失败或者没给，且提供了 DOI，则走 SPARQL 尝试解析
+        if doi:
+            print(f"   💡 当前仅有 DOI ({doi})。将尝试通过 ICOS SPARQL 接口解析内部 PID...")
+            sparql_url = "https://meta.icos-cp.eu/sparql"
+            # 清理 DOI
+            doi_clean = self._clean_doi(doi)
+            query = f'''
+            PREFIX cpmeta: <http://meta.icos-cp.eu/ontologies/cpmeta/>
+            SELECT ?dobj WHERE {{
+              ?dobj cpmeta:hasDoi ?doi .
+              FILTER (lcase(str(?doi)) = lcase("{doi_clean}"))
+            }} LIMIT 1
+            '''
+            try:
+                import requests
+                requests.packages.urllib3.disable_warnings()
+                custom_headers = self.headers.copy()
+                custom_headers["Accept"] = "application/sparql-results+json"
+                resp = requests.post(sparql_url, data={'query': query}, headers=custom_headers, verify=False, timeout=15)
+                data = resp.json()
+                bindings = data.get("results", {}).get("bindings", [])
+                if bindings:
+                    pid_uri = bindings[0].get("dobj", {}).get("value")
+                    print(f"   ✅ SPARQL 解析成功！找到内部 PID: {pid_uri}")
+                    if pid_uri:
+                        # 请求真实的 JSON 数据
+                        json_headers = self.headers.copy()
+                        json_headers["Accept"] = "application/json"
+                        response = requests.get(pid_uri, headers=json_headers, verify=False, timeout=15)
+                        return {"source": "ICOS-Carbon-Portal-SPARQL", "data": response.json()}
+                else:
+                    print(f"   ⚠️ SPARQL 未找到 DOI ({doi_clean}) 对应的单体数据对象 (可能是 Collection 或是仅在 DataCite 注册)。")
+            except Exception as e:
+                print(f"   ❌ SPARQL 解析异常: {str(e)}")
+                
+            return {"error": f"ICOS API 需要内部 PID，且通过 SPARQL 未能通过 DOI ({doi}) 找到对应实体，已交由 DataCite 处理兜底。"}
+            
+        return {"error": "缺少可供查询的 ICOS PID 或 DOI"}
+
+    
+    def fetch_sciencedb(self, doi: str):
+        """抓取 Science Data Bank (ScienceDB) (使用官方 Open API)"""
+        print(f'\n[ScienceDB] 正在解析 DOI: {doi}')
+        clean_doi = doi.replace('https://doi.org/', '').replace('http://doi.org/', '')
+        api_url = f'https://www.scidb.cn/api/sdb-openapi-service/json?doi={clean_doi}'
+        print(f'[ScienceDB] 组装的官方 Open API URL: {api_url}')
+        request_headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'application/json'}
+        try:
+            response = requests.get(api_url, headers=request_headers, timeout=15, verify=False)
+            response.raise_for_status()
+            return {'source': 'ScienceDB-OpenAPI', 'data': response.json()}
+        except requests.exceptions.HTTPError as e:
+            return {'error': f'HTTP错误: {str(e)}', 'details': e.response.text[:200]}
+        except requests.exceptions.RequestException as e:
+            return {'error': f'网络请求失败: {str(e)}'}
+
+    
+    def fetch_ess_dive(self, doi: str):
+        """从 ESS-DIVE 获取指定 DOI 的公开数据记录"""
+        print(f'\n[ESS-DIVE] 正在解析 DOI: {doi}')
+        clean_doi = doi.replace('https://doi.org/', '').replace('http://doi.org/', '')
+        solr_q = f'id:"doi:{clean_doi}" OR seriesId:"doi:{clean_doi}" OR identifier:"doi:{clean_doi}"'
+        import urllib
+        safe_query = urllib.parse.quote(solr_q)
+        urls_to_try = [f'https://cn.dataone.org/cn/v2/query/solr/?q={safe_query}&wt=json']
+        for url in urls_to_try:
+            print(f'   👉 尝试请求 DataONE 全球总枢纽: {url}')
+            try:
+                headers = {'User-Agent': 'curl/7.88.1', 'Accept': 'application/json'}
+                response = requests.get(url, headers=headers, timeout=15)
+                response.raise_for_status()
+                data = response.json()
+                docs = data.get('response', {}).get('docs', [])
+                if docs:
+                    dataset = docs[0]
+                    print(f"   ✅ 成功获取到数据集宏观元数据! 标题: {dataset.get('title')}")
+                    return {'source': 'DataONE-CN', 'data': dataset}
+            except Exception as e:
+                print(f'   ⚠️ 节点请求异常或无数据 ({e})，尝试备用方案...')
+        print(f'   ⚠️ DataONE 节点未找到匹配的数据集。')
+        return None
+    
+
+    def fetch_gbif(self, identifier: str):
+        """
+            1. 抓取 GBIF (全球生物多样性信息网络)
+            支持直接传入 UUID，或传入 DOI 进行自动映射。
+            """
+        print(f"\n[GBIF] 正在请求目标: '{identifier}'")
+        is_doi_mode = self._is_doi(identifier)
+        clean_id = self._clean_doi(identifier) if is_doi_mode else identifier
+        if is_doi_mode:
+            print('   👉 检测到输入为 DOI，正在通过全局映射接口寻找底层数据集...')
+            api_url = f'https://api.gbif.org/v1/dataset?doi={clean_id}'
+        else:
+            api_url = f'https://api.gbif.org/v1/dataset/{clean_id}'
+        try:
+            response = requests.get(api_url, headers=self.headers, timeout=15)
+            response.raise_for_status()
+            data = response.json()
+            if is_doi_mode:
+                results = data.get('results', [])
+                if not results:
+                    print(f'   ⚠️ GBIF 中未找到映射该 DOI ({clean_id}) 的数据集。')
+                    return None
+                dataset = results[0]
+                print(f"   ✅ GBIF DOI 映射成功！底层 UUID 为: {dataset.get('key')}")
+            else:
+                dataset = data
+            print(f"   ✅ GBIF 抓取成功！数据集标题: {dataset.get('title', '未知')}")
+            return {'source': 'GBIF-REST-API', 'data': dataset}
+        except Exception as e:
+            print(f'   ❌ GBIF 抓取失败: {e}')
+            return None
+
+    def fetch_mendeley(self, doi: str, api_key: str=None):
+        """
+            抓取 Mendeley Data 
+            【核心修正】：使用 Mendeley 正式的 public-api，完美解决旧版获取和数据匹配错误的问题，不再需要网页爬虫。
+            """
+        print(f'\n[Mendeley Data] 正在解析 DOI: {doi}')
+        clean_doi = doi.replace('https://doi.org/', '').replace('http://doi.org/', '')
+        match = re.search('10\\.17632/([^.]+)(?:\\.(\\d+))?', clean_doi)
+        if not match:
+            print(f'   ❌ 无法从 DOI ({doi}) 中提取 dataset_id。')
+            return None
+        dataset_id = match.group(1)
+        version = match.group(2)
+        try:
+            from curl_cffi import requests as cf_requests
+            api_url = f'https://data.mendeley.com/public-api/datasets/{dataset_id}'
+            if version:
+                api_url += f'?version={version}'
+            print(f'   👉 [官方 API 模式] 请求 Mendeley Data API: {api_url}')
+            response = None
+            for attempt in range(3):
+                try:
+                    response = cf_requests.get(api_url, impersonate='chrome110', timeout=15)
+                    if response.status_code in [403, 429, 500, 502, 503, 504]:
+                        time.sleep(2 ** attempt)
+                        continue
+                    response.raise_for_status()
+                    break
+                except Exception as req_err:
+                    if attempt == 2:
+                        raise req_err
+                    time.sleep(2 ** attempt)
+            if response:
+                data = response.json()
+                print(f'   ✅ Mendeley 官方原生 API 抓取成功 (已获取精确版本)！')
+                return {'source': 'Mendeley-Public-API', 'data': data}
+        except ImportError:
+            print(f"   ⚠️ 未安装 curl_cffi 库，无法绕过 Cloudflare。请使用 'pip install curl_cffi' 安装。")
+        except Exception as e:
+            print(f'   ❌ Mendeley 数据抓取失败: {e}')
+        
     def get_route_map(self):
         """返回动态生成的 API 路由映射"""
         return {
@@ -1883,9 +2069,10 @@ if __name__ == '__main__':
     fetcher = IntegratedDataRepoFetcher()
     kwargs = {
     "doi": None,
-    "dataset_url": "https://www.ga.gov.au/about/projects/resources/geophysical-acquisition-and-processing/gravity;https://portal.ga.gov.au/persona/gadds;https://pid.geoscience.gov.au/dataset/ga/146111",
+    "dataset_url": "https://mrdata.usgs.gov/gravity/bouguer/;https://mrdata.usgs.gov/geophysics/gravity/US_bouguer.zip",
     "doi_landing_page": None,
-    "dataset_name": "Australian National Gravity Database",
+    "dataset_name": "Bouguer gravity anomaly grid for the conterminous US"
+   
     }
 
     
@@ -1895,7 +2082,7 @@ if __name__ == '__main__':
     doi_landing_page = kwargs.get('doi_landing_page', '')
         
     print("Debug inputs:", kwargs)
-    result = fetcher.auto_fetch_geoscience_australi_modified(**kwargs)
+    result = fetcher.fetch_mrdata_bouguer(**kwargs)
         
     # # 使用 utf-8 编码安全输出，防止 Windows 控制台 gbk 报错
     import sys
