@@ -21,18 +21,6 @@ from langgraph.prebuilt import ToolNode
 import logging
 import sys
 
-logger = logging.getLogger('fetch_publisher')
-if not logger.handlers:
-    handler = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter('%(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
-    
-    file_handler = logging.FileHandler('fetch_publisher_api.log', encoding='utf-8')
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-
 # 配置 Tavily API Key
 # "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"（无0818）
 # zhizhi333333@gmail.com           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（无8月）
@@ -45,18 +33,41 @@ os.environ["TAVILY_API_KEY"] = "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
 # ==========================================
 # 你可以在这里修改所有的输入输出文件路径
 # INPUT_DATASET_FILE = "../45个数据集target_datasets.txt"       # 输入的原始数据集文件 (制表符分隔)
-INPUT_DATASET_FILE =  r"D:\地学\doi\数据清单\geophysics-Electrical and Electromagnetic Exploration Methods_simple.txt"
-OUTPUT_RESULTS_DIR = r"D:\地学\doi\数据清单\geophysics-Electrical and Electromagnetic Exploration Methods"
+INPUT_DATASET_FILE =  r"D:\地学\doi\数据清单\20260820-第二批数据集\Gravity_master-27个_simple.txt"
+OUTPUT_RESULTS_DIR = r"D:\地学\doi\数据清单\20260820-第二批数据集\Gravity_master-27个"
 OUTPUT_RESULTS_FILE = os.path.join(OUTPUT_RESULTS_DIR, "publisher_api_results.xlsx")  # 增量保存的提取结果文件
 OUTPUT_TRACE_FILE = os.path.join(OUTPUT_RESULTS_DIR, "publisher_api_trace.json")      # 大模型探索日志与思考过程文件
-REGISTRY_FILE = os.path.join(OUTPUT_RESULTS_DIR, "platform_api_registry.json")         # 大模型生成的 API 知识库 (存放 Python 代码)
+REGISTRY_FILE = "code_result/platform_api_registry.json"         # 大模型生成的 API 知识库 (存放 Python 代码)
 TARGET_INJECT_FILE = "code_result/fetch_top_dataset_integrated_0728.py"   # 生成的 Python 代码最终注入的目标文件
 USE_DATASET_INFO_CACHE = True  # 如果为 True，则启用并读取大模型对数据集基础信息（DOI/URL/平台名称）的提取缓存（dataset_extractor结果），避免重复调用提取大模型
-IGNORE_API_CODE_CACHE = True  # 如果为 True，则强制重新生成平台 API 代码，忽略 platform_api_registry_0728.json 的缓存命中
+IGNORE_API_CODE_CACHE = False  # 如果为 True，则强制重新生成平台 API 代码，忽略 platform_api_registry_0728.json 的缓存命中
 IGNORE_PROGRESS_CACHE = True  # 如果为 True，则忽略断点续传的执行进度 (publisher_api_results)，强制重新运行所有数据集
-IS_HEAL_MODE = False           # 内部状态标志，用来标记是否在进行 API 的自愈进化
+IS_HEAL_MODE = True           # 内部状态标志，用来标记是否在进行 API 的自愈进化
 dataset_info_cache_file = os.path.join(OUTPUT_RESULTS_DIR,"dataset_info_cache.json")
 os.makedirs(OUTPUT_RESULTS_DIR,exist_ok=True)
+
+
+
+
+logger = logging.getLogger('fetch_publisher')
+if not logger.handlers:
+    handler = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    
+    file_handler = logging.FileHandler(os.path.join(OUTPUT_RESULTS_DIR,'fetch_publisher_api.log'), encoding='utf-8')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    
+    # 把 DatasetAgent 的日志也绑定到当前的终端和文件处理器上，确保 dataset_extractor 的日志也能输出到该文件
+    dataset_logger = logging.getLogger('DatasetAgent')
+    dataset_logger.setLevel(logging.INFO)
+    dataset_logger.addHandler(handler)
+    dataset_logger.addHandler(file_handler)
+
+
 # ==========================================
 # 1. 定义严格的 Pydantic 结构化输出模型 (防幻觉核心)
 # ==========================================
@@ -711,6 +722,7 @@ SYSTEM_PROMPT = """你是一个资深的地学与计算科学数据馆员和元�
      - 必须绝对透传！返回 `{"source": "平台名", "format": "[识别到的真实格式(如 json/xml/yaml/turtle)]", "data": response.text 或 response.json()}`。
      - **【严禁】**在代码中对原生数据进行遍历、重命名、清洗或挑选字段！绝不允许手动构建新字典（如 data['title'] = ...）！
      - **【严禁】**使用 ElementTree, BeautifulSoup, 正则表达式等工具对原生结构进行任何二次拆解！把所有的字段解析、清洗工作全部留给下游的数据中台！
+  3.如果返回的数据是xml格式，优先尝试iso19139格式，其次iso19115格式，然后再尝试其他
 
 - 【代码内动态映射要求】：
   如果目标 API 需要隐藏的内部 ID，【这种映射逻辑必须完整写进你生成的代码中】！
@@ -798,7 +810,8 @@ SYSTEM_PROMPT_HEAL = """你是一个资深的地学与计算科学数据馆员�
      - 必须绝对透传！返回 `{"source": "平台名", "format": "[识别到的真实格式(如 json/xml/yaml/turtle)]", "data": response.text 或 response.json()}`。
      - **【严禁】**在代码中对原生数据进行遍历、重命名、清洗或挑选字段！
      - **【严禁】**使用 ElementTree, BeautifulSoup, 正则表达式等工具对原生结构进行任何二次拆解！把所有的清洗工作全部留给下游！
-
+  3.如果返回的数据是xml格式，优先尝试iso19139格式，其次iso19115格式，然后再尝试其他
+  
 - 发起请求：使用 `self._get_with_retry(url, headers=custom_headers)`
 
 - 【代码生成防御性编程强制宪法】：
@@ -828,6 +841,27 @@ def save_registry(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+
+def get_actual_python_code(publisher_name, default_code):
+    try:
+        import os, ast, re
+        if not os.path.exists(TARGET_INJECT_FILE):
+            return default_code
+        with open(TARGET_INJECT_FILE, 'r', encoding='utf-8') as f:
+            file_content = f.read()
+            
+        pattern = rf'["\']{re.escape(publisher_name)}["\']\s*:\s*self\.([a-zA-Z0-9_]+)'
+        match = re.search(pattern, file_content)
+        if match:
+            method_name = match.group(1)
+            tree = ast.parse(file_content)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef) and node.name == method_name:
+                    return ast.get_source_segment(file_content, node)
+        return default_code
+    except Exception as e:
+        logger.warning(f"无法从注入文件中动态提取旧代码，回退到 registry: {e}")
+        return default_code
 
 def check_cache_node(state: AgentState):
     """检查识别出的平台是否已在沉淀知识库中"""
@@ -888,6 +922,7 @@ def check_cache_node(state: AgentState):
         if is_heal_mode and cached_data.get("is_verified") == True:
             logger.info(f"🎯 命中沉淀知识库，触发【增量自愈模式】！加载平台: {matched_key} 的历史数据。")
             old_python_code = cached_data.get("python_code", "")
+            old_python_code = get_actual_python_code(matched_key, old_python_code)
             old_api_attempts = cached_data.get("api_attempts", [])
             old_reasoning_summary = cached_data.get("reasoning_summary", "")
             old_baseline_context = {
@@ -1191,7 +1226,7 @@ def main():
                                         "error_reason": summary.get("error_reason", ""),
                                         "doi_landing_page": summary.get("doi_landing_page", ""),
                                         "doi": summary.get("doi", ""),
-                                        "official_website": summary.get("official_website", ""),
+                                        "official_website": summary.get("official_websites", "")[0],
                                         "is_incremental_mode": True
                                     })
                 except Exception as e:
@@ -1226,6 +1261,7 @@ def main():
                                 ds_id = filename[:-5] # remove .json
                                 ds_name = summary.get("dataset_name", "未知数据集")
                                 ds_url = summary.get("dataset_url", "未知链接")
+                                official_website = summary.get("official_website") or (summary.get("official_websites")[0] if summary.get("official_websites") else "")
                                 publisher_samples.append({
                                     "id": ds_id,
                                     "dataset_name": ds_name,
@@ -1234,9 +1270,10 @@ def main():
                                     "error_reason": item.get("error_reason", ""),
                                     "doi_landing_page": summary.get("doi_landing_page", ""),
                                     "doi": summary.get("doi", ""),
-                                    "official_website": summary.get("official_website", ""),
+                                    "official_website": official_website,
                                     "is_incremental_mode": True
                                 })
+                                print("11111111111",official_website)
             except Exception as e:
                 logger.info(f"读取文件失败: {e}")
                 return
@@ -1330,14 +1367,14 @@ def main():
         ds_url = sample["url"]
         
         logger.info(f"\n===========================================")
-        logger.info(f"🔍 正在处理数据集: {ds_name} (ID: {ds_id})")
+        logger.info(f"正在处理数据集: {ds_name} (ID: {ds_id})")
         logger.info(f"===========================================")
         
         original_url = ds_url
         
         doi_landing_page = sample.get("doi_landing_page", "")
         str_ds_id = str(ds_id)
-        
+        print(sample)
         if sample.get("is_incremental_mode"):
             logger.info("🚀 检测到增量自优化模式，跳过 DOI 查找和平台分析流程。")
             extracted_doi = sample.get("doi", "")
@@ -1587,13 +1624,9 @@ def main():
         logger.info(f"⚠️ 自动生成代码失败: {e}")
 
 def inject_generated_methods_to_fetcher():
-    import re
+    import os, re, ast
     registry = load_registry()
-    code_lines = []
-    route_map = {}
-    valid_apis_desc = []
     
-    import os
     if not os.path.exists(TARGET_INJECT_FILE):
         logger.info(f"⚠️ 目标注入文件 {TARGET_INJECT_FILE} 不存在，正在自动创建全新文件...")
         fetcher_content = """import requests
@@ -1602,7 +1635,7 @@ import time
 import re
 
 class IntegratedDataRepoFetcher:
-    \"\"\"自动生成的数据存储库 API 抓取类\"\"\"
+    # 自动生成的数据存储库 API 抓取类
     def __init__(self):
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -1622,98 +1655,122 @@ class IntegratedDataRepoFetcher:
                 else:
                     raise Exception(f"已达到最大重试次数 ({max_retries})，最终失败: {e}")
 
-    # --- AUTOGENERATED API FETCHERS START ---
-    # --- AUTOGENERATED API FETCHERS END ---
+    def get_route_map(self):
+        return {}
+
+    @staticmethod
+    def get_api_schema_desc():
+        return "可匹配的官网列表：[]"
 """
-    else:
-        with open(TARGET_INJECT_FILE, 'r', encoding='utf-8') as f:
-            fetcher_content = f.read()
+        with open(TARGET_INJECT_FILE, 'w', encoding='utf-8') as f:
+            f.write(fetcher_content)
+            
+    with open(TARGET_INJECT_FILE, 'r', encoding='utf-8') as f:
+        original_source_code = f.read()
+    source_code = original_source_code
     
-    # 提取已有的手写函数名（在生成标记之前的代码中）
-    start_marker = "# --- AUTOGENERATED API FETCHERS START ---"
-    handwritten_code = fetcher_content.split(start_marker)[0] if start_marker in fetcher_content else fetcher_content
-    handwritten_methods = set(re.findall(r'def (fetch_[a-zA-Z0-9_]+)\s*\(', handwritten_code))
+    try:
+        tree = ast.parse(original_source_code)
+    except Exception as e:
+        logger.error(f"解析 {TARGET_INJECT_FILE} 失败，无法注入: {e}")
+        return
 
-    for hw_method in handwritten_methods:
-        pub_key = hw_method.replace("fetch_", "").replace("_", " ").title()
-        if pub_key.lower() == "osti": pub_key = "OSTI"
-        elif pub_key.lower() == "zenodo": pub_key = "Zenodo"
-        elif pub_key.lower() == "nasa laads daac": pub_key = "LAADS DAAC"
-        elif pub_key.lower() == "icos carbon portal": pub_key = "ICOS Carbon Portal"
-        elif pub_key.lower() == "doe gdr": pub_key = "DOE GDR"
-        elif pub_key.lower() == "pangaea": pub_key = "PANGAEA"
-        elif pub_key.lower() == "sciencedb": pub_key = "ScienceDB"
-        elif pub_key.lower() == "ess dive": pub_key = "ESS-DIVE"
-        elif pub_key.lower() == "figshare": pub_key = "Figshare"
-        elif pub_key.lower() == "gbif": pub_key = "GBIF"
-        elif pub_key.lower() == "usgs sciencebase": pub_key = "USGS ScienceBase"
-        elif pub_key.lower() == "opentopography": pub_key = "OpenTopography"
-        elif pub_key.lower() == "mendeley": pub_key = "Mendeley"
-        
-        if pub_key not in route_map and pub_key.lower() not in [k.lower() for k in route_map.keys()]:
-            route_map[pub_key] = hw_method
-            valid_apis_desc.append(f"'{pub_key}'")
-
+    current_route_map = {}
+    methods_nodes = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            methods_nodes[node.name] = node
+            if node.name == "get_route_map":
+                for subnode in ast.walk(node):
+                    if isinstance(subnode, ast.Dict):
+                        for k, v in zip(subnode.keys, subnode.values):
+                            if isinstance(k, ast.Constant) and isinstance(v, ast.Attribute):
+                                current_route_map[k.value] = v.attr
+                
+    methods_to_append = []
+    new_route_map = current_route_map.copy()
+    valid_apis_desc = list(current_route_map.keys())
+    
     for pub_name, data in registry.items():
         if not data.get('is_verified'): continue
-        
         python_code = data.get('python_code')
         if not python_code: continue
         
         clean_name = re.sub(r'[^a-zA-Z0-9]', '_', pub_name).lower()
-        base_method_name = f'fetch_{clean_name}'
+        base_method_name = f'auto_fetch_{clean_name}'
         
-        # 无论是否有冲突，所有自动生成的代码统一加上 auto_ 前缀，便于查看
-        method_name = f'auto_{base_method_name}'
-        if base_method_name in handwritten_methods:
-            route_map[pub_name] = base_method_name # 如果有手写函数，路由优先指向手写版本
-        else:
-            route_map[pub_name] = method_name # 如果没有手写版本，路由指向 auto_ 自动生成版本
-        
-        if f"'{pub_name}'" not in valid_apis_desc:
-            valid_apis_desc.append(f"'{pub_name}'")
-        
-        # 稳健地提取可能被包裹的 markdown 代码块，防止带有前后对话文本导致语法错误
         code_str = python_code.strip()
         match = re.search(r'```(?:python)?\s*(.*?)\s*```', code_str, re.DOTALL)
-        if match:
-            code_str = match.group(1).strip()
-            
-        # 强制替换函数名为自动生成的命名，兼容带空格的情况
-        code_str = re.sub(r'^\s*def\s+[a-zA-Z0-9_]+\s*\(', f'def {method_name}(', code_str, count=1, flags=re.MULTILINE)
+        if match: code_str = match.group(1).strip()
         
-        # 缩进处理（给代码整体加上 4 个空格，因为它在 FetchTopDataset 类中）
-        indented_code = '\n'.join('    ' + line if line.strip() else line for line in code_str.split('\n'))
+        if pub_name not in current_route_map:
+            # 新增
+            method_name = base_method_name
+            code_str = re.sub(r'^\s*def\s+[^\(]+\(', f'def {method_name}(', code_str, count=1, flags=re.MULTILINE)
+            indented_code = '\n'.join('    ' + line if line.strip() else line for line in code_str.split('\n'))
+            methods_to_append.append(indented_code)
+            new_route_map[pub_name] = method_name
+            if pub_name not in valid_apis_desc:
+                valid_apis_desc.append(pub_name)
+        else:
+            # 已存在
+            existing_method = current_route_map[pub_name]
+            if IS_HEAL_MODE:
+                # 增量自优化，精准替换旧方法
+                code_str = re.sub(r'^\s*def\s+[^\(]+\(', f'def {existing_method}(', code_str, count=1, flags=re.MULTILINE)
+                indented_code = '\n'.join('    ' + line if line.strip() else line for line in code_str.split('\n'))
+                
+                node = methods_nodes.get(existing_method)
+                if node:
+                    old_segment = ast.get_source_segment(original_source_code, node)
+                    if old_segment:
+                        indented_code_lines = indented_code.split('\n')
+                        if indented_code_lines:
+                            indented_code_lines[0] = indented_code_lines[0].lstrip(' ')
+                        indented_code_adjusted = '\n'.join(indented_code_lines)
+                        source_code = source_code.replace(old_segment, indented_code_adjusted)
+
+    # Re-parse to accurately replace route map and schema desc
+    tree = ast.parse(source_code)
+    get_route_map_node = None
+    get_api_schema_desc_node = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            if node.name == "get_route_map":
+                get_route_map_node = node
+            elif node.name == "get_api_schema_desc":
+                get_api_schema_desc_node = node
+
+    route_map_lines = ['def get_route_map(self):', '        """返回动态生成的 API 路由映射"""', '        return {']
+    for pub, method in new_route_map.items():
+        route_map_lines.append(f'            "{pub}": self.{method},')
+    route_map_lines.append('        }')
+    new_route_map_str = '\n'.join(route_map_lines)
+
+    schema_desc_lines = ['def get_api_schema_desc():', '        """返回给大模型用的 API Schema 动态提示词"""']
+    quoted_apis = [f"'{p}'" for p in valid_apis_desc]
+    schema_string = "可匹配的官网列表：[" + ", ".join(quoted_apis) + "]"
+    schema_desc_lines.append(f'        return \"\"\"{schema_string}\"\"\"')
+    new_schema_desc_str = '\n'.join(schema_desc_lines)
+
+    if get_route_map_node:
+        old_segment = ast.get_source_segment(source_code, get_route_map_node)
+        if old_segment: source_code = source_code.replace(old_segment, new_route_map_str)
+    
+    if get_api_schema_desc_node:
+        old_segment = ast.get_source_segment(source_code, get_api_schema_desc_node)
+        if old_segment: source_code = source_code.replace(old_segment, new_schema_desc_str)
+
+    if methods_to_append:
+        insert_idx = source_code.rfind("    def get_route_map(self):")
+        if insert_idx != -1:
+            append_str = "\n".join(methods_to_append) + "\n\n"
+            source_code = source_code[:insert_idx] + append_str + source_code[insert_idx:]
+
+    with open(TARGET_INJECT_FILE, 'w', encoding='utf-8') as f:
+        f.write(source_code)
         
-        code_lines.append(indented_code)
-        code_lines.append('')
-        
-    code_lines.append('    def get_route_map(self):')
-    code_lines.append('        \"\"\"返回动态生成的 API 路由映射\"\"\"')
-    code_lines.append('        return {')
-    for pub, method in route_map.items():
-        code_lines.append(f'            \"{pub}\": self.{method},')
-    code_lines.append('        }')
-    code_lines.append('')
-    code_lines.append('    @staticmethod')
-    code_lines.append('    def get_api_schema_desc():')
-    code_lines.append('        \"\"\"返回给大模型用的 API Schema 动态提示词\"\"\"')
-    schema_string = "可匹配的官网列表：[" + ", ".join(valid_apis_desc) + "]"
-    code_lines.append(f'        return \"\"\"{schema_string}\"\"\"')
-    
-    generated_code = '\n'.join(code_lines)
-    
-    end_marker = "# --- AUTOGENERATED API FETCHERS END ---"
-    
-    if start_marker in fetcher_content and end_marker in fetcher_content:
-        start_idx = fetcher_content.find(start_marker) + len(start_marker)
-        end_idx = fetcher_content.find(end_marker)
-        new_content = fetcher_content[:start_idx] + "\n" + generated_code + "\n    " + fetcher_content[end_idx:]
-        with open(TARGET_INJECT_FILE, 'w', encoding='utf-8') as f:
-            f.write(new_content)
-        logger.info("✅ 成功注入生成的代码")
-    else:
-        logger.info("❌ 找不到注入标记 # --- AUTOGENERATED API FETCHERS START ---")
+    logger.info("✅ 成功按需增量注入生成的代码")
 
 if __name__ == "__main__":
     main()
