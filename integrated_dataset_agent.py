@@ -5,6 +5,11 @@ import json
 import re
 import sys
 import uuid
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+global_file_lock = threading.Lock()
+MAX_WORKERS = 5
 import logging
 import datetime
 import traceback
@@ -28,8 +33,8 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # 0. 全局配置 (文件路径修改区)
 # ==========================================
 # 你可以在这里修改所有的输入输出文件路径
-INPUT_DATASET_FILE = r"D:\地学\doi\数据清单\geophysics-Electrical and Electromagnetic Exploration Methods.txt"       # 输入的原始数据集文件 (制表符分隔)
-OUTPUT_RESULTS_DIR = r"D:\地学\doi\数据清单\geophysics-Electrical and Electromagnetic Exploration Methods"                     # 运行结果(成功或报错的 JSON)的保存目录
+INPUT_DATASET_FILE = r"D:\地学\doi\数据清单\20260820-第二批数据集\Gravity_master-27个.txt"       # 输入的原始数据集文件 (制表符分隔)
+OUTPUT_RESULTS_DIR = r"D:\地学\doi\数据清单\20260820-第二批数据集\Gravity_master-27个"                     # 运行结果(成功或报错的 JSON)的保存目录
 USE_DATASET_INFO_CACHE = True                               # 是否启用数据集提取信息缓存
 dataset_info_cache_file = os.path.join(OUTPUT_RESULTS_DIR, "dataset_info_cache.json")
 MISSING_REGISTRY_FILE = os.path.join(OUTPUT_RESULTS_DIR, "missing_registry_datasets.txt")  # 未命中知识库的数据集保存文件
@@ -288,8 +293,9 @@ def fetch_metadata_node(state: dict):
             if err:
                 doi_org_data = {"error": err}
                 import datetime
-                with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
-                    f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: doi.org | ERROR: {err}\n")
+                with global_file_lock:
+                    with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
+                        f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: doi.org | ERROR: {err}\n")
             elif res and res.status_code == 200:
                 try:
                     doi_org_data = {"source": "doi.org (CSL-JSON)", "data": res.json()}
@@ -297,14 +303,16 @@ def fetch_metadata_node(state: dict):
                 except Exception as e:
                     doi_org_data = {"error": f"JSON解析错误: {e}"}
                     import datetime
-                    with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
-                        f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: doi.org | ERROR: JSON Parse Error {e}\n")
+                    with global_file_lock:
+                        with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
+                            f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: doi.org | ERROR: JSON Parse Error {e}\n")
             else:
                 status = res.status_code if res else "Unknown"
                 doi_org_data = {"error": f"HTTP {status}"}
                 import datetime
-                with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
-                    f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: doi.org | ERROR: HTTP {status}\n")
+                with global_file_lock:
+                    with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
+                        f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: doi.org | ERROR: HTTP {status}\n")
             
         # [2] 抓取 DataCite / Crossref
         if doi:
@@ -316,8 +324,9 @@ def fetch_metadata_node(state: dict):
             else:
                 if err:
                     import datetime
-                    with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
-                        f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: DataCite | ERROR: {err}\n")
+                    with global_file_lock:
+                        with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
+                            f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: DataCite | ERROR: {err}\n")
                 meta2, err2 = fetch_from_crossref(doi)
                 if meta2:
                     datacite_crossref_data = {"source": "Crossref", "data": meta2}
@@ -326,8 +335,9 @@ def fetch_metadata_node(state: dict):
                     datacite_crossref_data = {"error": f"DataCite error: {err} | Crossref error: {err2}"}
                     if err2:
                         import datetime
-                        with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
-                            f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: Crossref | ERROR: {err2}\n")
+                        with global_file_lock:
+                            with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
+                                f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: Crossref | ERROR: {err2}\n")
 
 
         target_apis = []
@@ -352,8 +362,9 @@ def fetch_metadata_node(state: dict):
                     logger.warning(f"      ⚠️ {err_msg}")
                     api_attempts.append({"api": api_name, "error": err_msg})
                     import datetime
-                    with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
-                        f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
+                    with global_file_lock:
+                        with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
+                            f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
                     continue
                 
                 try:
@@ -367,8 +378,9 @@ def fetch_metadata_node(state: dict):
                         api_attempts.append({"api": api_name, "error": err_msg})
                         logger.warning(f"      ⚠️ API 报错: {err_msg}")
                         import datetime
-                        with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
-                            f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
+                        with global_file_lock:
+                            with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
+                                f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
                     else:
                         logger.info(f"      ✅ 官网抓取调用完成 (使用 {api_name})")
                         success_api = api_name
@@ -379,15 +391,17 @@ def fetch_metadata_node(state: dict):
                     api_attempts.append({"api": api_name, "error": err_msg})
                     logger.warning(f"      ⚠️ 参数不足: {err_msg}")
                     import datetime
-                    with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
-                        f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
+                    with global_file_lock:
+                        with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
+                            f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
                 except Exception as e:
                     err_msg = str(e)
                     api_attempts.append({"api": api_name, "error": err_msg})
                     logger.warning(f"      ⚠️ 调用异常: {err_msg}")
                     import datetime
-                    with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
-                        f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
+                    with global_file_lock:
+                        with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
+                            f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
                 
             if not success:
                 official_api_data = {"error": " | ".join([f"{a['api']}:{a['error']}" for a in api_attempts])}
@@ -463,227 +477,240 @@ def process_target_datasets(target_id=None):
     if not target_id:
         lines = lines[:MAX_RECORDS_TO_PROCESS]
     
-    for idx_line, line in enumerate(lines):
-        line = line.strip()
-        if not line: continue
-        parts = line.split('\t')
-        if not parts: continue
-        
-        # 提取各个字段值，通过列名匹配或者索引降级
-        row_dict = {h: (parts[i] if i < len(parts) else "") for i, h in enumerate(headers)}
-        
-        dataset_id = ""
-        dataset_name = ""
-        dataset_description = ""
-        url = ""
-        
-        for h, v in row_dict.items():
-            if "ID" in h.upper() or "标识" in h:
-                if not dataset_id: dataset_id = v
-            elif "名称" in h or "NAME" in h.upper():
-                if not dataset_name: dataset_name = v
-            elif "描述" in h or "DESCRIPTION" in h.upper():
-                if not dataset_description: dataset_description = v
-            elif "URL" in h.upper() or "链接" in h:
-                if not url: url = v
-                
-        # Fallbacks
-        if not dataset_id: dataset_id = parts[0] if len(parts) > 0 else str(idx_line + 1)
-        if not dataset_name: dataset_name = parts[1] if len(parts) > 1 else ""
-        if not dataset_description: dataset_description = parts[2] if len(parts) > 2 else ""
-        if not url: url = parts[3] if len(parts) > 3 else ""
-        
-        # 如果指定了单测 ID，跳过其他数据
-        if target_id and dataset_id != str(target_id):
-            continue
 
-        # 构造格式化的输入给大模型
-        formatted_line = "，".join([f"{h}:{v}" for h, v in zip(headers, parts) if h and v])
-        logger.info(f"用户原始输入：{formatted_line}")
-        
-        # 断点续传逻辑更新：检查是否存在以该 dataset_id- 开头的 JSON 文件
-        import glob
-        existing_files = glob.glob(os.path.join(data_dir, f"{dataset_id}-*.json"))
-        success_files = [f for f in existing_files if not f.endswith("_error.json") and not f.endswith("_crash.json")]
-        error_files = [f for f in existing_files if f.endswith("_error.json") or f.endswith("_crash.json")]
-        
-        should_skip = False
-        if RESUME_MODE == "1":
-            # 模式1：只要有结果（成功或报错或崩溃），即跳过
-            if len(existing_files) > 0:
-                should_skip = True
-        elif RESUME_MODE in ["2-1", "2-2", "2-3"]:
-            # 模式2：只要有报错或崩溃结果(_error.json / _crash.json)，就不跳过（需要重跑）；否则如果全是成功则跳过
-            if len(success_files) > 0 and len(error_files) == 0:
-                should_skip = True
-                
-        if should_skip:
-            logger.info(f"⏩ 数据集 ID: {dataset_id} 已满足跳过条件 (成功:{len(success_files)}个, 失败/崩溃:{len(error_files)}个)，跳过处理。")
-            continue
+    logger.info(f"🔥 开始多线程并发执行，最大并发数: {MAX_WORKERS}")
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = [executor.submit(process_single_dataset, line, idx_line, target_id, headers, data_dir, dataset_info_cache, header_line) for idx_line, line in enumerate(lines)]
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                logger.error(f"线程执行异常: {e}")
+
+
+def process_single_dataset(line, idx_line, target_id, headers, data_dir, dataset_info_cache, header_line):
+    line = line.strip()
+    if not line: return
+    parts = line.split('\t')
+    if not parts: return
+    
+    # 提取各个字段值，通过列名匹配或者索引降级
+    row_dict = {h: (parts[i] if i < len(parts) else "") for i, h in enumerate(headers)}
+    
+    dataset_id = ""
+    dataset_name = ""
+    dataset_description = ""
+    url = ""
+    
+    for h, v in row_dict.items():
+        if "ID" in h.upper() or "标识" in h:
+            if not dataset_id: dataset_id = v
+        elif "名称" in h or "NAME" in h.upper():
+            if not dataset_name: dataset_name = v
+        elif "描述" in h or "DESCRIPTION" in h.upper():
+            if not dataset_description: dataset_description = v
+        elif "URL" in h.upper() or "链接" in h:
+            if not url: url = v
             
-        # 准备重跑前，预先处理 _error.json 等文件
-        extracted_datasets_for_mode_2_2 = []
-        is_mode_2_2_valid = False
-        
-        if len(error_files) > 0:
-            if RESUME_MODE in ["2-2", "2-3"]:
-                is_mode_2_2_valid = True
-                for ef in error_files:
-                    if ef.endswith("_crash.json"):
-                        logger.warning(f"⚠️ 发现 {ef} (系统崩溃日志)，无法使用模式 2-2 提取信息，将自动降级为完整的 2-1 重跑流程。")
-                        is_mode_2_2_valid = False
-                        break
-                    try:
-                        with open(ef, "r", encoding="utf-8") as f:
-                            err_data = json.load(f)
-                            if "input_summary" in err_data:
-                                extracted_datasets_for_mode_2_2.append(err_data["input_summary"])
-                            else:
-                                is_mode_2_2_valid = False
-                                break
-                    except Exception as e:
-                        logger.warning(f"⚠️ 读取 {ef} 失败: {e}，将自动降级为模式 2-1。")
-                        is_mode_2_2_valid = False
-                        break
+    # Fallbacks
+    if not dataset_id: dataset_id = parts[0] if len(parts) > 0 else str(idx_line + 1)
+    if not dataset_name: dataset_name = parts[1] if len(parts) > 1 else ""
+    if not dataset_description: dataset_description = parts[2] if len(parts) > 2 else ""
+    if not url: url = parts[3] if len(parts) > 3 else ""
+    
+    # 如果指定了单测 ID，跳过其他数据
+    if target_id and dataset_id != str(target_id):
+        return
+
+    # 构造格式化的输入给大模型
+    formatted_line = "，".join([f"{h}:{v}" for h, v in zip(headers, parts) if h and v])
+    logger.info(f"用户原始输入：{formatted_line}")
+    
+    # 断点续传逻辑更新：检查是否存在以该 dataset_id- 开头的 JSON 文件
+    import glob
+    existing_files = glob.glob(os.path.join(data_dir, f"{dataset_id}-*.json"))
+    success_files = [f for f in existing_files if not f.endswith("_error.json") and not f.endswith("_crash.json")]
+    error_files = [f for f in existing_files if f.endswith("_error.json") or f.endswith("_crash.json")]
+    
+    should_skip = False
+    if RESUME_MODE == "1":
+        # 模式1：只要有结果（成功或报错或崩溃），即跳过
+        if len(existing_files) > 0:
+            should_skip = True
+    elif RESUME_MODE in ["2-1", "2-2", "2-3"]:
+        # 模式2：只要有报错或崩溃结果(_error.json / _crash.json)，就不跳过（需要重跑）；否则如果全是成功则跳过
+        if len(success_files) > 0 and len(error_files) == 0:
+            should_skip = True
             
-            # 删除旧的报错或崩溃文件
-            logger.info(f"♻️ 准备重新处理数据集 ID: {dataset_id}，正在清理 {len(error_files)} 个历史错误记录...")
+    if should_skip:
+        logger.info(f"⏩ 数据集 ID: {dataset_id} 已满足跳过条件 (成功:{len(success_files)}个, 失败/崩溃:{len(error_files)}个)，跳过处理。")
+        return
+        
+    # 准备重跑前，预先处理 _error.json 等文件
+    extracted_datasets_for_mode_2_2 = []
+    is_mode_2_2_valid = False
+    
+    if len(error_files) > 0:
+        if RESUME_MODE in ["2-2", "2-3"]:
+            is_mode_2_2_valid = True
             for ef in error_files:
+                if ef.endswith("_crash.json"):
+                    logger.warning(f"⚠️ 发现 {ef} (系统崩溃日志)，无法使用模式 2-2 提取信息，将自动降级为完整的 2-1 重跑流程。")
+                    is_mode_2_2_valid = False
+                    break
                 try:
-                    os.remove(ef)
+                    with open(ef, "r", encoding="utf-8") as f:
+                        err_data = json.load(f)
+                        if "input_summary" in err_data:
+                            extracted_datasets_for_mode_2_2.append(err_data["input_summary"])
+                        else:
+                            is_mode_2_2_valid = False
+                            break
                 except Exception as e:
-                    pass
+                    logger.warning(f"⚠️ 读取 {ef} 失败: {e}，将自动降级为模式 2-1。")
+                    is_mode_2_2_valid = False
+                    break
+        
+        # 删除旧的报错或崩溃文件
+        logger.info(f"♻️ 准备重新处理数据集 ID: {dataset_id}，正在清理 {len(error_files)} 个历史错误记录...")
+        for ef in error_files:
+            try:
+                os.remove(ef)
+            except Exception as e:
+                pass
+        
+    logger.info(f"--------------------------------------------------")
+    logger.info(f"⚡ 开始处理数据集 ID: {dataset_id} | 名称: {dataset_name}")
+    
+    test_input_dict = {
+        "dataset_id": dataset_id,
+        "dataset_name": dataset_name,
+        "dataset_description": dataset_description,
+        "url": url
+    }
+    
+    try:
+        if RESUME_MODE == "2-3" and is_mode_2_2_valid and len(extracted_datasets_for_mode_2_2) > 0:
+            logger.info(f"🚀 [模式 2-3] 跳过大模型检索，基于 {len(extracted_datasets_for_mode_2_2)} 个原结果重新匹配目标 API 并抓取...")
+            for ds in extracted_datasets_for_mode_2_2:
+                if "target_api_name" in ds:
+                    del ds["target_api_name"]
+                ds["target_api_name"] = match_target_api_with_llm(ds, custom_request_llm_invoke)
+            mock_state = {"extracted_datasets": extracted_datasets_for_mode_2_2}
+            fetch_result = fetch_metadata_node(mock_state)
+            final_results = fetch_result.get("final_results", [])
+        elif RESUME_MODE == "2-2" and is_mode_2_2_valid and len(extracted_datasets_for_mode_2_2) > 0:
+            logger.info(f"🚀 [模式 2-2] 跳过大模型检索，直接基于 {len(extracted_datasets_for_mode_2_2)} 个原结果信息重新触发 API 抓取...")
+            mock_state = {"extracted_datasets": extracted_datasets_for_mode_2_2}
+            fetch_result = fetch_metadata_node(mock_state)
+            final_results = fetch_result.get("final_results", [])
+        else:
+            extracted_datasets = None
             
-        logger.info(f"--------------------------------------------------")
-        logger.info(f"⚡ 开始处理数据集 ID: {dataset_id} | 名称: {dataset_name}")
-        
-        test_input_dict = {
-            "dataset_id": dataset_id,
-            "dataset_name": dataset_name,
-            "dataset_description": dataset_description,
-            "url": url
-        }
-        
-        try:
-            if RESUME_MODE == "2-3" and is_mode_2_2_valid and len(extracted_datasets_for_mode_2_2) > 0:
-                logger.info(f"🚀 [模式 2-3] 跳过大模型检索，基于 {len(extracted_datasets_for_mode_2_2)} 个原结果重新匹配目标 API 并抓取...")
-                for ds in extracted_datasets_for_mode_2_2:
-                    if "target_api_name" in ds:
-                        del ds["target_api_name"]
+            # 检查缓存
+            if USE_DATASET_INFO_CACHE and str(dataset_id) in dataset_info_cache:
+                logger.info(f"🎯 从缓存中命中了数据集提取信息: {dataset_id}")
+                import copy
+                extracted_datasets = copy.deepcopy(dataset_info_cache[str(dataset_id)])
+            
+            # 如果没命中缓存，则走大模型提取
+            if not extracted_datasets:
+                extracted_datasets = extract_dataset_info(test_input_dict, custom_request_llm_invoke)
+            
+            for ds in extracted_datasets:
+                if "target_api_name" not in ds:
                     ds["target_api_name"] = match_target_api_with_llm(ds, custom_request_llm_invoke)
-                mock_state = {"extracted_datasets": extracted_datasets_for_mode_2_2}
-                fetch_result = fetch_metadata_node(mock_state)
-                final_results = fetch_result.get("final_results", [])
-            elif RESUME_MODE == "2-2" and is_mode_2_2_valid and len(extracted_datasets_for_mode_2_2) > 0:
-                logger.info(f"🚀 [模式 2-2] 跳过大模型检索，直接基于 {len(extracted_datasets_for_mode_2_2)} 个原结果信息重新触发 API 抓取...")
-                mock_state = {"extracted_datasets": extracted_datasets_for_mode_2_2}
-                fetch_result = fetch_metadata_node(mock_state)
-                final_results = fetch_result.get("final_results", [])
-            else:
-                extracted_datasets = None
-                
-                # 检查缓存
-                if USE_DATASET_INFO_CACHE and str(dataset_id) in dataset_info_cache:
-                    logger.info(f"🎯 从缓存中命中了数据集提取信息: {dataset_id}")
-                    import copy
-                    extracted_datasets = copy.deepcopy(dataset_info_cache[str(dataset_id)])
-                
-                # 如果没命中缓存，则走大模型提取
-                if not extracted_datasets:
-                    extracted_datasets = extract_dataset_info(test_input_dict, custom_request_llm_invoke)
-                
-                for ds in extracted_datasets:
-                    if "target_api_name" not in ds:
-                        ds["target_api_name"] = match_target_api_with_llm(ds, custom_request_llm_invoke)
-                
-                mock_state = {"extracted_datasets": extracted_datasets}
-                fetch_result = fetch_metadata_node(mock_state)
-                final_results = fetch_result.get("final_results", [])
             
-            if not final_results:
-                logger.warning(f"⚠️ 提取失败: 未找到任何数据集版本")
-                continue
+            mock_state = {"extracted_datasets": extracted_datasets}
+            fetch_result = fetch_metadata_node(mock_state)
+            final_results = fetch_result.get("final_results", [])
+        
+        if not final_results:
+            logger.warning(f"⚠️ 提取失败: 未找到任何数据集版本")
+            return
+            
+        for idx, final_metadata in enumerate(final_results):
+            # 注入初始输入的参数
+            final_metadata["original_input"] = {
+                "dataset_name": dataset_name,
+                "dataset_description": dataset_description,
+                "url": url
+            }
+            
+            input_summary = final_metadata.get("input_summary", {})
+            
+            # 优先使用 DOI 作为后缀，确保绝对唯一；如果没有则降级使用版本名
+            doi_str = input_summary.get("doi")
+            version_name = input_summary.get("version_name")
+            
+            if doi_str and doi_str.strip():
+                raw_suffix = doi_str.strip()
+            elif version_name and version_name.strip():
+                raw_suffix = f"version_{version_name.strip()}"
+            else:
+                raw_suffix = f"v{idx+1}"
                 
-            for idx, final_metadata in enumerate(final_results):
-                # 注入初始输入的参数
-                final_metadata["original_input"] = {
-                    "dataset_name": dataset_name,
-                    "dataset_description": dataset_description,
-                    "url": url
-                }
+            # 清理后缀中的特殊字符（DOI中的斜杠会被替换为下划线）
+            import re
+            suffix = re.sub(r'[\\/*?:"<>|]', '_', str(raw_suffix))
+            
+            # 判断是否成功：如果有 official_api 且没有 error
+            api_meta = final_metadata.get("metadata_sources", {}).get("official_api", {})
+            has_error = "error" in api_meta if isinstance(api_meta, dict) else False
+            
+            # 判断是否属于“未命中沉淀知识库”
+            is_missing_registry = False
+            if not api_meta:
+                is_missing_registry = True
+            elif has_error and "未找到" in str(api_meta.get("error", "")):
+                is_missing_registry = True
+            
+            if not has_error and api_meta:
+                success_file = os.path.join(data_dir, f"{dataset_id}-{suffix}.json")
+                with open(success_file, "w", encoding="utf-8") as f:
+                    json.dump(final_metadata, f, ensure_ascii=False, indent=2)
+                logger.info(f"✅ 处理成功！已保存至 {success_file}")
+            else:
+                error_file = os.path.join(data_dir, f"{dataset_id}-{suffix}_error.json")
                 
-                input_summary = final_metadata.get("input_summary", {})
-                
-                # 优先使用 DOI 作为后缀，确保绝对唯一；如果没有则降级使用版本名
-                doi_str = input_summary.get("doi")
-                version_name = input_summary.get("version_name")
-                
-                if doi_str and doi_str.strip():
-                    raw_suffix = doi_str.strip()
-                elif version_name and version_name.strip():
-                    raw_suffix = f"version_{version_name.strip()}"
-                else:
-                    raw_suffix = f"v{idx+1}"
-                    
-                # 清理后缀中的特殊字符（DOI中的斜杠会被替换为下划线）
-                import re
-                suffix = re.sub(r'[\\/*?:"<>|]', '_', str(raw_suffix))
-                
-                # 判断是否成功：如果有 official_api 且没有 error
-                api_meta = final_metadata.get("metadata_sources", {}).get("official_api", {})
-                has_error = "error" in api_meta if isinstance(api_meta, dict) else False
-                
-                # 判断是否属于“未命中沉淀知识库”
-                is_missing_registry = False
+                # 在输出 JSON 中注入 error_reason 字段，便于直接查看失败原因
+                error_reason = ""
                 if not api_meta:
-                    is_missing_registry = True
-                elif has_error and "未找到" in str(api_meta.get("error", "")):
-                    is_missing_registry = True
+                    error_reason = "未找到对应的官网知识库 API"
+                elif "error" in api_meta:
+                    error_reason = str(api_meta.get("error", "")).split(" | ")[0] if api_meta.get("error") else ""
+                if error_reason:
+                    final_metadata["error_reason"] = error_reason
+                    
+                with open(error_file, "w", encoding="utf-8") as f:
+                    json.dump(final_metadata, f, ensure_ascii=False, indent=2)
                 
-                if not has_error and api_meta:
-                    success_file = os.path.join(data_dir, f"{dataset_id}-{suffix}.json")
-                    with open(success_file, "w", encoding="utf-8") as f:
-                        json.dump(final_metadata, f, ensure_ascii=False, indent=2)
-                    logger.info(f"✅ 处理成功！已保存至 {success_file}")
+                if is_missing_registry:
+                    logger.warning(f"⚠️ 未命中官网知识库 API，已保存至 {error_file}，并追加到 {MISSING_REGISTRY_FILE}")
+                    missing_file = MISSING_REGISTRY_FILE
+                    # 确保如果写入多个缺失版本，原始文本行也能被追加（这里统一记录该行）
+                    # 如果文件不存在，写入表头
+                    if not os.path.exists(missing_file) and header_line:
+                        with open(missing_file, "w", encoding="utf-8") as f:
+                            f.write(header_line.strip() + "\t内部版本标识\t提取到的版本号\t缺失的官网名称(提取值)\t提取的DOI\n")
+                    # 实时追加
+                    missing_publisher = input_summary.get("official_website") or "Unknown"
+                    missing_doi = input_summary.get("doi") or "NULL"
+                    extracted_version = input_summary.get("version_name") or "Unknown"
+                    
+                    with open(missing_file, "a", encoding="utf-8") as f:
+                        f.write(f"{line}\t[{suffix}]\t{extracted_version}\t{missing_publisher}\t{missing_doi}\n")
                 else:
-                    error_file = os.path.join(data_dir, f"{dataset_id}-{suffix}_error.json")
-                    
-                    # 在输出 JSON 中注入 error_reason 字段，便于直接查看失败原因
-                    error_reason = ""
-                    if not api_meta:
-                        error_reason = "未找到对应的官网知识库 API"
-                    elif "error" in api_meta:
-                        error_reason = str(api_meta.get("error", "")).split(" | ")[0] if api_meta.get("error") else ""
-                    if error_reason:
-                        final_metadata["error_reason"] = error_reason
-                        
-                    with open(error_file, "w", encoding="utf-8") as f:
-                        json.dump(final_metadata, f, ensure_ascii=False, indent=2)
-                    
-                    if is_missing_registry:
-                        logger.warning(f"⚠️ 未命中官网知识库 API，已保存至 {error_file}，并追加到 {MISSING_REGISTRY_FILE}")
-                        missing_file = MISSING_REGISTRY_FILE
-                        # 确保如果写入多个缺失版本，原始文本行也能被追加（这里统一记录该行）
-                        # 如果文件不存在，写入表头
-                        if not os.path.exists(missing_file) and header_line:
-                            with open(missing_file, "w", encoding="utf-8") as f:
-                                f.write(header_line.strip() + "\t内部版本标识\t提取到的版本号\t缺失的官网名称(提取值)\t提取的DOI\n")
-                        # 实时追加
-                        missing_publisher = input_summary.get("official_website") or "Unknown"
-                        missing_doi = input_summary.get("doi") or "NULL"
-                        extracted_version = input_summary.get("version_name") or "Unknown"
-                        
-                        with open(missing_file, "a", encoding="utf-8") as f:
-                            f.write(f"{line}\t[{suffix}]\t{extracted_version}\t{missing_publisher}\t{missing_doi}\n")
-                    else:
-                        logger.warning(f"⚠️ 官网API请求报错，已保存至 {error_file}")
-                
-        except Exception as e:
-            error_msg = f"系统异常: {str(e)}\n{traceback.format_exc()}"
-            logger.error(f"❌ 运行崩溃: {error_msg}")
-            error_file = os.path.join(data_dir, f"{dataset_id}_crash.json")
-            with open(error_file, "w", encoding="utf-8") as f:
-                json.dump({"error_traceback": error_msg}, f, ensure_ascii=False, indent=2)
+                    logger.warning(f"⚠️ 官网API请求报错，已保存至 {error_file}")
+            
+    except Exception as e:
+        error_msg = f"系统异常: {str(e)}\n{traceback.format_exc()}"
+        logger.error(f"❌ 运行崩溃: {error_msg}")
+        error_file = os.path.join(data_dir, f"{dataset_id}_crash.json")
+        with open(error_file, "w", encoding="utf-8") as f:
+            json.dump({"error_traceback": error_msg}, f, ensure_ascii=False, indent=2)
+
+
 
 if __name__ == "__main__":
     import argparse
