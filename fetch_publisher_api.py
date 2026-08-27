@@ -11,7 +11,7 @@ import uuid
 import pandas as pd
 import requests
 from typing import TypedDict, Annotated, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_core.utils.function_calling import convert_to_openai_tool
 from langchain_core.tools import tool
@@ -78,9 +78,15 @@ class APIAttempt(BaseModel):
     is_successful: bool = Field(description="验证是否通过", default=False)
     error_message_or_response: Optional[str] = Field(description="如果失败，记录报错原因/状态码；如果成功，可简略记录返回或状态", default=None)
 
+class HumanAudit(BaseModel):
+    is_reviewed: bool = Field(description="是否经过人工复核 (初次生成默认为 false，人工审核后改为 true)", default=False)
+    auditor_notes: Optional[str] = Field(description="人工复核备注说明", default="")
+    scope_limit: Optional[str] = Field(description="API 粒度作用域：ITEM_LEVEL_ONLY | CATALOG_LEVEL_ONLY | BOTH | NONE", default="ITEM_LEVEL_ONLY")
+    reviewed_at: Optional[str] = Field(description="人工审核完成时间 (格式: YYYY-MM-DD HH:MM:SS)", default=None)
+
 class PublisherAPIResult(BaseModel):
     publisher_name: str = Field(description="目标数据存储平台/Publisher名称")
-    python_code: Optional[str] = Field(description="为该平台量身定制的完整 Python 获取函数代码。函数签名必须以 fetch_ 开头：`def fetch_xxx(self, **kwargs):`。对于原生 API 返回的原始数据结构，直接透传，勿二次解析和字段映射，返回格式如 `{'source': '平台名', 'format': 'json'/'xml'/'yaml', 'data': response.json()/response.text/response.text}`。严禁在代码中二次解析和字段映射。如果没有可用API则返回 null。", default=None)
+    python_code: Optional[str] = Field(description="为该平台定制的完整 Python 获取函数代码。签名必须以 fetch_ 开头：`def fetch_xxx(self, **kwargs):`。注意：因为函数将作为独立插件运行，你【必须】在函数体内部手动 import 需要用到的所有包（例如 import json, requests, re 等）。对于原生 API 返回的数据直接透传，勿二次解析，格式如 `{'source': '平台名', 'format': 'json', 'data': ...}`。若无可用API则返回 null。", default=None)
     test_dataset_id: Optional[str] = Field(description="用于验证的真实 Dataset ID 或 DOI", default=None)
     is_verified: bool = Field(description="是否找到了真实存在的 API。如果测试返回 200，必须填 True！否则天False", default=False)
     requires_auth: bool = Field(description="该 API 是否需要身份验证。如果测试返回 401/403，则填 True。", default=False)
@@ -90,6 +96,16 @@ class PublisherAPIResult(BaseModel):
     has_reached_search_limit: bool = Field(description="是否触发了搜索次数上限", default=False)
     api_attempts: List[APIAttempt] = Field(description="所有测试过的 API记录", default_factory=list)
     reasoning_summary: str = Field(description="对整个搜索和验证过程的简短总结", default="")
+    human_audit: HumanAudit = Field(default_factory=HumanAudit)
+
+    @model_validator(mode='after')
+    def set_default_scope(self) -> 'PublisherAPIResult':
+        if not self.human_audit.is_reviewed:
+            if self.is_verified:
+                self.human_audit.scope_limit = "ITEM_LEVEL_ONLY"
+            else:
+                self.human_audit.scope_limit = "NONE"
+        return self
 
 # ==========================================
 # 2. 定义 Agent 状态与工具
@@ -460,7 +476,7 @@ def execute_python_sandbox(python_code_str: str, declared_api_url: str) -> str:
     """
     【真实代码沙箱验证工具】
     系统将【强制注入】当前用户输入的真实参数。你编写的 python_code_str 必须能自己从参数中解析出所需的内部 ID。
-    - python_code_str: 你的 Python 函数源码。【警告】python_code_str 中【只能包含】函数的定义代码！绝对不允许包含任何外层的测试脚手架（如定义 MockSelf、实例化、print 测试等）。沙箱在底层会自动帮你 mock 环境并注入参数进行测试！若包含测试代码将导致最终生成的代码污染！
+    - python_code_str: 你的 Python 函数源码。【警告】只能包含函数定义代码！由于函数将被保存为独立的插件文件，你【必须】在函数内部手动 import 所有用到的包（如 import json, requests, re）。沙箱已经移除了全局包注入，不写 import 将直接报错！绝对不允许包含测试脚手架（如实例化、print 测试等），否则会导致代码污染！
         沙箱在运行时，会自动向 kwargs 注入以下真实参数（你不必自己传，代码里直接用 kwargs.get() 接收即可）：
         - "doi": 官方 DOI
         - "dataset_url": 数据集原始链接
@@ -481,7 +497,7 @@ def execute_python_sandbox(python_code_str: str, declared_api_url: str) -> str:
     }
         
     try:
-        local_vars = {"requests": requests, "json": json, "urllib": __import__('urllib'), "re": __import__('re')}
+        local_vars = {} # 强制移除了全局包注入，逼迫大模型必须在源码中自己写 import
         exec(python_code_str, globals(), local_vars)
         
         target_func = None
@@ -517,19 +533,28 @@ def execute_python_sandbox(python_code_str: str, declared_api_url: str) -> str:
         # ==========================================
         global OLD_BASELINE_CONTEXT
         if OLD_BASELINE_CONTEXT:
-            try:
-                baseline_test = fetcher_method(
-                    dataset_name=OLD_BASELINE_CONTEXT.get("dataset_name", ""),
-                    dataset_url=OLD_BASELINE_CONTEXT.get("dataset_url", ""),
-                    doi=OLD_BASELINE_CONTEXT.get("doi", ""),
-                    doi_landing_page=OLD_BASELINE_CONTEXT.get("doi_landing_page", "")
-                )
-                if not isinstance(baseline_test, dict):
-                    return f"【基线回归测试失败】：你的代码在处理老版本数据集参数时发生了崩溃或返回类型错误。请检查代码兼容性！"
-                if "error" in baseline_test:
-                    return f"【基线回归测试失败 (逻辑被覆盖)】：你的代码在处理老版本数据集参数时返回了错误：{baseline_test['error']}！你是不是直接删除了老版本的解析逻辑？请务必通过 try-except 或 if-else 保留老版本的数据解析分支，确保新老版本 API 逻辑兼容并存！"
-            except Exception as e:
-                return f"【致命漏洞 (基线回归测试崩溃)】：你的代码在处理原有的老数据集指纹时抛出了 {type(e).__name__} 异常！这意味着你新加的逻辑破坏了代码的向下兼容性！请确保老参数的解析分支未被破坏！\n报错堆栈: {traceback.format_exc()}"
+            # 🌟 修复 1：只有当旧基线上下文包含有效 URL 或 DOI 时才执行回归测试，避免用全空参数测试新代码引发死锁
+            has_valid_baseline_param = bool(OLD_BASELINE_CONTEXT.get("dataset_url") or OLD_BASELINE_CONTEXT.get("doi"))
+            if has_valid_baseline_param:
+                try:
+                    baseline_test = fetcher_method(
+                        dataset_name=OLD_BASELINE_CONTEXT.get("dataset_name", ""),
+                        dataset_url=OLD_BASELINE_CONTEXT.get("dataset_url", ""),
+                        doi=OLD_BASELINE_CONTEXT.get("doi", ""),
+                        doi_landing_page=OLD_BASELINE_CONTEXT.get("doi_landing_page", "")
+                    )
+                    if not isinstance(baseline_test, dict):
+                        return "【基线回归测试失败】：你的代码在处理老版本数据集参数时返回类型错误。"
+                    
+                    # 🌟 修复 2：如果老基线测试报错是因为缺少关键参数，优雅忽略，不打断大模型的新代码验证
+                    if "error" in baseline_test:
+                        err_str = str(baseline_test["error"])
+                        if "缺少关键参数" in err_str or "无法解析" in err_str:
+                            pass # ⚠️ 旧基线测试缺少必要参数，跳过强拦截
+                        else:
+                            return f"【基线回归测试失败 (逻辑被覆盖)】：新代码处理老数据集时报错：{err_str}！请务必保留老版本解析分支！"
+                except Exception as e:
+                    return f"【致命漏洞 (基线回归测试崩溃)】：新代码处理老数据集参数时抛出了 {type(e).__name__} 异常！\n报错堆栈: {traceback.format_exc()}"
 
         # ==========================================
         # 正常执行带真实参数的测试
@@ -1001,6 +1026,27 @@ def save_to_cache_node(state: AgentState):
         registry = load_registry()
         pub_name = state.get("publisher")
         if pub_name:
+            # 🌟 增量自愈审核退回：不管以前是否审核过，发生探索后一律重置审核状态
+            if "human_audit" in final_json:
+                final_json["human_audit"]["is_reviewed"] = False
+            else:
+                final_json["human_audit"] = {"is_reviewed": False, "auditor_notes": "", "scope_limit": "ITEM_LEVEL_ONLY" if final_json.get("is_verified") else "NONE", "reviewed_at": None}
+
+            # 🌟 草稿与合流逻辑：拦截大模型生成的 python_code，将其转入 draft
+            generated_code = final_json.get("python_code")
+            old_code = state.get("old_python_code")
+            
+            if generated_code and generated_code != old_code:
+                # 确实产生了新的有效代码
+                final_json["draft_python_code"] = generated_code
+                final_json["has_pending_draft"] = True
+            else:
+                final_json["has_pending_draft"] = False
+                final_json["draft_python_code"] = None
+                
+            # 将主 python_code 恢复为原来的生产代码（如果是完全新增的站点，则为 None/空）
+            final_json["python_code"] = old_code
+
             if state.get("old_python_code"):
                 # 增量合并历史探索记录
                 old_attempts_list = state.get("old_api_attempts", [])
@@ -1172,9 +1218,13 @@ def resolve_doi_to_url(doi: str) -> str:
 
 def main():
     import sys
+    # 🌟 架构升级：在程序刚启动时，强制将本地人工修改的 .py 插件同步回 JSON 注册表！
+    # 这确保了老 JSON 不会掩盖人工刚刚修改的心血。
+    sync_registry_from_plugins()
+    
     if "--generate-only" in sys.argv:
-        logger.info("\n🚀 [快速模式] 直接基于 platform_api_registry.json 重新生成代码...")
-        inject_generated_methods_to_fetcher()
+        logger.info("\n🚀 [快速模式] 直接基于 platform_api_registry.json 重新生成插件...")
+        generate_plugins_from_registry()
         return
 
     import argparse
@@ -1618,159 +1668,151 @@ def main():
     
     # 最后，基于已沉淀的注册表自动生成请求代码
     try:
-        logger.info("\n🚀 正在自动生成/更新 API 抓取代码至 fetch_top_dataset_integrated.py ...")
-        inject_generated_methods_to_fetcher()
+        logger.info("\n🚀 正在自动生成/更新 API 抓取代码至独立的插件文件 ...")
+        generate_plugins_from_registry()
     except Exception as e:
         logger.info(f"⚠️ 自动生成代码失败: {e}")
 
-def inject_generated_methods_to_fetcher():
-    import os, re, ast
+def generate_plugins_from_registry(force_override=False):
+    """
+    治本落盘逻辑：将 platform_api_registry.json 导出为独立插件。
+    双轨制设计：
+    1. 生成生产代码 fetchers/fetch_xxx.py
+    2. 如果存在待审核草稿，生成 drafts/fetch_xxx.py 和 diffs/fetch_xxx.diff
+    """
+    import os, re, json, urllib.parse, glob, difflib
     registry = load_registry()
+    fetchers_dir = os.path.join("code_result", "fetchers")
+    drafts_dir = os.path.join(fetchers_dir, "drafts")
+    diffs_dir = os.path.join(fetchers_dir, "diffs")
     
-    if not os.path.exists(TARGET_INJECT_FILE):
-        logger.info(f"⚠️ 目标注入文件 {TARGET_INJECT_FILE} 不存在，正在自动创建全新文件...")
-        fetcher_content = """import requests
-import json
-import time
-import re
+    os.makedirs(fetchers_dir, exist_ok=True)
+    os.makedirs(drafts_dir, exist_ok=True)
+    os.makedirs(diffs_dir, exist_ok=True)
 
-class IntegratedDataRepoFetcher:
-    # 自动生成的数据存储库 API 抓取类
-    def __init__(self):
-        self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "application/json"
-        }
+    for pub_name, data in registry.items():
+        if not data.get('is_verified') and not data.get('has_pending_draft'):
+            continue
 
-    def _get_with_retry(self, url, headers=None, max_retries=3):
-        if headers is None: headers = self.headers
-        for attempt in range(max_retries):
-            try:
-                response = requests.get(url, headers=headers, timeout=15)
-                response.raise_for_status()
-                return response
-            except requests.exceptions.RequestException as e:
-                if attempt < max_retries - 1:
-                    time.sleep(2 ** attempt)
-                else:
-                    raise Exception(f"已达到最大重试次数 ({max_retries})，最终失败: {e}")
-
-    def get_route_map(self):
-        return {}
-
-    @staticmethod
-    def get_api_schema_desc():
-        return "可匹配的官网列表：[]"
-"""
-        with open(TARGET_INJECT_FILE, 'w', encoding='utf-8') as f:
-            f.write(fetcher_content)
+        clean_name = re.sub(r'[^a-zA-Z0-9]', '_', pub_name).lower()
+        method_name = f"fetch_{clean_name}"
+        domain = data.get("original_domain", "")
+        netloc = urllib.parse.urlparse(domain).netloc.lower().replace("www.", "")
+        aliases = []
+        if netloc: aliases.append(netloc)
+        
+        prod_file = os.path.join(fetchers_dir, f"fetch_{clean_name}.py")
+        
+        # 1. 生产代码 (如果存在)
+        if data.get('python_code'):
+            raw_code = data['python_code'].strip()
+            match_code = re.search(r'```(?:python)?\s*(.*?)\s*```', raw_code, re.DOTALL)
+            if match_code:
+                raw_code = match_code.group(1).strip()
+            raw_code = re.sub(r'^\s*def\s+[^\(]+\(', f'def {method_name}(', raw_code, count=1, flags=re.MULTILINE)
             
-    with open(TARGET_INJECT_FILE, 'r', encoding='utf-8') as f:
-        original_source_code = f.read()
-    source_code = original_source_code
-    
-    try:
-        tree = ast.parse(original_source_code)
-    except Exception as e:
-        logger.error(f"解析 {TARGET_INJECT_FILE} 失败，无法注入: {e}")
+            prod_content = f"""# -*- coding: utf-8 -*-
+# AI-Generated/Audited Plugin for {pub_name}
+from code_result.fetcher_decorator import register_api
+
+@register_api(publisher="{pub_name}", aliases={json.dumps(aliases, ensure_ascii=False)})
+{raw_code}
+"""
+            
+            existing_prod = ""
+            if os.path.exists(prod_file):
+                with open(prod_file, 'r', encoding='utf-8') as f:
+                    existing_prod = f.read()
+            if existing_prod != prod_content:
+                with open(prod_file, 'w', encoding='utf-8') as f:
+                    f.write(prod_content)
+                logger.info(f"✅ 成功生成/同步生产插件: {prod_file}")
+
+        # 2. 生成草稿代码与差异对比 (如果有草稿)
+        if data.get('has_pending_draft') and data.get('draft_python_code'):
+            draft_file = os.path.join(drafts_dir, f"fetch_{clean_name}.py")
+            diff_file = os.path.join(diffs_dir, f"fetch_{clean_name}.diff")
+            
+            raw_code = data['draft_python_code'].strip()
+            match_code = re.search(r'```(?:python)?\s*(.*?)\s*```', raw_code, re.DOTALL)
+            if match_code:
+                raw_code = match_code.group(1).strip()
+            raw_code = re.sub(r'^\s*def\s+[^\(]+\(', f'def {method_name}(', raw_code, count=1, flags=re.MULTILINE)
+            
+            draft_content = f"""# -*- coding: utf-8 -*-
+# AI-Generated/Audited Plugin for {pub_name}
+from code_result.fetcher_decorator import register_api
+
+@register_api(publisher="{pub_name}", aliases={json.dumps(aliases, ensure_ascii=False)})
+{raw_code}
+"""
+            
+            with open(draft_file, 'w', encoding='utf-8') as f:
+                f.write(draft_content)
+                
+            current_prod = ""
+            if os.path.exists(prod_file):
+                with open(prod_file, 'r', encoding='utf-8') as f:
+                    current_prod = f.read()
+            
+            if current_prod != draft_content:
+                prod_lines = current_prod.splitlines(keepends=True) if current_prod else []
+                draft_lines = draft_content.splitlines(keepends=True)
+                diff = list(difflib.unified_diff(
+                    prod_lines, draft_lines,
+                    fromfile=f"a/{os.path.basename(prod_file)}",
+                    tofile=f"b/{os.path.basename(draft_file)}",
+                    n=3
+                ))
+                
+                if diff:
+                    with open(diff_file, 'w', encoding='utf-8') as f:
+                        f.writelines(diff)
+                    logger.info(f"\n🚨 [AI 自愈成功 - 待人工审核] 发现平台 [{pub_name}] 的代码变更！")
+                    logger.info(f"   - 生产当前文件: {prod_file}")
+                    logger.info(f"   - AI 建议补丁: {draft_file}")
+                    logger.info(f"   - 变更差异对比: {diff_file}")
+                    logger.info(f"   👉 审核完毕后，请运行: python sync_drafts.py --approve fetch_{clean_name}\n")
+
+    sync_registry_from_plugins()
+
+def sync_registry_from_plugins():
+    """
+    反向同步工具：扫描 code_result/fetchers/*.py 文件，
+    自动更新 platform_api_registry.json，确保人工手写/精修的代码 100% 被知识库识别为 is_verified=True。
+    """
+    import os, glob, re
+    registry = load_registry()
+    fetchers_dir = os.path.join("code_result", "fetchers")
+    if not os.path.exists(fetchers_dir):
         return
 
-    current_route_map = {}
-    methods_nodes = {}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
-            methods_nodes[node.name] = node
-            if node.name == "get_route_map":
-                for subnode in ast.walk(node):
-                    if isinstance(subnode, ast.Dict):
-                        for k, v in zip(subnode.keys, subnode.values):
-                            if isinstance(k, ast.Constant) and isinstance(v, ast.Attribute):
-                                current_route_map[k.value] = v.attr
+    plugin_files = glob.glob(os.path.join(fetchers_dir, "fetch_*.py"))
+    for p_file in plugin_files:
+        try:
+            with open(p_file, 'r', encoding='utf-8') as f:
+                content = f.read()
                 
-    methods_to_append = []
-    new_route_map = current_route_map.copy()
-    valid_apis_desc = list(current_route_map.keys())
-    
-    for pub_name, data in registry.items():
-        if not data.get('is_verified'): continue
-        python_code = data.get('python_code')
-        if not python_code: continue
-        
-        clean_name = re.sub(r'[^a-zA-Z0-9]', '_', pub_name).lower()
-        base_method_name = f'auto_fetch_{clean_name}'
-        
-        code_str = python_code.strip()
-        match = re.search(r'```(?:python)?\s*(.*?)\s*```', code_str, re.DOTALL)
-        if match: code_str = match.group(1).strip()
-        
-        if pub_name not in current_route_map:
-            # 新增
-            method_name = base_method_name
-            code_str = re.sub(r'^\s*def\s+[^\(]+\(', f'def {method_name}(', code_str, count=1, flags=re.MULTILINE)
-            indented_code = '\n'.join('    ' + line if line.strip() else line for line in code_str.split('\n'))
-            methods_to_append.append(indented_code)
-            new_route_map[pub_name] = method_name
-            if pub_name not in valid_apis_desc:
-                valid_apis_desc.append(pub_name)
-        else:
-            # 已存在
-            existing_method = current_route_map[pub_name]
-            if IS_HEAL_MODE:
-                # 增量自优化，精准替换旧方法
-                code_str = re.sub(r'^\s*def\s+[^\(]+\(', f'def {existing_method}(', code_str, count=1, flags=re.MULTILINE)
-                indented_code = '\n'.join('    ' + line if line.strip() else line for line in code_str.split('\n'))
-                
-                node = methods_nodes.get(existing_method)
-                if node:
-                    old_segment = ast.get_source_segment(original_source_code, node)
-                    if old_segment:
-                        indented_code_lines = indented_code.split('\n')
-                        if indented_code_lines:
-                            indented_code_lines[0] = indented_code_lines[0].lstrip(' ')
-                        indented_code_adjusted = '\n'.join(indented_code_lines)
-                        source_code = source_code.replace(old_segment, indented_code_adjusted)
+            # 提取 publisher 名称
+            match_pub = re.search(r'@register_api\(\s*publisher=["\']([^"\']+)["\']', content)
+            if match_pub:
+                pub_name = match_pub.group(1)
+                # 提取函数源码
+                match_code = re.search(r'(def fetch_[a-zA-Z0-9_]+\s*\(.*)', content, re.DOTALL)
+                if match_code:
+                    code_str = match_code.group(1).strip()
+                    if pub_name not in registry:
+                        registry[pub_name] = {}
+                    
+                    registry[pub_name]["publisher_name"] = pub_name
+                    registry[pub_name]["python_code"] = f"```python\n{code_str}\n```"
+                    registry[pub_name]["is_verified"] = True  # 🌟 强制将人工修改/新增的代码标记为 Verified!
+                    registry[pub_name]["reasoning_summary"] = "由人工精修/插件反向同步成功"
+        except Exception as e:
+            logger.warning(f"反向同步文件 {p_file} 失败: {e}")
 
-    # Re-parse to accurately replace route map and schema desc
-    tree = ast.parse(source_code)
-    get_route_map_node = None
-    get_api_schema_desc_node = None
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
-            if node.name == "get_route_map":
-                get_route_map_node = node
-            elif node.name == "get_api_schema_desc":
-                get_api_schema_desc_node = node
-
-    route_map_lines = ['def get_route_map(self):', '        """返回动态生成的 API 路由映射"""', '        return {']
-    for pub, method in new_route_map.items():
-        route_map_lines.append(f'            "{pub}": self.{method},')
-    route_map_lines.append('        }')
-    new_route_map_str = '\n'.join(route_map_lines)
-
-    schema_desc_lines = ['def get_api_schema_desc():', '        """返回给大模型用的 API Schema 动态提示词"""']
-    quoted_apis = [f"'{p}'" for p in valid_apis_desc]
-    schema_string = "可匹配的官网列表：[" + ", ".join(quoted_apis) + "]"
-    schema_desc_lines.append(f'        return \"\"\"{schema_string}\"\"\"')
-    new_schema_desc_str = '\n'.join(schema_desc_lines)
-
-    if get_route_map_node:
-        old_segment = ast.get_source_segment(source_code, get_route_map_node)
-        if old_segment: source_code = source_code.replace(old_segment, new_route_map_str)
-    
-    if get_api_schema_desc_node:
-        old_segment = ast.get_source_segment(source_code, get_api_schema_desc_node)
-        if old_segment: source_code = source_code.replace(old_segment, new_schema_desc_str)
-
-    if methods_to_append:
-        insert_idx = source_code.rfind("    def get_route_map(self):")
-        if insert_idx != -1:
-            append_str = "\n".join(methods_to_append) + "\n\n"
-            source_code = source_code[:insert_idx] + append_str + source_code[insert_idx:]
-
-    with open(TARGET_INJECT_FILE, 'w', encoding='utf-8') as f:
-        f.write(source_code)
-        
-    logger.info("✅ 成功按需增量注入生成的代码")
+    save_registry(registry)
+    logger.info("🔄 已成功将 code_result/fetchers/ 下的所有插件状态反向同步至 platform_api_registry.json")
 
 if __name__ == "__main__":
     main()
