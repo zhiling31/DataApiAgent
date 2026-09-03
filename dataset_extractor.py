@@ -8,10 +8,17 @@ from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 from langchain_core.tools import tool
 from langchain_tavily import TavilySearch
+from langchain_core.messages import ToolMessage
+from langchain_core.runnables.config import RunnableConfig
 import os
 import sys
 import requests
 import uuid
+import concurrent.futures
+import traceback
+
+
+TOOL_MAX_WORKERS = 5
 
 logger = logging.getLogger('DatasetAgent')
 if not logger.handlers:
@@ -46,6 +53,8 @@ SYSTEM_PROMPT = """你是一个资深的数据科学家。
 
 【核心纪律2】：宁缺毋滥，用户输入的 URL 实体即为检索与提取的最高物理边界，绝对禁止跨越实体边界去强行拼凑其他地理/项目子集的 DOI。仔细核对你找的数据集内容与用户描述的目标数据集名称以及URL内容是否一致，如果不一致，则不予收集，不要强行搜集DOI。根据最终确认的数据集链接确认数据存储官网。
 如果搜索到的 DOI 只是某篇引用该数据的论文 DOI 或个人临时导出包 DOI，绝对不要强行收集，不要误当作数据集官方本体 DOI！此类动态 DOI 必须排除，`doi` 返回 null
+
+【核心纪律3】：【型号/变体/后缀严格对齐】数据集或模型名称中的后缀/变体标识（如 GGM05 vs GGM05C/GGM05S，或 ERA5 vs ERA5-Land）代表不同的科学解或衍生变体。如果用户请求的是 GGM05（未带后缀），严禁提取 GGM05C 的专有 DOI！宁可 doi 返回 null，也绝对禁止用变体/子型号的 DOI 强行顶替！
 
 """
 
@@ -91,9 +100,10 @@ def run_extraction(messages, custom_request_llm_invoke):
 【目标版本数据集的DOI 提取】
 请务必仔细检查目标版本在上下文中的元数据，只要上下文中出现了该版本的 DOI（通常以 10.xxxx/xxxx 的格式出现），你【必须】将其提取到 doi 字段中，绝不允许漏提 DOI！请务必在收到的文本中仔细排查 DOI。
 
-【核心纪律】：宁缺毋滥，用户输入的 URL 实体即为检索与提取的最高物理边界，绝对禁止跨越实体边界去强行拼凑其他地理/项目子集的 DOI。仔细核对你找的数据集内容与用户描述的目标数据集名称以及URL内容是否一致，如果不一致，则不予收集，不要强行搜集DOI。根据最终确认的数据集链接确认数据存储官网。
-如果搜索到的 DOI 只是某篇引用该数据的论文 DOI 或个人临时导出包 DOI，绝对不要强行收集，不要误当作数据集官方本体 DOI！此类动态 DOI 必须排除，`doi` 返回 null
-
+【核心纪律】：
+1.  宁缺毋滥，用户输入的 URL 实体即为检索与提取的最高物理边界，绝对禁止跨越实体边界去强行拼凑其他地理/项目子集的 DOI。仔细核对你找的数据集内容与用户描述的目标数据集名称以及URL内容是否一致，如果不一致，则不予收集，不要强行搜集DOI。根据最终确认的数据集链接确认数据存储官网。
+2.  如果搜索到的 DOI 只是某篇引用该数据的论文 DOI 或个人临时导出包 DOI，绝对不要强行收集，不要误当作数据集官方本体 DOI！此类动态 DOI 必须排除，`doi` 返回 null
+3. 【型号/变体/后缀严格对齐】数据集或模型名称中的后缀/变体标识（如 GGM05 vs GGM05C/GGM05S，或 ERA5 vs ERA5-Land）代表不同的科学解或衍生变体。如果用户请求的是 GGM05（未带后缀），严禁提取 GGM05C 的专有 DOI！宁可 doi 返回 null，也绝对禁止用变体/子型号的 DOI 强行顶替！
 
 【格式要求】
 你必须输出一段合法的 JSON 字符串，且必须严格符合以下 JSON Schema 结构：
@@ -132,7 +142,7 @@ def run_extraction(messages, custom_request_llm_invoke):
     return response, extracted_datasets
 
 if "TAVILY_API_KEY" not in os.environ:
-    os.environ["TAVILY_API_KEY"] = "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"
+    os.environ["TAVILY_API_KEY"] = "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"
 web_search_tool = TavilySearch(max_results=5, include_answer=True, search_depth="advanced")
 
 @tool
@@ -185,12 +195,19 @@ def read_and_verify_url(url_or_doi: str) -> str:
     try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
+            # browser = p.chromium.launch(headless=True)
+            # context = browser.new_context()
+            # page = context.new_page()
+            # page.goto(url_or_doi, timeout=60000, wait_until="domcontentloaded")
+            # text = page.locator("body").inner_text()
+            # browser.close() # 抓完直接销毁浏览器实例
+
             browser = p.chromium.connect_over_cdp("http://127.0.0.1:9223")
-            default_context = browser.contexts[0]
-            page = default_context.new_page()
+            context = browser.new_context()
+            page = context.new_page()
             page.goto(url_or_doi, timeout=60000, wait_until="domcontentloaded")
             text = page.locator("body").inner_text()
-            page.close()
+            context.close()
             text = re.sub(r'\s+', ' ', text).strip()
             return f"【CDP 网页抓取成功】(截取了前10000字符):\n{text[:10000]}"
     except Exception as e:
@@ -314,6 +331,7 @@ def verify_semantic_node(state: ExtractorState):
 1. 【实体错位 / 张冠李戴】：获取的网页标题和描述与目标指纹完全不符，或者是一个毫不相关的论文。
 2. 【子实体/地名越界错位】：如果目标指纹请求的是一个【全局/宏观/不限定地名的数据集】，而落地页内容中强行限定了某个【具体国家/州/地方名】，这属于典型的子实体错位！必须判定 VALID: NO！
 3. 【非数据集本体DOI】描述不是数据集本体，而是论文，一票否决
+4. 【型号/变体/后缀强行替换】：如果目标指纹请求的是某个基础型号/模型（如 "GGM05"、"ERA5"），而落地页内容描述的是带特定变体后缀/特定解的衍生型号（如 "GGM05C"、"GGM05S"、"ERA5-Land"），且目标指纹中并未包含该后缀，属于变体/型号错位！必须判定 VALID: NO！
 
 【防误杀】
 即使DOI落地页的内容类型type 显示为 "article"，也可能是数据集本体，type并不准确，不可作为一票否决的条件。 例如数据集出版系列旗下包含了多个子数据集，有时候type就是 "article"，需要仔细甄别。 重点判断目标数据集与落地页内容描述是否一致，不要被无关信息干扰
@@ -351,12 +369,46 @@ REASON: [一句话说明放行或拦截的理由]
             
     return {"extracted_datasets": valid_datasets}
 
+
+
+class ConcurrentToolNode:
+    def __init__(self, tools, max_workers=TOOL_MAX_WORKERS):
+        self.tools_by_name = {t.name: t for t in tools}
+        self.max_workers = max_workers
+
+    def __call__(self, state: dict, config: RunnableConfig):
+        messages = state.get("messages", [])
+        if not messages:
+            return {}
+        last_message = messages[-1]
+        if not hasattr(last_message, "tool_calls") or not last_message.tool_calls:
+            return {}
+
+        def _invoke_tool(tool_call):
+            tool_name = tool_call["name"]
+            tool_args = tool_call["args"]
+            tool_call_id = tool_call["id"]
+            if tool_name not in self.tools_by_name:
+                return ToolMessage(content=f"Error: Tool {tool_name} not found.", tool_call_id=tool_call_id)
+            tool = self.tools_by_name[tool_name]
+            try:
+                # config is injected automatically by tool.invoke
+                result = tool.invoke(tool_args, config=config)
+                return ToolMessage(content=str(result), tool_call_id=tool_call_id)
+            except Exception as e:
+                return ToolMessage(content=f"Error: {e}\\n{traceback.format_exc()}", tool_call_id=tool_call_id)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(self.max_workers, len(last_message.tool_calls))) as executor:
+            tool_messages = list(executor.map(_invoke_tool, last_message.tool_calls))
+            
+        return {"messages": tool_messages}
+
 def extract_dataset_info(dataset_info_dict: dict, custom_request_llm_invoke) -> List[dict]:
     """统一的黑盒提取入口：执行搜寻和结构化提取，返回 DatasetInfo 字典列表"""
     workflow = StateGraph(ExtractorState)
     
     workflow.add_node("researcher", research_and_verify_node)
-    workflow.add_node("tools", ToolNode(tools))
+    workflow.add_node("tools", ConcurrentToolNode(tools, max_workers=TOOL_MAX_WORKERS))
     workflow.add_node("extractor", extract_node)
     workflow.add_node("verify_semantic", verify_semantic_node)
     

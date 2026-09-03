@@ -1,57 +1,84 @@
 # -*- coding: utf-8 -*-
-from fetch_publisher_api import workflow
-import os
-import json
-import re
-import sys
-import uuid
-import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-global_file_lock = threading.Lock()
-MAX_WORKERS = 5
-import logging
+import argparse
+import copy
 import datetime
+import glob
+import importlib
+import json
+import logging
+import os
+import re
+import requests
+import sys
+import threading
+import time
 import traceback
 import urllib3
-from typing import TypedDict, Annotated, List, Optional
-from pydantic import BaseModel, Field
+import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from curl_cffi import requests as cffi_requests
+from dataset_extractor import extract_dataset_info
+from dataset_extractor import tools
+from fetch_datacite_metadata import fetch_from_datacite, fetch_from_crossref, fetch_with_retry
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from langgraph.graph import StateGraph, END
-from langgraph.prebuilt import ToolNode
-import requests
-from bs4 import BeautifulSoup
-from curl_cffi import requests
 from langchain_core.tools import tool
 from langchain_core.utils.function_calling import convert_to_openai_tool
-from langchain_tavily import TavilySearch
+from langgraph.graph import StateGraph, END
+from langgraph.prebuilt import ToolNode
+from pydantic import BaseModel, Field
+from typing import TypedDict, Annotated, List, Optional
+
+
+# ==========================================
+# 0. 全局配置与参数管理
+# ==========================================
+
+# -----------------
+# 0.1 线程与并发控制
+# -----------------
+# 控制主处理流程的最大线程数（每个线程处理一条数据集记录）
+MAX_WORKERS = 5
+# 全局文件锁，用于保护多线程并发时对本地日志、缓存等文件的写入操作
+global_file_lock = threading.Lock()
+# 大模型并发请求信号量，限制向云端发送 POST 请求的最大并行数，防止触发 429 限流
+llm_semaphore = threading.Semaphore(10)
+
+# -----------------
+# 0.2 文件路径配置
+# -----------------
+# 输入的原始数据集文件 (制表符分隔) Crustal ages_master-35个
+INPUT_DATASET_FILE = r"D:\地学\doi\数据清单\test\Faults_master-26个_unique_website.txt"
+# 运行结果(成功或报错的 JSON)的保存目录
+OUTPUT_RESULTS_DIR = r"D:\地学\doi\数据清单\test\Faults_master-26个"
+# 数据集缓存文件，用于记录已经成功提取过目标版本信息的数据集
+dataset_info_cache_file = os.path.join(OUTPUT_RESULTS_DIR, "dataset_info_cache.json")
+# 未命中任何已知官网知识库 API 的记录文件
+MISSING_REGISTRY_FILE = os.path.join(OUTPUT_RESULTS_DIR, "missing_registry_datasets.txt")
+# 多 API 尝试期间，中间抓取失败的备用日志
+API_FALLBACK_LOG_FILE = os.path.join(OUTPUT_RESULTS_DIR, "api_fallback_errors.log")
+# 官方注册机构 (doi.org, DataCite, Crossref) 调用出错的日志
+REGISTRY_API_LOG_FILE = os.path.join(OUTPUT_RESULTS_DIR, "doi_registry_api_errors.log")
+
+# -----------------
+# 0.3 业务逻辑参数配置
+# -----------------
+# 每次批量测试的最大数量（如果指定了 --id 进行单测，此限制将被忽略）
+MAX_RECORDS_TO_PROCESS = 35
+# 是否启用数据集大模型提取信息的本地缓存
+USE_DATASET_INFO_CACHE = True
+# 续传模式: 
+# "1": 只要有结果(成功或报错)即跳过该条目
+# "2-1": 只要有报错结果(_error.json)，即删除报错文件并重新跑完整大模型检索流程
+# "2-2": 只要有报错结果(_error.json)，提取原报错文件中的信息，跳过大模型检索，直接重新跑 API 获取流程
+# "2-3": 只要有报错结果(_error.json)，提取原报错文件中的信息，但是重新交给大模型匹配目标 API 后抓取
+RESUME_MODE = "1"
+# 大模型搜索节点的最大循环思考次数 (默认 35，值过大会增加死循环和 Token 爆炸的风险)
+MAX_SEARCH_ITERATIONS = 35
+# 动态导入的具体抓取脚本模块路径，方便后续随官网更新而动态替换抓取脚本版本
+INTEGRATED_FETCHER_MODULE = "code_result.fetch_top_dataset_integrated"
 
 # 屏蔽 SSL 警告
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# ==========================================
-# 0. 全局配置 (文件路径修改区)
-# ==========================================
-# 你可以在这里修改所有的输入输出文件路径
-INPUT_DATASET_FILE = r"D:\地学\doi\数据清单\20260820-第二批数据集\Gravity_master-27个.txt"       # 输入的原始数据集文件 (制表符分隔)
-OUTPUT_RESULTS_DIR = r"D:\地学\doi\数据清单\20260820-第二批数据集\Gravity_master-27个"                     # 运行结果(成功或报错的 JSON)的保存目录
-USE_DATASET_INFO_CACHE = True                               # 是否启用数据集提取信息缓存
-dataset_info_cache_file = os.path.join(OUTPUT_RESULTS_DIR, "dataset_info_cache.json")
-MISSING_REGISTRY_FILE = os.path.join(OUTPUT_RESULTS_DIR, "missing_registry_datasets.txt")  # 未命中知识库的数据集保存文件
-API_FALLBACK_LOG_FILE = os.path.join(OUTPUT_RESULTS_DIR, "api_fallback_errors.log")            # 多API尝试时，中间失败的日志
-REGISTRY_API_LOG_FILE = os.path.join(OUTPUT_RESULTS_DIR, "doi_registry_api_errors.log")            # 注册机构(doi.org, DataCite, Crossref)的报错日志
-MAX_RECORDS_TO_PROCESS = 60                              # 每次批量测试的最大数量
-# 续传模式: 
-# "1": 只要有结果(成功或报错)即跳过
-# "2-1": 只要有报错结果(_error.json)，即删除报错文件并重新跑完整大模型检索流程
-# "2-2": 只要有报错结果(_error.json)，提取原报错文件中的信息，跳过大模型检索，直接重新跑 API 获取流程
-# "2-3": 只要有报错结果(_error.json)，提取原报错文件中的信息，但是重新匹配API
-RESUME_MODE = "2-2"                                      
-MAX_SEARCH_ITERATIONS = 35                               # 大模型检索的最大循环思考次数 (默认25，值过大会增加死循环和Token爆炸的风险)
-INTEGRATED_FETCHER_MODULE = "code_result.fetch_top_dataset_integrated_0728"  # 动态导入抓取脚本的模块路径，方便后续更新
-
-import logging
-import sys
 
 # ==========================================
 # Logger Configuration
@@ -60,28 +87,27 @@ os.makedirs(OUTPUT_RESULTS_DIR, exist_ok=True)
 logger = logging.getLogger('DatasetAgent')
 logger.setLevel(logging.INFO)
 # Avoid adding handlers multiple times if module is reloaded
-if not logger.handlers:
-    fh = logging.FileHandler(os.path.join(OUTPUT_RESULTS_DIR, 'batch_process.log'), encoding='utf-8')
-    fh.setLevel(logging.INFO)
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.INFO)
-    formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    fh.setFormatter(formatter)
-    ch.setFormatter(formatter)
-    logger.addHandler(fh)
-    logger.addHandler(ch)
+# Clear existing handlers (like the one added by dataset_extractor.py)
+logger.handlers.clear()
+
+fh = logging.FileHandler(os.path.join(OUTPUT_RESULTS_DIR, 'batch_process.log'), encoding='utf-8')
+fh.setLevel(logging.INFO)
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(ch)
 
 
 # ==========================================
 # 1. 导入已有工具模块
 # ==========================================
-import importlib
 IntegratedDataRepoFetcher = importlib.import_module(INTEGRATED_FETCHER_MODULE).IntegratedDataRepoFetcher
-from fetch_datacite_metadata import fetch_from_datacite, fetch_from_crossref, fetch_with_retry
 
 
 # Tools are now imported from dataset_extractor.py
-from dataset_extractor import tools
 
 def custom_request_llm_invoke(messages, use_tools=False, json_mode=False, custom_tools=None):
     url = "https://ai.zj-computility.com/maas/v1/chat/completions"
@@ -134,11 +160,11 @@ def custom_request_llm_invoke(messages, use_tools=False, json_mode=False, custom
         tools_to_use = custom_tools if custom_tools is not None else tools
         payload["tools"] = [convert_to_openai_tool(t) for t in tools_to_use]
         
-    import time
     max_retries = 6
     for attempt in range(max_retries):
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=120, verify=False)
+            with llm_semaphore:
+                response = requests.post(url, headers=headers, json=payload, timeout=120, verify=False)
             response.raise_for_status()
             break
         except requests.exceptions.RequestException as e:
@@ -193,7 +219,6 @@ def custom_request_llm_invoke(messages, use_tools=False, json_mode=False, custom
     return ai_message
 # ----------------- 手动补丁 (Request 接口改写) 结束 -----------------
 
-from dataset_extractor import extract_dataset_info
 
 class TargetApiMatch(BaseModel):
     target_api_name: List[str] = Field(
@@ -238,7 +263,7 @@ def match_target_api_with_llm(dataset_info: dict, custom_request_llm_invoke) -> 
 def resolve_doi_to_url(doi: str) -> str:
     try:
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"}
-        res = requests.get(f"https://doi.org/{doi}", allow_redirects=True, timeout=15, headers=headers)
+        res = cffi_requests.get(f"https://doi.org/{doi}", allow_redirects=True, timeout=30, headers=headers, impersonate="chrome110")
         return res.url
     except Exception as e:
         logger.error(f"  {doi} ⚠️ [DOI重定向] 解析失败: {e}")
@@ -292,7 +317,6 @@ def fetch_metadata_node(state: dict):
             res, err = fetch_with_retry(f"https://doi.org/{doi}", headers=headers, max_retries=3)
             if err:
                 doi_org_data = {"error": err}
-                import datetime
                 with global_file_lock:
                     with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
                         f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: doi.org | ERROR: {err}\n")
@@ -302,14 +326,12 @@ def fetch_metadata_node(state: dict):
                     logger.info("      ✅ 成功")
                 except Exception as e:
                     doi_org_data = {"error": f"JSON解析错误: {e}"}
-                    import datetime
                     with global_file_lock:
                         with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
                             f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: doi.org | ERROR: JSON Parse Error {e}\n")
             else:
                 status = res.status_code if res else "Unknown"
                 doi_org_data = {"error": f"HTTP {status}"}
-                import datetime
                 with global_file_lock:
                     with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
                         f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: doi.org | ERROR: HTTP {status}\n")
@@ -323,7 +345,6 @@ def fetch_metadata_node(state: dict):
                 logger.info("      ✅ DataCite 成功")
             else:
                 if err:
-                    import datetime
                     with global_file_lock:
                         with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
                             f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: DataCite | ERROR: {err}\n")
@@ -334,7 +355,6 @@ def fetch_metadata_node(state: dict):
                 else:
                     datacite_crossref_data = {"error": f"DataCite error: {err} | Crossref error: {err2}"}
                     if err2:
-                        import datetime
                         with global_file_lock:
                             with open(REGISTRY_API_LOG_FILE, "a", encoding="utf-8") as f:
                                 f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | Registry: Crossref | ERROR: {err2}\n")
@@ -354,14 +374,35 @@ def fetch_metadata_node(state: dict):
         
             success = False
             for api_name in target_apis:
-                logger.info(f"      ▶ 尝试 API: {api_name}")
+                logger.info(f"      👉 尝试 API: {api_name}")
                 matched_func = route_map.get(api_name)
             
                 if not matched_func:
-                    err_msg = f"未找到 '{api_name}' 的生成代码"
+                    err_msg = "[UNREGISTERED_UNKNOWN_PLATFORM] 未找到生成代码，平台未知"
                     logger.warning(f"      ⚠️ {err_msg}")
                     api_attempts.append({"api": api_name, "error": err_msg})
-                    import datetime
+                    with global_file_lock:
+                        with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
+                            f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
+                    continue
+                
+                # 0ms Interception Logic
+                is_reviewed = getattr(matched_func, "is_reviewed", False)
+                if not is_reviewed:
+                    err_msg = "[NO_REVIEWED_API] 平台API尚未人工审核，拒绝执行"
+                    logger.warning(f"      ⚠️ {err_msg}")
+                    api_attempts.append({"api": api_name, "error": err_msg})
+                    with global_file_lock:
+                        with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
+                            f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
+                    continue
+
+                has_api = getattr(matched_func, "has_api", True)
+                if not has_api:
+                    auditor_notes = getattr(matched_func, "auditor_notes", "无")
+                    err_msg = f"[KNOWN_NO_API_PLATFORM] 审核备注: {auditor_notes}"
+                    logger.warning(f"      ⚠️ {err_msg}")
+                    api_attempts.append({"api": api_name, "error": err_msg})
                     with global_file_lock:
                         with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
                             f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
@@ -372,12 +413,10 @@ def fetch_metadata_node(state: dict):
                         
                     if "error" in official_api_data:
                         raw_error = official_api_data['error']
-                        import re
                         raw_error = re.sub(r'，[^，]*兜底.*', '', raw_error)
-                        err_msg = raw_error
+                        err_msg = f"[VERIFIED_API_EXEC_ERROR] {raw_error}"
                         api_attempts.append({"api": api_name, "error": err_msg})
                         logger.warning(f"      ⚠️ API 报错: {err_msg}")
-                        import datetime
                         with global_file_lock:
                             with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
                                 f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
@@ -390,7 +429,6 @@ def fetch_metadata_node(state: dict):
                     err_msg = str(e)
                     api_attempts.append({"api": api_name, "error": err_msg})
                     logger.warning(f"      ⚠️ 参数不足: {err_msg}")
-                    import datetime
                     with global_file_lock:
                         with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
                             f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
@@ -398,7 +436,6 @@ def fetch_metadata_node(state: dict):
                     err_msg = str(e)
                     api_attempts.append({"api": api_name, "error": err_msg})
                     logger.warning(f"      ⚠️ 调用异常: {err_msg}")
-                    import datetime
                     with global_file_lock:
                         with open(API_FALLBACK_LOG_FILE, "a", encoding="utf-8") as f:
                             f.write(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] DOI: {doi} | API: {api_name} | ERROR: {err_msg}\n")
@@ -428,10 +465,6 @@ def fetch_metadata_node(state: dict):
 
 # 5. 批量测试与日志输出
 # ==========================================
-import os
-import sys
-import datetime
-import traceback
 
 if sys.stdout.encoding.lower() != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
@@ -527,7 +560,6 @@ def process_single_dataset(line, idx_line, target_id, headers, data_dir, dataset
     logger.info(f"用户原始输入：{formatted_line}")
     
     # 断点续传逻辑更新：检查是否存在以该 dataset_id- 开头的 JSON 文件
-    import glob
     existing_files = glob.glob(os.path.join(data_dir, f"{dataset_id}-*.json"))
     success_files = [f for f in existing_files if not f.endswith("_error.json") and not f.endswith("_crash.json")]
     error_files = [f for f in existing_files if f.endswith("_error.json") or f.endswith("_crash.json")]
@@ -610,12 +642,24 @@ def process_single_dataset(line, idx_line, target_id, headers, data_dir, dataset
             # 检查缓存
             if USE_DATASET_INFO_CACHE and str(dataset_id) in dataset_info_cache:
                 logger.info(f"🎯 从缓存中命中了数据集提取信息: {dataset_id}")
-                import copy
                 extracted_datasets = copy.deepcopy(dataset_info_cache[str(dataset_id)])
             
             # 如果没命中缓存，则走大模型提取
             if not extracted_datasets:
                 extracted_datasets = extract_dataset_info(test_input_dict, custom_request_llm_invoke)
+                # 提取完成后立刻保存到缓存（受全局锁保护）
+                if USE_DATASET_INFO_CACHE and extracted_datasets:
+                    with global_file_lock:
+                        # 存入缓存时剔除 target_api_name
+                        cache_data = copy.deepcopy(extracted_datasets)
+                        for ds in cache_data:
+                            ds.pop("target_api_name", None)
+                        dataset_info_cache[str(dataset_id)] = cache_data
+                        try:
+                            with open(dataset_info_cache_file, "w", encoding="utf-8") as f:
+                                json.dump(dataset_info_cache, f, ensure_ascii=False, indent=2)
+                        except Exception as e:
+                            logger.error(f"⚠️ 缓存写入文件失败: {e}")
             
             for ds in extracted_datasets:
                 if "target_api_name" not in ds:
@@ -651,7 +695,6 @@ def process_single_dataset(line, idx_line, target_id, headers, data_dir, dataset
                 raw_suffix = f"v{idx+1}"
                 
             # 清理后缀中的特殊字符（DOI中的斜杠会被替换为下划线）
-            import re
             suffix = re.sub(r'[\\/*?:"<>|]', '_', str(raw_suffix))
             
             # 判断是否成功：如果有 official_api 且没有 error
@@ -688,18 +731,19 @@ def process_single_dataset(line, idx_line, target_id, headers, data_dir, dataset
                 if is_missing_registry:
                     logger.warning(f"⚠️ 未命中官网知识库 API，已保存至 {error_file}，并追加到 {MISSING_REGISTRY_FILE}")
                     missing_file = MISSING_REGISTRY_FILE
-                    # 确保如果写入多个缺失版本，原始文本行也能被追加（这里统一记录该行）
-                    # 如果文件不存在，写入表头
-                    if not os.path.exists(missing_file) and header_line:
-                        with open(missing_file, "w", encoding="utf-8") as f:
-                            f.write(header_line.strip() + "\t内部版本标识\t提取到的版本号\t缺失的官网名称(提取值)\t提取的DOI\n")
                     # 实时追加
                     missing_publisher = input_summary.get("official_website") or "Unknown"
                     missing_doi = input_summary.get("doi") or "NULL"
                     extracted_version = input_summary.get("version_name") or "Unknown"
                     
-                    with open(missing_file, "a", encoding="utf-8") as f:
-                        f.write(f"{line}\t[{suffix}]\t{extracted_version}\t{missing_publisher}\t{missing_doi}\n")
+                    with global_file_lock:
+                        # 确保如果写入多个缺失版本，原始文本行也能被追加（这里统一记录该行）
+                        # 如果文件不存在，写入表头
+                        if not os.path.exists(missing_file) and header_line:
+                            with open(missing_file, "w", encoding="utf-8") as f:
+                                f.write(header_line.strip() + "\t内部版本标识\t提取到的版本号\t缺失的官网名称(提取值)\t提取的DOI\n")
+                        with open(missing_file, "a", encoding="utf-8") as f:
+                            f.write(f"{line}\t[{suffix}]\t{extracted_version}\t{missing_publisher}\t{missing_doi}\n")
                 else:
                     logger.warning(f"⚠️ 官网API请求报错，已保存至 {error_file}")
             
@@ -713,7 +757,6 @@ def process_single_dataset(line, idx_line, target_id, headers, data_dir, dataset
 
 
 if __name__ == "__main__":
-    import argparse
     parser = argparse.ArgumentParser(description="批量处理数据集")
     parser.add_argument("--id", type=str, help="指定要单独测试的数据集ID", default=None)
     args = parser.parse_args()

@@ -9,8 +9,9 @@ def clean_text(text):
     cleaned = re.sub(r'[,，:：\-–—]', ' ', str(text))
     return re.sub(r'\s+', ' ', cleaned).strip()
 
-target_dir = r"D:\地学\doi\数据清单\geophysics-Electrical and Electromagnetic Exploration Methods\data"
-output_file = r"D:\地学\doi\数据清单\geophysics-Electrical and Electromagnetic Exploration Methods\agent_result_stats.xlsx"
+# 20260831-第三批数据集\Faults_master-26个
+target_dir = r"D:\地学\doi\数据清单\20260831-第三批数据集\Crustal ages_master-35个\data"
+output_file = r"D:\地学\doi\数据清单\20260831-第三批数据集\Crustal ages_master-35个\agent_result_stats.xlsx"
 
 total_count = 0
 success_count = 0
@@ -56,10 +57,32 @@ for filename in os.listdir(target_dir):
         
     api_matches = {}
     
+    has_doi = bool(doi and str(doi).strip())
+    metadata_sources = data.get("metadata_sources", {})
+    
+    doi_org_data = metadata_sources.get("doi_org", {}).get("data", {})
+    title = doi_org_data.get("title", "")
+    abstract = doi_org_data.get("abstract", "")
+    original_dataset_name = original_input.get("dataset_name", "")
+
+    if has_doi:
+        if original_dataset_name and title:
+            name_clean = clean_text(str(original_dataset_name).strip())
+            title_clean = clean_text(str(title).strip())
+            try:
+                pattern = re.escape(name_clean).replace(r'\ ', r'\s+')
+                match_obj = re.search(pattern, title_clean, re.IGNORECASE)
+                api_matches["name是否在doi_title里"] = bool(match_obj)
+                if match_obj:
+                    start = max(0, match_obj.start() - 10)
+                    end = min(len(title_clean), match_obj.end() + 10)
+                    api_matches["name在doi_title里的匹配上下文"] = title_clean[start:end]
+            except Exception:
+                api_matches["name是否在doi_title里"] = False
+        else:
+            api_matches["name是否在doi_title里"] = None
+
     if not is_error:
-        has_doi = bool(doi and str(doi).strip())
-        metadata_sources = data.get("metadata_sources", {})
-        
         official_api = metadata_sources.get("official_api", "")
         if official_api:
             if isinstance(official_api, dict):
@@ -69,11 +92,6 @@ for filename in os.listdir(target_dir):
             else:
                 api_list = [official_api]
                 
-            doi_org_data = metadata_sources.get("doi_org", {}).get("data", {})
-            title = doi_org_data.get("title", "")
-            abstract = doi_org_data.get("abstract", "")
-            original_dataset_name = original_input.get("dataset_name", "")
-
             for i, api_item in enumerate(api_list):
                 if isinstance(api_item, (dict, list)):
                     api_str = json.dumps(api_item, ensure_ascii=False)
@@ -90,7 +108,12 @@ for filename in os.listdir(target_dir):
                         title_clean = clean_text(str(title).strip())
                         try:
                             pattern = re.escape(title_clean).replace(r'\ ', r'\s+')
-                            t_match = bool(re.search(pattern, clean_api_str, re.IGNORECASE))
+                            match_obj = re.search(pattern, clean_api_str, re.IGNORECASE)
+                            t_match = bool(match_obj)
+                            if match_obj:
+                                start = max(0, match_obj.start() - 10)
+                                end = min(len(clean_api_str), match_obj.end() + 10)
+                                api_matches[f"api{i+1}title匹配上下文"] = clean_api_str[start:end]
                         except Exception:
                             t_match = False
                             
@@ -110,7 +133,12 @@ for filename in os.listdir(target_dir):
                         name_clean = clean_text(str(original_dataset_name).strip())
                         try:
                             pattern = re.escape(name_clean).replace(r'\ ', r'\s+')
-                            n_match = bool(re.search(pattern, clean_api_str, re.IGNORECASE))
+                            match_obj = re.search(pattern, clean_api_str, re.IGNORECASE)
+                            n_match = bool(match_obj)
+                            if match_obj:
+                                start = max(0, match_obj.start() - 10)
+                                end = min(len(clean_api_str), match_obj.end() + 10)
+                                api_matches[f"api{i+1}name匹配上下文"] = clean_api_str[start:end]
                         except Exception:
                             n_match = False
                     api_matches[f"api{i+1}name是否正确"] = n_match

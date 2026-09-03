@@ -1,0 +1,78 @@
+总计: 66 个平台
+====================================
+【有可用 API】 (共 53 个):
+ - Alaska Division of Geological & Geophysical Surveys
+ - BC Data Catalogue
+ - BGS Hosted Metadata (GeoNetwork)
+ - British Columbia Data Catalogue
+ - British Columbia Geological Survey (BC Data Catalogue)
+ - British Geological Survey (BGS) - National Geoscience Data Centre (NGDC)
+ - CEUS-SSC (EPRI)
+ - Center for Space Research (CSR), The University of Texas at Austin
+ - China Active Fault Database (data.activetectonics.cn ArcGIS Portal)
+ - Colorado Geological Survey
+ - Council for Geoscience
+ - Dryad
+ - ESA Earth Online
+ - ESS-DIVE
+ - EarthChem Library
+ - EarthWorks Stanford
+ - GBIF
+ - GEUS Dataverse
+ - GFZ Data Services
+ - GNS Science
+ - Geoscience Australia
+ - Hugging Face
+ - ICGEM
+ - ICOS Carbon Portal
+ - IGME-CSIC GeoNetwork Catalog (catalogo.igme.es)
+ - Istituto Nazionale di Geofisica e Vulcanologia (INGV)
+ - J-SHIS / NIED Repository
+ - LAADS DAAC
+ - Mendeley Data
+ - NASA Earthdata / NASA Earthdata(Socioeconomic Data and Applications Center – SEDAC)
+ - NERC EDS National Geoscience Data Centre
+ - NERC EDS UK Polar Data Centre
+ - NOAA National Centers for Environmental Information (NCEI)
+ - NOAA Science On a Sphere
+ - NSW Resources
+ - OSTI
+ - Open Government Portal
+ - Open Yukon / Government of Yukon
+ - OpenDataNI
+ - OpenEI / Geothermal Data Repository (GDR)
+ - Oregon GEOHub
+ - PANGAEA
+ - PO.DAAC
+ - ROSAP (National Transportation Library)
+ - Registry of Open Data on AWS
+ - Science Data Bank (ScienceDB)
+ - U.S. Geological Survey (USGS)
+ - U.S. Geological Survey (USGS) - Mineral Resources Online Spatial Data (MRData)
+ - USGS National Map
+ - USGS ScienceBase
+ - Utah Geospatial Resource Center (UGRC)
+ - Zenodo
+ - figshare
+
+====================================
+【无可用 API / 不合规】 (共 13 个):
+ - 3Dflow
+ - Agisoft
+ - Amazon S3
+ - DigitalOcean Spaces
+ - EarthByte
+ - GMT China / gmt-china/china-geospatial-data
+ - Geochron
+ - International Service for the Geoid (ISG)
+ - MicroSurvey Helpdesk
+ - NASA Goddard Space Flight Center (earth.gsfc.nasa.gov)
+ - Southern California Earthquake Center (SCEC)
+ - 中国地震科学实验场
+ - 国家地球系统科学数据中心 (geodata.cn)
+
+====================================
+【注册表有，生产区代码无 (Gap)】 (共 0 个):
+
+====================================
+【注册表无，生产区代码有 (Gap)】 (共 0 个):

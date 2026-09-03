@@ -22,7 +22,7 @@ REGISTRY_API_LOG_FILE = "agent_results0804/registry_api_errors.log"            #
 MAX_RECORDS_TO_PROCESS = 10                               # 每次批量测试的最大数量
 STRICT_RESUME_MODE = False                               # 续传模式: False=只要有1个成功版就跳过; True=只要有报错版(或全错)就必须重跑
 MAX_SEARCH_ITERATIONS = 35                               # 大模型检索的最大循环思考次数 (默认25，值过大会增加死循环和Token爆炸的风险)
-INTEGRATED_FETCHER_MODULE = "output0728.fetch_top_dataset_integrated_0728"  # 动态导入抓取脚本的模块路径，方便后续更新
+INTEGRATED_FETCHER_MODULE = "output0728.fetch_top_dataset_integrated"  # 动态导入抓取脚本的模块路径，方便后续更新
 
 import logging
 import sys
@@ -226,7 +226,7 @@ def read_and_verify_url(url_or_doi: str) -> str:
 tools = [academic_web_search, read_and_verify_url]
 
 
-def custom_request_llm_invoke(messages, use_tools=False, json_mode=False):
+def custom_request_llm_invoke(messages, use_tools=False, json_mode=False, custom_tools=None):
     url = "https://ai.zj-computility.com/maas/v1/chat/completions"
     headers = {
         "Authorization": "Bearer sk-5ve6fyd4fyd2ne33",
@@ -274,7 +274,8 @@ def custom_request_llm_invoke(messages, use_tools=False, json_mode=False):
         payload["response_format"] = {"type": "json_object"}
         
     if use_tools:
-        payload["tools"] = [convert_to_openai_tool(t) for t in tools]
+        tools_to_use = custom_tools if custom_tools is not None else tools
+        payload["tools"] = [convert_to_openai_tool(t) for t in tools_to_use]
         
     import time
     max_retries = 6
@@ -341,10 +342,6 @@ class DatasetInfo(BaseModel):
     version_name: Optional[str] = Field(description="该数据集的具体版本号或年份标识 (例如: '2024', 'v1.2', 'Collection 2')，用于区分同名数据集的不同历史快照，若无则返回 null", default=None)
     
     official_website: Optional[str] = Field(description="数据集官网或托管平台名称 (例如: Zenodo, PANGAEA, ScienceDB, OSTI, GBIF等)，若无则返回 null", default=None)
-    target_api_name: Optional[List[str]] = Field(
-        description=IntegratedDataRepoFetcher.get_api_schema_desc() + " 语义生态穿透匹配】：请利用你的图情专业知识，判断当前数据集的托管机构或系统简称是否属于上述列表中的生态。如果是，请把列表中的准确名称提取出来；如果毫无关联，再返回空列表 []。",
-        default=None
-    )
 
 
 class DiscoveredVersion(BaseModel):
@@ -357,6 +354,39 @@ class DiscoveredVersionList(BaseModel):
 
 class DatasetExtractionList(BaseModel):
     datasets: List[DatasetInfo] = Field(description="基于收集到的所有信息，提取出匹配的数据集版本。如果该数据集存在历年迭代的不同版本，请务必在数组中穷尽列出所有找到的历史版本。")
+
+class TargetApiMatch(BaseModel):
+    target_api_name: List[str] = Field(
+        description=IntegratedDataRepoFetcher.get_api_schema_desc() + "【语义生态穿透匹配】：请利用你的图情专业知识，判断当前数据集的托管机构或系统简称是否属于上述列表中的某个机构。如果是，请把列表中的准确名称提取出来；如果毫无关联，再返回空列表 []。记住，不用强行越界匹配"
+    )
+
+def match_target_api_with_llm(dataset_info: dict, custom_request_llm_invoke) -> List[str]:
+    """使用大模型根据提取的数据集信息匹配目标 API"""
+    schema_str = json.dumps(TargetApiMatch.model_json_schema(), ensure_ascii=False, indent=2)
+    prompt = f"""
+你需要根据以下数据集的基本信息，匹配最适合的 API 爬虫。
+
+【数据集信息】
+- 名称: {dataset_info.get("dataset_name", "未知")}
+- 官网/托管平台: {dataset_info.get("official_website", "未知")}
+- URL: {dataset_info.get("dataset_url", "未知")}
+- DOI: {dataset_info.get("doi", "未知")}
+
+请严格按照以下 JSON Schema 输出：
+{schema_str}
+"""
+    messages = [
+        SystemMessage(content="你是一个专业的图情学数据生态专家。请严格按照要求进行匹配，并返回符合 JSON Schema 的 JSON 对象。"),
+        HumanMessage(content=prompt)
+    ]
+    try:
+        response = custom_request_llm_invoke(messages, use_tools=False, json_mode=True)
+        content = response.content
+        data = json.loads(content)
+        return data.get("target_api_name", [])
+    except Exception as e:
+        logger.error(f"API 匹配 LLM 调用失败: {e}")
+        return []
 
 # ==========================================
 # 2. Graph 状态定义
@@ -597,7 +627,9 @@ def version_extractor(state: AgentState):
     try:
         json_data = json.loads(raw_json.strip())
         validated = DatasetInfo(**json_data)
-        extracted_datasets.append(validated.model_dump())
+        ds_dict = validated.model_dump()
+        ds_dict["target_api_name"] = match_target_api_with_llm(ds_dict, custom_request_llm_invoke)
+        extracted_datasets.append(ds_dict)
         logger.info(f"   ✅ {v_name} 提取成功 (DOI: {validated.doi})")
     except Exception as e:
         logger.warning(f"⚠️ {v_name} 提取失败: {e}")
