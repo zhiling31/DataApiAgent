@@ -1,9 +1,9 @@
 import os
 import json
 
-def process_metadata_files():
-    input_dir = r"D:\地学\doi\数据清单\geophysics-Electrical and Electromagnetic Exploration Methods\data"
-    output_dir = r"D:\地学\doi\数据清单\geophysics-Electrical and Electromagnetic Exploration Methods\metadata"
+def process_metadata_files():#Faults_master-26个
+    input_dir = r"D:\地学\doi\数据清单\20260831-第三批数据集\Crustal ages_master-35个\data"
+    output_dir = r"D:\地学\doi\数据清单\20260831-第三批数据集\Crustal ages_master-35个\metadata"
     
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
